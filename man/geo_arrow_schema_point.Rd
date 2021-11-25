@@ -10,7 +10,6 @@
 \alias{geo_arrow_schema_wkb}
 \alias{geo_arrow_schema_wkt}
 \alias{geo_arrow_schema_geojson}
-\alias{geo_arrow_schema_large_geojson}
 \alias{geo_arrow_schema_point_struct_float64}
 \alias{geo_arrow_schema_point_struct_float32}
 \alias{geo_arrow_schema_point_float64}
@@ -19,10 +18,10 @@
 \alias{geo_arrow_schema_point_h3}
 \title{Create low-level Arrow schemas}
 \usage{
-geo_arrow_schema_point(name = NULL, dim = "xy", crs = NULL, nullable = TRUE)
+geo_arrow_schema_point(name = "", dim = "xy", crs = NULL, nullable = TRUE)
 
 geo_arrow_schema_linestring(
-  name = NULL,
+  name = "",
   format = "+l",
   nullable = TRUE,
   ellipsoidal = FALSE,
@@ -30,21 +29,21 @@ geo_arrow_schema_linestring(
 )
 
 geo_arrow_schema_polygon(
-  name = NULL,
+  name = "",
   format = c("+l", "+l"),
   nullable = TRUE,
   ellipsoidal = FALSE,
   point = geo_arrow_schema_point(nullable = FALSE)
 )
 
-geo_arrow_schema_multi(child, format = "+l", name = NULL, nullable = TRUE)
+geo_arrow_schema_multi(child, name = "", format = "+l", nullable = TRUE)
 
-geo_arrow_schema_sparse_geometrycollection(children = list(), name = NULL)
+geo_arrow_schema_sparse_geometrycollection(children = list(), name = "")
 
-geo_arrow_schema_dense_geometrycollection(children = list(), name = NULL)
+geo_arrow_schema_dense_geometrycollection(children = list(), name = "")
 
 geo_arrow_schema_wkb(
-  name = NULL,
+  name = "",
   format = "z",
   crs = NULL,
   ellipsoidal = FALSE,
@@ -52,24 +51,17 @@ geo_arrow_schema_wkb(
 )
 
 geo_arrow_schema_wkt(
-  name = NULL,
+  name = "",
   format = "u",
   crs = NULL,
   ellipsoidal = FALSE,
   nullable = TRUE
 )
 
-geo_arrow_schema_geojson(
-  name = NULL,
-  format = "u",
-  crs = NULL,
-  nullable = TRUE
-)
-
-geo_arrow_schema_large_geojson(name = NULL, crs = NULL, nullable = TRUE)
+geo_arrow_schema_geojson(name = "", format = "u", crs = NULL, nullable = TRUE)
 
 geo_arrow_schema_point_struct_float64(
-  name = NULL,
+  name = "",
   dim = "xy",
   crs = NULL,
   nullable = TRUE
@@ -96,18 +88,36 @@ geo_arrow_schema_point_float32(
   nullable = TRUE
 )
 
-geo_arrow_schema_point_s2(name = NULL, crs = "OGC:CRS84", nullable = TRUE)
+geo_arrow_schema_point_s2(name = "", crs = "OGC:CRS84", nullable = TRUE)
 
-geo_arrow_schema_point_h3(name = NULL, crs = "OGC:CRS84", nullable = TRUE)
+geo_arrow_schema_point_h3(name = "", crs = "OGC:CRS84", nullable = TRUE)
 }
 \arguments{
+\item{name}{An optional name}
+
+\item{dim}{A string with one character per dimension. The string must be one
+of xy, xyz, xym, or xyzm.}
+
 \item{crs}{A length-one character representation of the CRS. The WKT2
 representation is recommended as the most complete way to encode this
 information; however, any string that can be recognized by the PROJ
 command-line utility (e.g., "OGC:CRS84").}
 
+\item{nullable}{\code{TRUE} if the type is semantically nullable}
+
+\item{format}{For list-of types, the storage format. This can be +l
+(32-bit integer offsets), +L (64-bit integer offsets), or +w:(fixed_size).
+For \code{\link[=geo_arrow_schema_polygon]{geo_arrow_schema_polygon()}}, \code{format} has two elements: the first
+for the list of rings and the second for the list of points.}
+
 \item{ellipsoidal}{Use \code{TRUE} to assert that edges should be interpolated
 using the shortest ellipsoidal path (great circle on a sphere).}
+
+\item{point}{The point schema to use for coordinates}
+
+\item{child}{The child schema to use in a single-type (multi) collection}
+
+\item{children}{The child schemas for children in the union}
 }
 \value{
 A \code{\link[=carrow_schema]{carrow_schema()}}.

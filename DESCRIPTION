@@ -20,6 +20,7 @@ Imports:
 LinkingTo: 
     carrow,
     wk
+Remotes: paleolimbot/carrow
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
