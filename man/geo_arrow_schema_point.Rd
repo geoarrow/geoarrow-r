@@ -12,7 +12,7 @@
 \alias{geo_arrow_schema_geojson}
 \alias{geo_arrow_schema_flat_linestring}
 \alias{geo_arrow_schema_flat_polygon}
-\alias{geo_arrow_schema_flat_geometrycollection}
+\alias{geo_arrow_schema_flat_multi}
 \alias{geo_arrow_schema_point_struct_float64}
 \alias{geo_arrow_schema_point_struct_float32}
 \alias{geo_arrow_schema_point_float64}
@@ -79,12 +79,7 @@ geo_arrow_schema_flat_polygon(
   point = geo_arrow_schema_point(nullable = FALSE)
 )
 
-geo_arrow_schema_flat_geometrycollection(
-  child,
-  name = "",
-  format_id = "i",
-  nullable = TRUE
-)
+geo_arrow_schema_flat_multi(child, name = "", format_id = "i", nullable = TRUE)
 
 geo_arrow_schema_point_struct_float64(
   name = "",

@@ -201,7 +201,7 @@ geo_arrow_schema_flat_polygon <- function(name = "", format_id = c("i", "i"),
 
 #' @rdname geo_arrow_schema_point
 #' @export
-geo_arrow_schema_flat_geometrycollection <- function(child, name = "", format_id = "i", nullable = TRUE) {
+geo_arrow_schema_flat_multi <- function(child, name = "", format_id = "i", nullable = TRUE) {
   carrow::carrow_schema(
     format = "+s",
     name = name,
@@ -212,7 +212,7 @@ geo_arrow_schema_flat_geometrycollection <- function(child, name = "", format_id
     children = list(
       carrow::carrow_schema(
         format = format_id,
-        name = "collection_id",
+        name = "multi_id",
         flags = carrow::carrow_schema_flags(nullable = nullable)
       ),
       child

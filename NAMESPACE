@@ -2,8 +2,8 @@
 
 export(geo_arrow_metadata)
 export(geo_arrow_schema_dense_geometrycollection)
-export(geo_arrow_schema_flat_geometrycollection)
 export(geo_arrow_schema_flat_linestring)
+export(geo_arrow_schema_flat_multi)
 export(geo_arrow_schema_flat_polygon)
 export(geo_arrow_schema_geojson)
 export(geo_arrow_schema_linestring)

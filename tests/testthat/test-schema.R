@@ -19,5 +19,5 @@ test_that("extension schemas can be created", {
 
   expect_s3_class(geo_arrow_schema_flat_linestring(), "carrow_schema")
   expect_s3_class(geo_arrow_schema_flat_polygon(), "carrow_schema")
-  expect_s3_class(geo_arrow_schema_flat_geometrycollection(geo_arrow_schema_point()), "carrow_schema")
+  expect_s3_class(geo_arrow_schema_flat_multi(geo_arrow_schema_point()), "carrow_schema")
 })

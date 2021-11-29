@@ -76,6 +76,14 @@ pretty_type(
 )
 ```
 
+In addition to nested list types, also define "flat" types that can be streamed without waiting for a feature boundary. This is helpful for algorithms that don't need all the coordinates in memory at once or for streaming very large geometries over a network connection.
+
+```{r}
+pretty_type(geo_arrow_schema_flat_linestring())
+pretty_type(geo_arrow_schema_flat_polygon())
+pretty_type(geo_arrow_schema_flat_multi(geo_arrow_schema_point()))
+```
+
 The schemas here use column-level extension types and extension metadata to encode dimension names, CRS information, and a flag to specify that edges should be considered ellipsoidal rather than Cartesian.
 
 ```{r}
