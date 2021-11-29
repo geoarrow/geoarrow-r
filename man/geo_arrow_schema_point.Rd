@@ -10,6 +10,9 @@
 \alias{geo_arrow_schema_wkb}
 \alias{geo_arrow_schema_wkt}
 \alias{geo_arrow_schema_geojson}
+\alias{geo_arrow_schema_flat_linestring}
+\alias{geo_arrow_schema_flat_polygon}
+\alias{geo_arrow_schema_flat_geometrycollection}
 \alias{geo_arrow_schema_point_struct_float64}
 \alias{geo_arrow_schema_point_struct_float32}
 \alias{geo_arrow_schema_point_float64}
@@ -59,6 +62,29 @@ geo_arrow_schema_wkt(
 )
 
 geo_arrow_schema_geojson(name = "", format = "u", crs = NULL, nullable = TRUE)
+
+geo_arrow_schema_flat_linestring(
+  name = "",
+  format_id = "i",
+  ellipsoidal = FALSE,
+  nullable = TRUE,
+  point = geo_arrow_schema_point(nullable = FALSE)
+)
+
+geo_arrow_schema_flat_polygon(
+  name = "",
+  format_id = c("i", "i"),
+  ellipsoidal = FALSE,
+  nullable = TRUE,
+  point = geo_arrow_schema_point(nullable = FALSE)
+)
+
+geo_arrow_schema_flat_geometrycollection(
+  child,
+  name = "",
+  format_id = "i",
+  nullable = TRUE
+)
 
 geo_arrow_schema_point_struct_float64(
   name = "",
@@ -118,6 +144,8 @@ using the shortest ellipsoidal path (great circle on a sphere).}
 \item{child}{The child schema to use in a single-type (multi) collection}
 
 \item{children}{The child schemas for children in the union}
+
+\item{format_id}{The type to use for a flat identifier column.}
 }
 \value{
 A \code{\link[=carrow_schema]{carrow_schema()}}.

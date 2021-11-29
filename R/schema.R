@@ -18,6 +18,7 @@
 #'   (32-bit integer offsets), +L (64-bit integer offsets), or +w:(fixed_size).
 #'   For [geo_arrow_schema_polygon()], `format` has two elements: the first
 #'   for the list of rings and the second for the list of points.
+#' @param format_id The type to use for a flat identifier column.
 #' @inheritParams carrow::carrow_schema
 #'
 #' @return A [carrow_schema()].
@@ -145,6 +146,78 @@ geo_arrow_schema_geojson <- function(name = "", format = "u", crs = NULL, nullab
   schema <- geo_arrow_schema_wkt(name, format, crs, NULL, nullable)
   schema$metadata[["ARROW:extension:name"]] <- "geo_arrow_geojson"
   schema
+}
+
+#' @rdname geo_arrow_schema_point
+#' @export
+geo_arrow_schema_flat_linestring <- function(name = "", format_id = "i",
+                                             ellipsoidal = FALSE, nullable = TRUE,
+                                             point = geo_arrow_schema_point(nullable = FALSE)) {
+  carrow::carrow_schema(
+    format = "+s",
+    name = name,
+    metadata = list(
+      "ARROW:extension:name" = "geo_arrow_flat_linestring",
+      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(ellipsoidal = ellipsoidal)
+    ),
+    children = list(
+      carrow::carrow_schema(
+        format = format_id,
+        name = "linestring_id",
+        flags = carrow::carrow_schema_flags(nullable = nullable)
+      ),
+      point
+    )
+  )
+}
+
+#' @rdname geo_arrow_schema_point
+#' @export
+geo_arrow_schema_flat_polygon <- function(name = "", format_id = c("i", "i"),
+                                          ellipsoidal = FALSE, nullable = TRUE,
+                                          point = geo_arrow_schema_point(nullable = FALSE)) {
+  carrow::carrow_schema(
+    format = "+s",
+    name = name,
+    metadata = list(
+      "ARROW:extension:name" = "geo_arrow_flat_polygon",
+      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(ellipsoidal = ellipsoidal)
+    ),
+    children = list(
+      carrow::carrow_schema(
+        format = format_id[1],
+        name = "polygon_id",
+        flags = carrow::carrow_schema_flags(nullable = nullable)
+      ),
+      carrow::carrow_schema(
+        format = format_id[2],
+        name = "ring_id",
+        flags = carrow::carrow_schema_flags(nullable = nullable)
+      ),
+      point
+    )
+  )
+}
+
+#' @rdname geo_arrow_schema_point
+#' @export
+geo_arrow_schema_flat_geometrycollection <- function(child, name = "", format_id = "i", nullable = TRUE) {
+  carrow::carrow_schema(
+    format = "+s",
+    name = name,
+    metadata = list(
+      "ARROW:extension:name" = "geo_arrow_flat_collection",
+      "ARROW:extension:metadata" = geo_arrow_metadata_serialize()
+    ),
+    children = list(
+      carrow::carrow_schema(
+        format = format_id,
+        name = "collection_id",
+        flags = carrow::carrow_schema_flags(nullable = nullable)
+      ),
+      child
+    )
+  )
 }
 
 #' @rdname geo_arrow_schema_point
