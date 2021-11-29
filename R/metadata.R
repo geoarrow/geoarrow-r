@@ -7,13 +7,13 @@
 #' @export
 #'
 #' @examples
-#' geo_arrow_metadata(geo_arrow_schema_point(crs = "OGC:CRS84"))
+#' geoarrow_metadata(geoarrow_schema_point(crs = "OGC:CRS84"))
 #'
-geo_arrow_metadata <- function(schema) {
-  geo_arrow_metadata_deserialize(schema$metadata[["ARROW:extension:metadata"]])
+geoarrow_metadata <- function(schema) {
+  geoarrow_metadata_deserialize(schema$metadata[["ARROW:extension:metadata"]])
 }
 
-geo_arrow_metadata_serialize <- function(crs = NULL, ellipsoidal = NULL, dim = NULL) {
+geoarrow_metadata_serialize <- function(crs = NULL, ellipsoidal = NULL, dim = NULL) {
   if (!is.null(ellipsoidal)) {
     ellipsoidal <- scalar_lgl(ellipsoidal)
     ellipsoidal <- if (ellipsoidal) "true" else NULL
@@ -44,7 +44,7 @@ geo_arrow_metadata_serialize <- function(crs = NULL, ellipsoidal = NULL, dim = N
   readBin(con, what = raw(), n = n_bytes)
 }
 
-geo_arrow_metadata_deserialize <- function(metadata) {
+geoarrow_metadata_deserialize <- function(metadata) {
   con <- rawConnection(metadata)
   on.exit(close(con))
 

@@ -16,7 +16,7 @@
 #' @param children The child schemas for children in the union
 #' @param format For list-of types, the storage format. This can be +l
 #'   (32-bit integer offsets), +L (64-bit integer offsets), or +w:(fixed_size).
-#'   For [geo_arrow_schema_polygon()], `format` has two elements: the first
+#'   For [geoarrow_schema_polygon()], `format` has two elements: the first
 #'   for the list of rings and the second for the list of points.
 #' @param format_id The type to use for a flat identifier column.
 #' @inheritParams carrow::carrow_schema
@@ -25,21 +25,21 @@
 #' @export
 #'
 #' @examples
-#' geo_arrow_schema_point()
-#' geo_arrow_schema_linestring()
-#' geo_arrow_schema_polygon()
-#' geo_arrow_schema_multi(geo_arrow_schema_point())
-#' geo_arrow_schema_sparse_geometrycollection()
-#' geo_arrow_schema_dense_geometrycollection()
+#' geoarrow_schema_point()
+#' geoarrow_schema_linestring()
+#' geoarrow_schema_polygon()
+#' geoarrow_schema_multi(geoarrow_schema_point())
+#' geoarrow_schema_sparse_geometrycollection()
+#' geoarrow_schema_dense_geometrycollection()
 #'
-geo_arrow_schema_point <- function(name = "", dim = "xy", crs = NULL, nullable = TRUE) {
-  geo_arrow_schema_point_float64(name, dim, crs, nullable)
+geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL, nullable = TRUE) {
+  geoarrow_schema_point_float64(name, dim, crs, nullable)
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE, ellipsoidal = FALSE,
-                                        point = geo_arrow_schema_point(nullable = FALSE)) {
+geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE, ellipsoidal = FALSE,
+                                        point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(format_is_nested_list(format))
 
   carrow::carrow_schema(
@@ -47,17 +47,17 @@ geo_arrow_schema_linestring <- function(name = "", format = "+l", nullable = TRU
     format = format,
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_linestring",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:name" = "geoarrow::linestring",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
     ),
     children = list(point)
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable = TRUE, ellipsoidal = FALSE,
-                                     point = geo_arrow_schema_point(nullable = FALSE)) {
+geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable = TRUE, ellipsoidal = FALSE,
+                                     point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(
     format_is_nested_list(format[1]),
     format_is_nested_list(format[2])
@@ -68,8 +68,8 @@ geo_arrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable
     format = format[1],
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_polygon",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:name" = "geoarrow::polygon",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
     ),
     children = list(
       carrow::carrow_schema(format = format[2], name = "", children = list(point))
@@ -77,9 +77,9 @@ geo_arrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_multi <- function(child, name = "", format = "+l", nullable = TRUE) {
+geoarrow_schema_multi <- function(child, name = "", format = "+l", nullable = TRUE) {
   stopifnot(format_is_nested_list(format))
 
   carrow::carrow_schema(
@@ -87,40 +87,40 @@ geo_arrow_schema_multi <- function(child, name = "", format = "+l", nullable = T
     format = format,
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_multi",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize()
+      "ARROW:extension:name" = "geoarrow::multi",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize()
     ),
     children = list(child)
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_sparse_geometrycollection <- function(children = list(), name = "") {
+geoarrow_schema_sparse_geometrycollection <- function(children = list(), name = "") {
   type_ids <- paste(names(children), collapse = ",")
   carrow::carrow_schema(
     name = scalar_chr(name),
     format = sprintf("+us:%s", type_ids),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_collection",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize()
+      "ARROW:extension:name" = "geoarrow::collection",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize()
     ),
     children = children
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_dense_geometrycollection <- function(children = list(), name = "") {
+geoarrow_schema_dense_geometrycollection <- function(children = list(), name = "") {
   type_ids <- paste(names(children), collapse = ",")
-  schema <- geo_arrow_schema_sparse_geometrycollection(children, name)
+  schema <- geoarrow_schema_sparse_geometrycollection(children, name)
   schema$format <- sprintf("+us:%s", type_ids)
   schema
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_wkb <- function(name = "", format = "z", crs = NULL, ellipsoidal = FALSE,
+geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, ellipsoidal = FALSE,
                                  nullable = TRUE) {
   stopifnot(isTRUE(format %in% c("z", "Z")))
 
@@ -129,15 +129,15 @@ geo_arrow_schema_wkb <- function(name = "", format = "z", crs = NULL, ellipsoida
     format = format,
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_wkb",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(crs = crs, ellipsoidal = ellipsoidal)
+      "ARROW:extension:name" = "geoarrow::wkb",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, ellipsoidal = ellipsoidal)
     )
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_wkt <- function(name = "", format = "u", crs = NULL, ellipsoidal = FALSE, nullable = TRUE) {
+geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, ellipsoidal = FALSE, nullable = TRUE) {
   stopifnot(isTRUE(format %in% c("u", "U")))
 
   carrow::carrow_schema(
@@ -145,33 +145,33 @@ geo_arrow_schema_wkt <- function(name = "", format = "u", crs = NULL, ellipsoida
     format = format,
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_wkt",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(crs = crs, ellipsoidal = ellipsoidal)
+      "ARROW:extension:name" = "geoarrow::wkt",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, ellipsoidal = ellipsoidal)
     )
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_geojson <- function(name = "", format = "u", crs = NULL, nullable = TRUE) {
-  schema <- geo_arrow_schema_wkt(name, format, crs, NULL, nullable)
-  schema$metadata[["ARROW:extension:name"]] <- "geo_arrow_geojson"
+geoarrow_schema_geojson <- function(name = "", format = "u", crs = NULL, nullable = TRUE) {
+  schema <- geoarrow_schema_wkt(name, format, crs, NULL, nullable)
+  schema$metadata[["ARROW:extension:name"]] <- "geoarrow::geojson"
   schema
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_flat_linestring <- function(name = "", format_id = "i",
+geoarrow_schema_flat_linestring <- function(name = "", format_id = "i",
                                              ellipsoidal = FALSE, nullable = TRUE,
-                                             point = geo_arrow_schema_point(nullable = FALSE)) {
+                                             point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(format_is_id(format_id))
 
   carrow::carrow_schema(
     format = "+s",
     name = scalar_chr(name),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_flat_linestring",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:name" = "geoarrow::flat_linestring",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
     ),
     children = list(
       carrow::carrow_schema(
@@ -184,19 +184,19 @@ geo_arrow_schema_flat_linestring <- function(name = "", format_id = "i",
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_flat_polygon <- function(name = "", format_id = c("i", "i"),
+geoarrow_schema_flat_polygon <- function(name = "", format_id = c("i", "i"),
                                           ellipsoidal = FALSE, nullable = TRUE,
-                                          point = geo_arrow_schema_point(nullable = FALSE)) {
+                                          point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(format_is_id(format_id[1]), format_is_id(format_id[2]))
 
   carrow::carrow_schema(
     format = "+s",
     name = scalar_chr(name),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_flat_polygon",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:name" = "geoarrow::flat_polygon",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
     ),
     children = list(
       carrow::carrow_schema(
@@ -214,17 +214,17 @@ geo_arrow_schema_flat_polygon <- function(name = "", format_id = c("i", "i"),
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_flat_multi <- function(child, name = "", format_id = "i", nullable = TRUE) {
+geoarrow_schema_flat_multi <- function(child, name = "", format_id = "i", nullable = TRUE) {
   stopifnot(format_is_id(format_id))
 
   carrow::carrow_schema(
     format = "+s",
     name = scalar_chr(name),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_flat_collection",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize()
+      "ARROW:extension:name" = "geoarrow::flat_multi",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize()
     ),
     children = list(
       carrow::carrow_schema(
@@ -237,9 +237,9 @@ geo_arrow_schema_flat_multi <- function(child, name = "", format_id = "i", nulla
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_point_struct_float64 <- function(name = "", dim = "xy", crs = NULL,
+geoarrow_schema_point_struct_float64 <- function(name = "", dim = "xy", crs = NULL,
                                                   nullable = TRUE) {
   stopifnot(dim_is_xy_xyz_xym_or_xzm(dim))
 
@@ -252,27 +252,27 @@ geo_arrow_schema_point_struct_float64 <- function(name = "", dim = "xy", crs = N
     format = "+s",
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_point",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(crs = crs, dim = dim)
+      "ARROW:extension:name" = "geoarrow::point",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
     ),
     children = children
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_point_struct_float32 <- function(name = "", dim = "xy", crs = NULL,
+geoarrow_schema_point_struct_float32 <- function(name = "", dim = "xy", crs = NULL,
                                                   nullable = TRUE) {
-  schema <- geo_arrow_schema_point_struct_float64(name, dim, crs, nullable)
+  schema <- geoarrow_schema_point_struct_float64(name, dim, crs, nullable)
   schema$children <- lapply(schema$children, function(s) {
     s$format = "f"
   })
   schema
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_point_float64 <- function(name = "", dim = "xy", crs = NULL,
+geoarrow_schema_point_float64 <- function(name = "", dim = "xy", crs = NULL,
                                            nullable = TRUE) {
   stopifnot(dim_is_xy_xyz_xym_or_xzm(dim))
   n_dim <- nchar(dim)
@@ -282,8 +282,8 @@ geo_arrow_schema_point_float64 <- function(name = "", dim = "xy", crs = NULL,
     format = sprintf("+w:%d", n_dim),
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
-      "ARROW:extension:name" = "geo_arrow_point",
-      "ARROW:extension:metadata" = geo_arrow_metadata_serialize(crs = crs, dim = dim)
+      "ARROW:extension:name" = "geoarrow::point",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
     ),
     children = list(
       carrow::carrow_schema(format = "g", name = "")
@@ -291,11 +291,11 @@ geo_arrow_schema_point_float64 <- function(name = "", dim = "xy", crs = NULL,
   )
 }
 
-#' @rdname geo_arrow_schema_point
+#' @rdname geoarrow_schema_point
 #' @export
-geo_arrow_schema_point_float32 <- function(name = "", dim = "xy", crs = NULL,
+geoarrow_schema_point_float32 <- function(name = "", dim = "xy", crs = NULL,
                                            nullable = TRUE) {
-  schema <- geo_arrow_schema_point_float64(name, dim, crs, nullable)
+  schema <- geoarrow_schema_point_float64(name, dim, crs, nullable)
   schema$children[[1]]$format <- "f"
   schema
 }
