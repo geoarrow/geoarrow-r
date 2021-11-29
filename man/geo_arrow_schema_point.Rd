@@ -17,8 +17,6 @@
 \alias{geo_arrow_schema_point_struct_float32}
 \alias{geo_arrow_schema_point_float64}
 \alias{geo_arrow_schema_point_float32}
-\alias{geo_arrow_schema_point_s2}
-\alias{geo_arrow_schema_point_h3}
 \title{Create low-level Arrow schemas}
 \usage{
 geo_arrow_schema_point(name = "", dim = "xy", crs = NULL, nullable = TRUE)
@@ -89,29 +87,25 @@ geo_arrow_schema_point_struct_float64(
 )
 
 geo_arrow_schema_point_struct_float32(
-  name = NULL,
+  name = "",
   dim = "xy",
   crs = NULL,
   nullable = TRUE
 )
 
 geo_arrow_schema_point_float64(
-  name = NULL,
+  name = "",
   dim = "xy",
   crs = NULL,
   nullable = TRUE
 )
 
 geo_arrow_schema_point_float32(
-  name = NULL,
+  name = "",
   dim = "xy",
   crs = NULL,
   nullable = TRUE
 )
-
-geo_arrow_schema_point_s2(name = "", crs = "OGC:CRS84", nullable = TRUE)
-
-geo_arrow_schema_point_h3(name = "", crs = "OGC:CRS84", nullable = TRUE)
 }
 \arguments{
 \item{name}{An optional name}
