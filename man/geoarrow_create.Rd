@@ -21,6 +21,8 @@ geoarrow_schema_default(
 \item{...}{Passed to \code{\link[wk:wk_handle]{wk::wk_handle()}}}
 
 \item{schema}{A \code{\link[carrow:carrow_schema]{carrow::carrow_schema()}} to use as a storage method.}
+
+\item{point}{The point schema to use for coordinates}
 }
 \value{
 A \code{\link[carrow:carrow_array]{carrow::carrow_array()}}

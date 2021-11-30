@@ -25,6 +25,7 @@ Remotes:
     paleolimbot/crs2crs
 Suggests: 
     arrow,
+    crs2crs,
     covr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

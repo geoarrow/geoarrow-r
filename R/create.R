@@ -4,6 +4,7 @@
 #' @param handleable An object with a [wk::wk_handle()] method
 #' @param ... Passed to [wk::wk_handle()]
 #' @param schema A [carrow::carrow_schema()] to use as a storage method.
+#' @inheritParams geoarrow_schema_point
 #'
 #' @return A [carrow::carrow_array()]
 #' @export

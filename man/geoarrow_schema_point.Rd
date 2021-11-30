@@ -101,6 +101,9 @@ representation is recommended as the most complete way to encode this
 information; however, any string that can be recognized by the PROJ
 command-line utility (e.g., "OGC:CRS84").}
 
+\item{format_coord}{A format for floating point coordinate storage. This
+can be "f" (float/float32) or "g" (double/float64).}
+
 \item{nullable}{\code{TRUE} if the type is semantically nullable}
 
 \item{format}{For list-of types, the storage format. This can be +l
