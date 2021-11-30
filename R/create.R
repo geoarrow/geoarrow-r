@@ -28,7 +28,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 
 }
 
-geoarrow_create_multilipolygon_array <- function(coords, lengths, schema,
+geoarrow_create_multipolygon_array <- function(coords, lengths, schema,
                                                  n = lapply(lengths, length)) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::multi"),
@@ -97,9 +97,9 @@ geoarrow_create_polygon_array <- function(coords, lengths, schema,
     make_child_array = geoarrow_create_nested_list,
     list(
       lengths[[2]],
-      schema,
       n = n[[2]],
-      make_child_array = geoarrow_create_point_array
+      make_child_array = geoarrow_create_point_array,
+      list(coords)
     )
   )
 }

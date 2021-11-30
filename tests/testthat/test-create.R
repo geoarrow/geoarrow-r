@@ -1,4 +1,55 @@
 
+test_that("multipolygons can be created", {
+  poly <- c(
+    "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)), ((20 30, 35 35, 30 20, 20 30)))",
+    "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10))"
+  )
+  poly_coords <- wk::wk_coords(wk::as_wkt(poly))
+
+  poly <- geoarrow_create_multipolygon_array(
+    wk::xy(poly_coords$x, poly_coords$y),
+    list(c(2, 1), c(1, 1, 1), c(5, 4, 5)),
+    geoarrow_schema_multi(
+      geoarrow_schema_polygon(
+        point = geoarrow_schema_point_struct()
+      )
+    )
+  )
+  expect_null(poly$array_data$buffers[[1]])
+  expect_identical(as.numeric(poly$array_data$buffers[[2]]), c(0, 2, 3))
+  expect_identical(
+    as.numeric(poly$array_data$children[[1]]$buffers[[2]]),
+    c(0, 1, 2, 3)
+  )
+  expect_identical(
+    as.numeric(poly$array_data$children[[1]]$children[[1]]$buffers[[2]]),
+    c(0, 5, 9, 14)
+  )
+
+  skip_if_not_installed("arrow")
+
+  poly_arrow <- carrow::from_carrow_array(poly, arrow::Array)
+  expect_equal(
+    lapply(as.vector(poly_arrow), lapply, lapply, as.data.frame),
+    list(
+      list(
+        list(
+          poly_coords[1:5, c("x", "y")]
+        ),
+        list(
+          poly_coords[6:9, c("x", "y")]
+        )
+      ),
+      list(
+        list(
+          poly_coords[10:14, c("x", "y")]
+        )
+      )
+    ),
+    ignore_attr = TRUE
+  )
+})
+
 test_that("multilinestrings can be created", {
   multi <- geoarrow_create_multilinestring_array(
     wk::xy(1:10, 11:20),
@@ -48,6 +99,42 @@ test_that("multipoints can be created", {
       data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
       data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
     )
+  )
+})
+
+test_that("polygons can be created", {
+  poly <- c(
+    "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))",
+    "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10))"
+  )
+  poly_coords <- wk::wk_coords(wk::as_wkt(poly))
+
+  poly <- geoarrow_create_polygon_array(
+    wk::xy(poly_coords$x, poly_coords$y),
+    list(c(2, 1), c(5, 4, 5)),
+    geoarrow_schema_polygon(
+      point = geoarrow_schema_point_struct()
+    )
+  )
+  expect_null(poly$array_data$buffers[[1]])
+  expect_identical(as.numeric(poly$array_data$buffers[[2]]), c(0, 2, 3))
+  expect_identical(as.numeric(poly$array_data$children[[1]]$buffers[[2]]), c(0, 5, 9, 14))
+
+  skip_if_not_installed("arrow")
+
+  poly_arrow <- carrow::from_carrow_array(poly, arrow::Array)
+  expect_equal(
+    lapply(as.vector(poly_arrow), lapply, as.data.frame),
+    list(
+      list(
+        poly_coords[1:5, c("x", "y")],
+        poly_coords[6:9, c("x", "y")]
+      ),
+      list(
+        poly_coords[10:14, c("x", "y")]
+      )
+    ),
+    ignore_attr = TRUE
   )
 })
 
