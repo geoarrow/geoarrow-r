@@ -177,7 +177,7 @@ test_that("linestring arrays error for invalid schemas", {
           "ARROW:extension:metadata" = geoarrow_metadata_serialize()
         ))
     ),
-    "Unsupported linestring storage type"
+    "Unsupported nested list storage type"
   )
 })
 

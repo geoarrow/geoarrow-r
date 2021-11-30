@@ -34,6 +34,16 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema,
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::linestring")
   )
 
+  geoarrow_create_nested_list(
+    lengths,
+    schema,
+    n = n_linestrings,
+    make_child_array = geoarrow_create_point_array,
+    coords = coords
+  )
+}
+
+geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ...) {
   nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
   if (nullable) {
     is_na <- is.na(lengths)
@@ -56,9 +66,9 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema,
   if (identical(schema$format, "+l")) {
     stopifnot(total_length < (2 ^ 31))
 
-    point_array <- geoarrow_create_point_array(coords, schema$children[[1]])
+    child_array <- make_child_array(..., schema = schema$children[[1]])
     offsets <- c(0L, cumsum(lengths_finite))
-    stopifnot(as.numeric(point_array$array_data$length) >= total_length)
+    stopifnot(as.numeric(child_array$array_data$length) >= total_length)
 
     carrow::carrow_array(
       schema,
@@ -67,16 +77,16 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema,
           validity_buffer,
           as.integer(offsets)
         ),
-        length = n_linestrings,
+        length = n,
         null_count = null_count,
         children = list(
-          point_array$array_data
+          child_array$array_data
         )
       )
     )
   } else if (identical(schema$format, "+L")) {
-    point_array <- geoarrow_create_point_array(coords, schema$children[[1]])
-    stopifnot(as.numeric(point_array$array_data$length) >= total_length)
+    child_array <- make_child_array(..., schema = schema$children[[1]])
+    stopifnot(as.numeric(child_array$array_data$length) >= total_length)
     offsets <- c(0L, cumsum(lengths_finite))
 
     carrow::carrow_array(
@@ -86,10 +96,10 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema,
           validity_buffer,
           carrow::as_carrow_int64(offsets)
         ),
-        length = n_linestrings,
+        length = n,
         null_count = null_count,
         children = list(
-          point_array$array_data
+          child_array$array_data
         )
       )
     )
@@ -97,13 +107,13 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema,
     width <- carrow::parse_format(schema$format)$args$n_items
     stopifnot(
       all(lengths == width, na.rm = TRUE),
-      is.null(validity_buffer) || (length(lengths) == n_linestrings),
+      is.null(validity_buffer) || (length(lengths) == n),
       !is.null(validity_buffer) || all(is.finite(lengths))
     )
 
-    point_array <- geoarrow_create_point_array(coords, schema$children[[1]])
+    child_array <- make_child_array(..., schema = schema$children[[1]])
     stopifnot(
-      as.numeric(point_array$array_data$length) >= (width * n_linestrings)
+      as.numeric(child_array$array_data$length) >= (width * n)
     )
 
     carrow::carrow_array(
@@ -112,17 +122,17 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema,
         buffers = list(
           validity_buffer
         ),
-        length = n_linestrings,
+        length = n,
         null_count = null_count,
         children = list(
-          point_array$array_data
+          child_array$array_data
         )
       ),
       validate = FALSE
     )
   } else {
     stop(
-      sprintf("Unsupported linestring storage type '%s'", schema$format),
+      sprintf("Unsupported nested list storage type '%s'", schema$format),
       call. = FALSE
     )
   }
