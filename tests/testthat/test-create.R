@@ -1,4 +1,56 @@
 
+test_that("multilinestrings can be created", {
+  multi <- geoarrow_create_multilinestring_array(
+    wk::xy(1:10, 11:20),
+    list(c(2, 1), c(2, 3, 5)),
+    geoarrow_schema_multi(
+      geoarrow_schema_linestring(
+        point = geoarrow_schema_point_struct()
+      )
+    )
+  )
+  expect_null(multi$array_data$buffers[[1]])
+  expect_identical(as.numeric(multi$array_data$buffers[[2]]), c(0, 2, 3))
+  expect_identical(as.numeric(multi$array_data$children[[1]]$buffers[[2]]), c(0, 2, 5, 10))
+
+  skip_if_not_installed("arrow")
+
+  multi_arrow <- carrow::from_carrow_array(multi, arrow::Array)
+  expect_identical(
+    lapply(as.vector(multi_arrow), lapply, as.data.frame),
+    list(
+      list(
+        data.frame(x = as.numeric(1:2), y = as.numeric(11:12)),
+        data.frame(x = as.numeric(3:5), y = as.numeric(13:15))
+      ),
+      list(
+        data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
+      )
+    )
+  )
+})
+
+test_that("multipoints can be created", {
+  multi <- geoarrow_create_multipoint_array(
+    wk::xy(1:10, 11:20),
+    c(5, 5),
+    geoarrow_schema_multi(geoarrow_schema_point_struct())
+  )
+  expect_null(multi$array_data$buffers[[1]])
+  expect_identical(as.numeric(multi$array_data$buffers[[2]]), c(0, 5, 10))
+
+  skip_if_not_installed("arrow")
+
+  multi_arrow <- carrow::from_carrow_array(multi, arrow::Array)
+  expect_identical(
+    lapply(as.vector(multi_arrow), as.data.frame),
+    list(
+      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
+      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
+    )
+  )
+})
+
 test_that("nullable and non-nullable linestring arrays can be created", {
   ls_not_null <- geoarrow_create_linestring_array(
     wk::xy(1:10, 11:20),
@@ -24,6 +76,8 @@ test_that("nullable and non-nullable linestring arrays can be created", {
     c(TRUE, FALSE, TRUE)
   )
   expect_identical(as.numeric(ls_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
+
+  skip_if_not_installed("arrow")
 
   ls_not_null_arrow <- carrow::from_carrow_array(ls_not_null, arrow::Array)
   expect_identical(
