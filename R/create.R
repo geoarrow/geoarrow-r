@@ -28,8 +28,83 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 
 }
 
-geoarrow_create_linestring_array <- function(coords, lengths, schema,
-                                             n_linestrings = length(lengths)) {
+geoarrow_create_multilipolygon_array <- function(coords, lengths, schema,
+                                                 n = lapply(lengths, length)) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::multi"),
+    length(lengths) == 3,
+    length(n) == 3
+  )
+
+  geoarrow_create_nested_list(
+    lengths[[1]],
+    schema,
+    n = n[[1]],
+    make_child_array = geoarrow_create_polygon_array,
+    list(
+      coords,
+      lengths[-1],
+      n = n[-1]
+    )
+  )
+}
+
+geoarrow_create_multilinestring_array <- function(coords, lengths, schema,
+                                                  n = lapply(lengths, length)) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::multi"),
+    length(lengths) == 2,
+    length(n) == 2
+  )
+
+  geoarrow_create_nested_list(
+    lengths[[1]],
+    schema,
+    n = n[[1]],
+    make_child_array = geoarrow_create_linestring_array,
+    list(
+      coords,
+      lengths[[2]],
+      n = n[[2]]
+    )
+  )
+}
+
+geoarrow_create_multipoint_array <- function(coords, lengths, schema, n = length(lengths)) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::multi")
+  )
+
+  geoarrow_create_nested_list(
+    lengths,
+    schema,
+    n = n,
+    make_child_array = geoarrow_create_point_array,
+    list(coords)
+  )
+}
+
+geoarrow_create_polygon_array <- function(coords, lengths, schema,
+                                          n = lapply(lengths, length)) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::polygon")
+  )
+
+  geoarrow_create_nested_list(
+    lengths[[1]],
+    schema,
+    n = n[[1]],
+    make_child_array = geoarrow_create_nested_list,
+    list(
+      lengths[[2]],
+      schema,
+      n = n[[2]],
+      make_child_array = geoarrow_create_point_array
+    )
+  )
+}
+
+geoarrow_create_linestring_array <- function(coords, lengths, schema, n = length(lengths)) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::linestring")
   )
@@ -37,13 +112,13 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema,
   geoarrow_create_nested_list(
     lengths,
     schema,
-    n = n_linestrings,
+    n = n,
     make_child_array = geoarrow_create_point_array,
-    coords = coords
+    list(coords)
   )
 }
 
-geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ...) {
+geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, args) {
   nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
   if (nullable) {
     is_na <- is.na(lengths)
@@ -66,7 +141,7 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ..
   if (identical(schema$format, "+l")) {
     stopifnot(total_length < (2 ^ 31))
 
-    child_array <- make_child_array(..., schema = schema$children[[1]])
+    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]])))
     offsets <- c(0L, cumsum(lengths_finite))
     stopifnot(as.numeric(child_array$array_data$length) >= total_length)
 
@@ -85,7 +160,7 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ..
       )
     )
   } else if (identical(schema$format, "+L")) {
-    child_array <- make_child_array(..., schema = schema$children[[1]])
+    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]])))
     stopifnot(as.numeric(child_array$array_data$length) >= total_length)
     offsets <- c(0L, cumsum(lengths_finite))
 
@@ -111,7 +186,7 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ..
       !is.null(validity_buffer) || all(is.finite(lengths))
     )
 
-    child_array <- make_child_array(..., schema = schema$children[[1]])
+    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]])))
     stopifnot(
       as.numeric(child_array$array_data$length) >= (width * n)
     )
