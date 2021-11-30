@@ -20,8 +20,11 @@ Imports:
 LinkingTo: 
     carrow,
     wk
-Remotes: paleolimbot/carrow
+Remotes: 
+    paleolimbot/carrow,
+    paleolimbot/crs2crs
 Suggests: 
+    arrow,
     covr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

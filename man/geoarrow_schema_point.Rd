@@ -2,6 +2,7 @@
 % Please edit documentation in R/schema.R
 \name{geoarrow_schema_point}
 \alias{geoarrow_schema_point}
+\alias{geoarrow_schema_point_struct}
 \alias{geoarrow_schema_linestring}
 \alias{geoarrow_schema_polygon}
 \alias{geoarrow_schema_multi}
@@ -13,13 +14,23 @@
 \alias{geoarrow_schema_flat_linestring}
 \alias{geoarrow_schema_flat_polygon}
 \alias{geoarrow_schema_flat_multi}
-\alias{geoarrow_schema_point_struct_float64}
-\alias{geoarrow_schema_point_struct_float32}
-\alias{geoarrow_schema_point_float64}
-\alias{geoarrow_schema_point_float32}
 \title{Create low-level Arrow schemas}
 \usage{
-geoarrow_schema_point(name = "", dim = "xy", crs = NULL, nullable = TRUE)
+geoarrow_schema_point(
+  name = "",
+  dim = "xy",
+  crs = NULL,
+  format_coord = "g",
+  nullable = TRUE
+)
+
+geoarrow_schema_point_struct(
+  name = "",
+  dim = "xy",
+  crs = NULL,
+  format_coord = "g",
+  nullable = TRUE
+)
 
 geoarrow_schema_linestring(
   name = "",
@@ -78,34 +89,6 @@ geoarrow_schema_flat_polygon(
 )
 
 geoarrow_schema_flat_multi(child, name = "", format_id = "i", nullable = TRUE)
-
-geoarrow_schema_point_struct_float64(
-  name = "",
-  dim = "xy",
-  crs = NULL,
-  nullable = TRUE
-)
-
-geoarrow_schema_point_struct_float32(
-  name = "",
-  dim = "xy",
-  crs = NULL,
-  nullable = TRUE
-)
-
-geoarrow_schema_point_float64(
-  name = "",
-  dim = "xy",
-  crs = NULL,
-  nullable = TRUE
-)
-
-geoarrow_schema_point_float32(
-  name = "",
-  dim = "xy",
-  crs = NULL,
-  nullable = TRUE
-)
 }
 \arguments{
 \item{name}{An optional name}

@@ -32,8 +32,51 @@
 #' geoarrow_schema_sparse_geometrycollection()
 #' geoarrow_schema_dense_geometrycollection()
 #'
-geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL, nullable = TRUE) {
-  geoarrow_schema_point_float64(name, dim, crs, nullable)
+geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
+                                  format_coord = "g", nullable = TRUE) {
+  stopifnot(
+    dim_is_xy_xyz_xym_or_xzm(dim),
+    format_is_float_or_double(format_coord)
+  )
+  n_dim <- nchar(dim)
+
+  carrow::carrow_schema(
+    name = scalar_chr(name),
+    format = sprintf("+w:%d", n_dim),
+    flags = carrow::carrow_schema_flags(nullable = nullable),
+    metadata = list(
+      "ARROW:extension:name" = "geoarrow::point",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
+    ),
+    children = list(
+      carrow::carrow_schema(format = format_coord, name = "")
+    )
+  )
+}
+
+#' @rdname geoarrow_schema_point
+#' @export
+geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
+                                         format_coord = "g", nullable = TRUE) {
+  stopifnot(
+    dim_is_xy_xyz_xym_or_xzm(dim),
+    format_is_float_or_double(format_coord)
+  )
+
+  children <- lapply(strsplit(dim, "")[[1]], function(name) {
+    carrow::carrow_schema(format_coord, name = scalar_chr(name))
+  })
+
+  carrow::carrow_schema(
+    name = scalar_chr(name),
+    format = "+s",
+    flags = carrow::carrow_schema_flags(nullable = nullable),
+    metadata = list(
+      "ARROW:extension:name" = "geoarrow::point",
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
+    ),
+    children = children
+  )
 }
 
 #' @rdname geoarrow_schema_point
@@ -237,75 +280,16 @@ geoarrow_schema_flat_multi <- function(child, name = "", format_id = "i", nullab
   )
 }
 
-#' @rdname geoarrow_schema_point
-#' @export
-geoarrow_schema_point_struct_float64 <- function(name = "", dim = "xy", crs = NULL,
-                                                  nullable = TRUE) {
-  stopifnot(dim_is_xy_xyz_xym_or_xzm(dim))
-
-  children <- lapply(strsplit(dim, ""), function(name) {
-    carrow::carrow_schema("g", name = scalar_chr(name))
-  })
-
-  carrow::carrow_schema(
-    name = scalar_chr(name),
-    format = "+s",
-    flags = carrow::carrow_schema_flags(nullable = nullable),
-    metadata = list(
-      "ARROW:extension:name" = "geoarrow::point",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
-    ),
-    children = children
-  )
-}
-
-#' @rdname geoarrow_schema_point
-#' @export
-geoarrow_schema_point_struct_float32 <- function(name = "", dim = "xy", crs = NULL,
-                                                  nullable = TRUE) {
-  schema <- geoarrow_schema_point_struct_float64(name, dim, crs, nullable)
-  schema$children <- lapply(schema$children, function(s) {
-    s$format = "f"
-  })
-  schema
-}
-
-#' @rdname geoarrow_schema_point
-#' @export
-geoarrow_schema_point_float64 <- function(name = "", dim = "xy", crs = NULL,
-                                           nullable = TRUE) {
-  stopifnot(dim_is_xy_xyz_xym_or_xzm(dim))
-  n_dim <- nchar(dim)
-
-  carrow::carrow_schema(
-    name = scalar_chr(name),
-    format = sprintf("+w:%d", n_dim),
-    flags = carrow::carrow_schema_flags(nullable = nullable),
-    metadata = list(
-      "ARROW:extension:name" = "geoarrow::point",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
-    ),
-    children = list(
-      carrow::carrow_schema(format = "g", name = "")
-    )
-  )
-}
-
-#' @rdname geoarrow_schema_point
-#' @export
-geoarrow_schema_point_float32 <- function(name = "", dim = "xy", crs = NULL,
-                                           nullable = TRUE) {
-  schema <- geoarrow_schema_point_float64(name, dim, crs, nullable)
-  schema$children[[1]]$format <- "f"
-  schema
-}
-
 format_is_nested_list <- function(format) {
   grepl("^\\+[wlL]", scalar_chr(format))
 }
 
 format_is_id <- function(format_id) {
   isTRUE(scalar_chr(format_id) %in% c("i", "I", "l", "L", "s", "S", "c", "C"))
+}
+
+format_is_float_or_double <- function(format_coord) {
+  isTRUE(scalar_chr(format_coord) %in% c("f", "g"))
 }
 
 dim_is_xy_xyz_xym_or_xzm <- function(dim) {

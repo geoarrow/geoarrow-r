@@ -18,7 +18,100 @@ geoarrow_create <- function(handleable, ..., schema = geoarrow_schema_default(ha
 #' @rdname geoarrow_create
 #' @export
 geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable)) {
+  # Eventually this will be done with dedicated wk handlers at the C level with
+  # minimal allocs. For now, this is going to generate a lot of copying.
 
+  coords <- wk::wk_coords(handleable)
+  counts <- wk::wk_count(handleable)
+
+
+}
+
+geoarrow_create_point_array <- function(coords, schema) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::point")
+  )
+  geoarrow_meta <- geoarrow_metadata(schema)
+
+  stopifnot(
+    !is.null(geoarrow_meta$dim),
+    geoarrow_meta$dim %in% c("xy", "xyz", "xym", "xyzm")
+  )
+
+  # so that you can pass an xy() or list(x, y)
+  coords <- unclass(coords)
+
+  dims_in_schema <- strsplit(geoarrow_meta$dim, "")[[1]]
+  dims_in_coords <- intersect(names(coords), c("x", "y", "z", "m"))
+
+  # fills dimensions that aren't specified with NA
+  coords_dim <- unclass(
+    wk::as_xy(
+      wk::new_wk_xy(coords[dims_in_coords]),
+      dims = dims_in_schema
+    )
+  )
+
+  stopifnot(identical(names(coords_dim), dims_in_schema))
+  n_dim <- length(coords_dim)
+  n_coord <- length(coords_dim[[1]])
+
+  if (identical(schema$format, "+s")) {
+    struct_names <- vapply(schema$children, function(x) x$name, character(1))
+    struct_formats <- vapply(schema$children, function(x) x$format, character(1))
+    stopifnot(
+      identical(unname(struct_names), names(coords_dim)),
+      # not supporting float32 yet
+      all(struct_formats == "g")
+    )
+
+    struct_nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+    if (struct_nullable) {
+      is_na <- Reduce("&", lapply(coords_dim, is.na))
+      null_count <- sum(is_na)
+      validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
+    } else {
+      validity_buffer <- NULL
+      null_count <- 0
+    }
+
+    carrow::carrow_array(
+      schema,
+      carrow::carrow_array_data(
+        buffers = list(validity_buffer),
+        length = n_coord,
+        children = lapply(coords_dim, function(x) {
+          carrow::carrow_array_data(
+            buffers = list(NULL, x),
+            length = n_coord,
+            null_count = 0
+          )
+        }),
+        null_count = null_count
+      )
+    )
+  } else if (startsWith(schema$format, "+w")) {
+    width <- carrow::parse_format(schema$format)$args$n_items
+    stopifnot(identical(as.integer(width), as.integer(n_dim)))
+
+    # probably doesn't support more than 2 ^ 31 - 1 coordinates
+    interleaved <- do.call(rbind, unname(coords_dim))
+
+    carrow::carrow_array(
+      schema,
+      carrow::carrow_array_data(
+        length = ncol(interleaved),
+        children = list(
+          carrow::carrow_array_data(
+            buffers = list(interleaved),
+            length = length(interleaved)
+          )
+        )
+      )
+    )
+  } else {
+    stop(sprintf("Unsupported point format '%s'", schema$format), call. = FALSE)
+  }
 }
 
 #' @rdname geoarrow_create
@@ -76,8 +169,6 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point(nu
 
   point$metadata[["ARROW:extension:metadata"]] <-
     do.call(geoarrow_metadata_serialize, point_metadata)
-
-
 
   geoarrow_schema_default_base(vector_meta$geometry_type, all_types, point)
 }
