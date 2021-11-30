@@ -27,6 +27,106 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 
 }
 
+geoarrow_create_linestring_array <- function(coords, lengths, schema,
+                                             n_linestrings = length(lengths)) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::linestring")
+  )
+
+  nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  if (nullable) {
+    is_na <- is.na(lengths)
+    null_count <- sum(is_na)
+    validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
+  } else {
+    validity_buffer <- NULL
+    null_count <- 0
+  }
+
+  lengths_finite <- lengths
+  lengths_finite[is.na(lengths_finite)] <- 0L
+
+  total_length <- sum(lengths_finite)
+  if (typeof(total_length) == "double") {
+    # or else cumsum() may give an integer overflow
+    lengths_finite <- as.double(lengths_finite)
+  }
+
+  if (identical(schema$format, "+l")) {
+    stopifnot(total_length < (2 ^ 31))
+
+    point_array <- geoarrow_create_point_array(coords, schema$children[[1]])
+    offsets <- c(0L, cumsum(lengths_finite))
+    stopifnot(as.numeric(point_array$array_data$length) >= total_length)
+
+    carrow::carrow_array(
+      schema,
+      carrow::carrow_array_data(
+        buffers = list(
+          validity_buffer,
+          as.integer(offsets)
+        ),
+        length = n_linestrings,
+        null_count = null_count,
+        children = list(
+          point_array$array_data
+        )
+      )
+    )
+  } else if (identical(schema$format, "+L")) {
+    point_array <- geoarrow_create_point_array(coords, schema$children[[1]])
+    stopifnot(as.numeric(point_array$array_data$length) >= total_length)
+    offsets <- c(0L, cumsum(lengths_finite))
+
+    carrow::carrow_array(
+      schema,
+      carrow::carrow_array_data(
+        buffers = list(
+          validity_buffer,
+          carrow::as_carrow_int64(offsets)
+        ),
+        length = n_linestrings,
+        null_count = null_count,
+        children = list(
+          point_array$array_data
+        )
+      )
+    )
+  } else if (startsWith(schema$format, "+w:")) {
+    width <- carrow::parse_format(schema$format)$args$n_items
+    stopifnot(
+      all(lengths == width, na.rm = TRUE),
+      is.null(validity_buffer) || (length(lengths) == n_linestrings),
+      !is.null(validity_buffer) || all(is.finite(lengths))
+    )
+
+    point_array <- geoarrow_create_point_array(coords, schema$children[[1]])
+    stopifnot(
+      as.numeric(point_array$array_data$length) >= (width * n_linestrings)
+    )
+
+    carrow::carrow_array(
+      schema,
+      carrow::carrow_array_data(
+        buffers = list(
+          validity_buffer
+        ),
+        length = n_linestrings,
+        null_count = null_count,
+        children = list(
+          point_array$array_data
+        )
+      ),
+      validate = FALSE
+    )
+  } else {
+    stop(
+      sprintf("Unsupported linestring storage type '%s'", schema$format),
+      call. = FALSE
+    )
+  }
+}
+
 geoarrow_create_point_array <- function(coords, schema) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::point")
@@ -92,7 +192,9 @@ geoarrow_create_point_array <- function(coords, schema) {
     )
   } else if (startsWith(schema$format, "+w")) {
     width <- carrow::parse_format(schema$format)$args$n_items
-    stopifnot(identical(as.integer(width), as.integer(n_dim)))
+    stopifnot(
+      identical(as.integer(width), as.integer(n_dim))
+    )
 
     # probably doesn't support more than 2 ^ 31 - 1 coordinates
     interleaved <- do.call(rbind, unname(coords_dim))
@@ -107,7 +209,8 @@ geoarrow_create_point_array <- function(coords, schema) {
             length = length(interleaved)
           )
         )
-      )
+      ),
+      validate = FALSE
     )
   } else {
     stop(sprintf("Unsupported point storage type '%s'", schema$format), call. = FALSE)

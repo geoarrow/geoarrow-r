@@ -1,5 +1,207 @@
 
-test_that("point struct arrays can be created", {
+test_that("nullable and non-nullable linestring arrays can be created", {
+  ls_not_null <- geoarrow_create_linestring_array(
+    wk::xy(1:10, 11:20),
+    c(5, NA, 5),
+    geoarrow_schema_linestring(
+      nullable = FALSE,
+      point = geoarrow_schema_point_struct()
+    )
+  )
+  expect_null(ls_not_null$array_data$buffers[[1]])
+  expect_identical(as.numeric(ls_not_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
+
+  ls_null <- geoarrow_create_linestring_array(
+    wk::xy(1:10, 11:20),
+    c(5, NA, 5),
+    geoarrow_schema_linestring(
+      nullable = TRUE,
+      point = geoarrow_schema_point_struct()
+    )
+  )
+  expect_identical(
+    as.logical(ls_null$array_data$buffers[[1]])[1:3],
+    c(TRUE, FALSE, TRUE)
+  )
+  expect_identical(as.numeric(ls_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
+
+  ls_not_null_arrow <- carrow::from_carrow_array(ls_not_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(ls_not_null_arrow), as.data.frame),
+    list(
+      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
+      data.frame(x = double(), y = double()),
+      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
+    )
+  )
+
+  ls_null_arrow <- carrow::from_carrow_array(ls_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(ls_null_arrow), as.data.frame),
+    list(
+      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
+      data.frame(),
+      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
+    )
+  )
+})
+
+test_that("nullable and non-nullable large linestring arrays can be created", {
+  ls_not_null <- geoarrow_create_linestring_array(
+    wk::xy(1:10, 11:20),
+    c(5, NA, 5),
+    geoarrow_schema_linestring(
+      format = "+L",
+      nullable = FALSE,
+      point = geoarrow_schema_point_struct()
+    )
+  )
+  expect_null(ls_not_null$array_data$buffers[[1]])
+  expect_identical(as.numeric(ls_not_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
+
+  ls_null <- geoarrow_create_linestring_array(
+    wk::xy(1:10, 11:20),
+    c(5, NA, 5),
+    geoarrow_schema_linestring(
+      format = "+L",
+      nullable = TRUE,
+      point = geoarrow_schema_point_struct()
+    )
+  )
+  expect_identical(
+    as.logical(ls_null$array_data$buffers[[1]])[1:3],
+    c(TRUE, FALSE, TRUE)
+  )
+  expect_identical(as.numeric(ls_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
+
+  skip_if_not_installed("arrow")
+
+  ls_not_null_arrow <- carrow::from_carrow_array(ls_not_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(ls_not_null_arrow), as.data.frame),
+    list(
+      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
+      data.frame(x = double(), y = double()),
+      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
+    )
+  )
+
+  ls_null_arrow <- carrow::from_carrow_array(ls_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(ls_null_arrow), as.data.frame),
+    list(
+      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
+      data.frame(),
+      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
+    )
+  )
+})
+
+test_that("nullable and non-nullable fixed-width linestring arrays can be created", {
+  # can't create not_null if some lengths are NA
+  expect_error(
+    geoarrow_create_linestring_array(
+      wk::xy(1:15, 11:25),
+      c(5, NA, 5),
+      geoarrow_schema_linestring(
+        format = "+w:5",
+        nullable = FALSE,
+        point = geoarrow_schema_point_struct()
+      )
+    ),
+    "all\\(is.finite\\(lengths\\)\\) is not TRUE"
+  )
+
+  ls_not_null <- geoarrow_create_linestring_array(
+    wk::xy(1:15, 11:25),
+    c(5, 5, 5),
+    geoarrow_schema_linestring(
+      format = "+w:5",
+      nullable = FALSE,
+      point = geoarrow_schema_point_struct()
+    )
+  )
+  expect_null(ls_not_null$array_data$buffers[[1]])
+
+  ls_null <- geoarrow_create_linestring_array(
+    wk::xy(1:15, 11:25),
+    c(5, NA, 5),
+    geoarrow_schema_linestring(
+      format = "+w:5",
+      nullable = TRUE,
+      point = geoarrow_schema_point_struct()
+    )
+  )
+  expect_identical(
+    as.logical(ls_null$array_data$buffers[[1]])[1:3],
+    c(TRUE, FALSE, TRUE)
+  )
+
+  skip_if_not_installed("arrow")
+
+  ls_not_null_arrow <- carrow::from_carrow_array(ls_not_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(ls_not_null_arrow), as.data.frame),
+    list(
+      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
+      data.frame(x = as.numeric(6:10), y = as.numeric(16:20)),
+      data.frame(x = as.numeric(11:15), y = as.numeric(21:25))
+    )
+  )
+
+  ls_null_arrow <- carrow::from_carrow_array(ls_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(ls_null_arrow), as.data.frame),
+    list(
+      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
+      data.frame(),
+      data.frame(x = as.numeric(11:15), y = as.numeric(21:25))
+    )
+  )
+})
+
+test_that("linestring arrays error for invalid schemas", {
+  expect_error(
+    geoarrow_create_linestring_array(wk::xy(), integer(), carrow::carrow_schema("i")),
+    "geoarrow::linestring"
+  )
+
+  expect_error(
+    geoarrow_create_linestring_array(
+      wk::xy(),
+      integer(),
+      carrow::carrow_schema(
+        "i",
+        metadata = list(
+          "ARROW:extension:name" = "geoarrow::linestring",
+          "ARROW:extension:metadata" = geoarrow_metadata_serialize()
+        ))
+    ),
+    "Unsupported linestring storage type"
+  )
+})
+
+test_that("point struct arrays can be created with and without null points", {
+  coords <- wk::xy(c(1:2, NA), c(3:4, NA))
+
+  array_not_null <- geoarrow_create_point_array(
+    coords,
+    geoarrow_schema_point_struct(nullable = FALSE)
+  )
+  expect_null(array_not_null$array_data$buffers[[1]])
+
+  array_null <- geoarrow_create_point_array(
+    coords,
+    geoarrow_schema_point_struct(nullable = TRUE)
+  )
+
+  expect_identical(
+    as.logical(array_null$array_data$buffers[[1]])[1:length(coords)],
+    c(TRUE, TRUE, FALSE)
+  )
+})
+
+test_that("point struct arrays can be created for all dimensions", {
   coords_xy <- wk::xy(1:100, 101:200)
   array_xy <- geoarrow_create_point_array(coords_xy, geoarrow_schema_point_struct(dim = "xy"))
   expect_identical(
