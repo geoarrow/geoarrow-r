@@ -91,6 +91,52 @@ test_that("point struct arrays can be created", {
   )
 })
 
+test_that("point arrays can't be created from invalid schemas", {
+  expect_error(
+    geoarrow_create_point_array(wk::xy(), carrow::carrow_schema("i")),
+    "geoarrow::point"
+  )
+
+  expect_error(
+    geoarrow_create_point_array(
+      wk::xy(),
+      carrow::carrow_schema(
+        "i",
+        metadata = list(
+          "ARROW:extension:name" = "geoarrow::point",
+          "ARROW:extension:metadata" = geoarrow_metadata_serialize()
+        ))
+    ),
+    "dim"
+  )
+
+  expect_error(
+    geoarrow_create_point_array(
+      wk::xy(),
+      carrow::carrow_schema(
+        "i",
+        metadata = list(
+          "ARROW:extension:name" = "geoarrow::point",
+          "ARROW:extension:metadata" = geoarrow_metadata_serialize(dim = "fish")
+        ))
+    ),
+    "xyzm"
+  )
+
+  expect_error(
+    geoarrow_create_point_array(
+      wk::xy(),
+      carrow::carrow_schema(
+        "i",
+        metadata = list(
+          "ARROW:extension:name" = "geoarrow::point",
+          "ARROW:extension:metadata" = geoarrow_metadata_serialize(dim = "xy")
+        ))
+    ),
+    "Unsupported point storage type"
+  )
+})
+
 test_that("geoarrow_schema_default() works with and without wk::wk_vector_meta()", {
   schema_point <- geoarrow_schema_default(wk::xy(1:2, 1:2))
   expect_identical(schema_point$metadata[["ARROW:extension:name"]], "geoarrow::point")

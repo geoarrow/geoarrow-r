@@ -20,9 +20,9 @@ geoarrow_create <- function(handleable, ..., schema = geoarrow_schema_default(ha
 geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable)) {
   # Eventually this will be done with dedicated wk handlers at the C level with
   # minimal allocs. For now, this is going to generate a lot of copying.
-
   coords <- wk::wk_coords(handleable)
   counts <- wk::wk_count(handleable)
+
 
 
 }
@@ -110,7 +110,7 @@ geoarrow_create_point_array <- function(coords, schema) {
       )
     )
   } else {
-    stop(sprintf("Unsupported point format '%s'", schema$format), call. = FALSE)
+    stop(sprintf("Unsupported point storage type '%s'", schema$format), call. = FALSE)
   }
 }
 
