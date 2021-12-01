@@ -19,13 +19,167 @@ geoarrow_create <- function(handleable, ..., schema = geoarrow_schema_default(ha
 #' @rdname geoarrow_create
 #' @export
 geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable)) {
+  extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
+
+  # handle crs
+
+  if (identical(extension, "geoarrow::wkt")) {
+    return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema))
+  } else if (identical(extension, "geoarrow::geojson")) {
+    if (!requireNamespace("geos", quietly = TRUE) || (geos::geos_version() < "3.10")) {
+      stop(
+        "Package 'geos' with 'libgeos' >= 3.10 required to export handleable as GeoJSON",
+        call. = FALSE
+      )
+    }
+
+    geos_geom <- geos::as_geos_geometry(handleable)
+    geojson_geom <- geos::geos_write_geojson(geos_geom)
+
+    return(geoarrow_create_geojson_array(geojson_geom))
+  } else if (identical(extension, "geoarrow::wkb")) {
+    return(geoarrow_create_wkb_array(unclass(wk::as_wkb(handleable)), schema))
+  }
+
   # Eventually this will be done with dedicated wk handlers at the C level with
   # minimal allocs. For now, this is going to generate a lot of copying.
+
+  # all types need the coordinates in flat form
   coords <- wk::wk_coords(handleable)
+
+  if (identical(extension, "geoarrow::point")) {
+    return(geoarrow_create_point_array(coords, schema))
+  }
+
+  # everything except point needs counts
   counts <- wk::wk_count(handleable)
 
+  if (identical(extension, "geoarrow::linestring")) {
+    return(geoarrow_create_linestring_array(coords, counts$n_coord, schema))
+  } else if (identical(extension, "geoarrow::polygon")) {
+    # wk_count() doesn't do coordinate count for rings, but we can use
+    # rle() for this because rings are never empty or null
+    ring_coord_counts <- rle(coords$ring_id)$lengths
+
+    array <- geoarrow_create_polygon_array(
+      coords,
+      lengths = list(counts$n_ring, ring_coord_counts),
+      schema = schema
+    )
+
+  } else if (identical(extension, "geoarrow::multi")) {
+    child_schema <- schema$children[[1]]
+    sub_extension <- scalar_chr(child_schema$metadata[["ARROW:extension:name"]])
+
+    if (identical(sub_extension, "geoarrow::point")) {
+      return(geoarrow_create_linestring_array(coords, counts$n_coord, schema))
+    } else if (identical(extension, "geoarrow::linestring")) {
+      flat_counts <- wk::wk_handle(
+        handleable,
+        wk::wk_flatten_filter(
+          wk::wk_count_handler()
+        )
+      )
+
+      array <- geoarrow_create_multilinestring_array(
+        coords,
+        lengths = list(counts$n_geom - 1L, flat_counts$n_coord),
+        schema = schema
+      )
+
+      return(array)
+    } else if (identical(extension, "geoarrow::polygon")) {
+      flat_counts <- wk::wk_handle(
+        handleable,
+        wk::wk_flatten_filter(
+          wk::wk_count_handler()
+        )
+      )
+      ring_coord_counts <- rle(coords$ring_id)$lengths
+
+      array <- geoarrow_create_multipolygon_array(
+        coords,
+        lengths = list(counts$n_geom - 1L, flat_counts$n_ring, ring_coord_counts),
+        schema = schema
+      )
+
+      return(array)
+    } else {
+      stop(
+        sprintf("Extension '%s' not supported within 'geoarrow::multi'", sub_extension),
+        call. = FALSE
+      )
+    }
+  }
 
 
+  stop(
+    sprintf("Extension '%s' not supported by geoarrow_create()", extension),
+    call. = FALSE
+  )
+}
+
+geoarrow_create_wkt_array <- function(x, schema, strict = FALSE) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::wkt"),
+  )
+
+  geoarrow_create_string_array(x, schema, strict = strict)
+}
+
+geoarrow_create_geojson_array <- function(x, schema, strict = FALSE) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::geojson"),
+  )
+
+  geoarrow_create_string_array(x, schema, strict = strict)
+}
+
+geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
+  stopifnot(
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::wkb"),
+  )
+
+  nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  if (nullable) {
+    is_na <- vapply(x, is.null, logical(1))
+    null_count <- sum(is_na)
+    validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
+  } else {
+    validity_buffer <- NULL
+    null_count <- 0
+  }
+
+  item_lengths <- as.numeric(lengths(x, use.names = FALSE))
+  flat <- unlist(x, use.names = FALSE)
+  total_length <- length(flat)
+
+  if (identical(schema$format, "Z")) {
+    array_data <- carrow::carrow_array_data(
+      buffers = list(
+        validity_buffer,
+        as.integer(item_lengths),
+        flat
+      )
+    )
+  } else if (identical(schema$format, "Z")) {
+    array_data <- carrow::carrow_array_data(
+      buffers = list(
+        validity_buffer,
+        carrow::as_carrow_int64(item_lengths),
+        flat
+      )
+    )
+  } else if (startsWith(schema$format, "w:")) {
+
+  } else {
+    stop(
+      sprintf("Unsupported binary encoding format: '%s'", schema$format),
+      call. = FALSE
+    )
+  }
+
+  carrow::carrow_array(schema, array_data)
 }
 
 geoarrow_create_multipolygon_array <- function(coords, lengths, schema,
@@ -301,6 +455,29 @@ geoarrow_create_point_array <- function(coords, schema) {
   } else {
     stop(sprintf("Unsupported point storage type '%s'", schema$format), call. = FALSE)
   }
+}
+
+geoarrow_create_string_array <- function(x, schema, strict = FALSE) {
+  array <- carrow::as_carrow_array(x)
+
+  if (!strict || identical(array$schema$format, schema$format)) {
+    schema$format <- array$schema$format
+    array$schema <- schema
+    return(array)
+  }
+
+  # we can totally convert a regular unicode to large unicode
+  if (identical(schema$format, "U")) {
+    array <- unclass(array)
+    array$schema <- schema
+    array$array_data$buffers[[2]] <- carrow::as_carrow_int64(array$array_data$buffers[[2]])
+    return(do.call(carrow::carrow_array, array))
+  }
+
+  stop(
+    "Attempt to create small unicode array with > (2 ^ 31 - 1) elements",
+    call. = FALSE
+  )
 }
 
 #' @rdname geoarrow_create
