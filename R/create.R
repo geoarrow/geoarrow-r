@@ -417,6 +417,16 @@ geoarrow_create_point_array <- function(coords, schema) {
   n_dim <- length(coords_dim)
   n_coord <- length(coords_dim[[1]])
 
+  nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  if (nullable) {
+    is_na <- Reduce("&", lapply(coords_dim, is.na))
+    null_count <- sum(is_na)
+    validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
+  } else {
+    validity_buffer <- NULL
+    null_count <- 0
+  }
+
   if (identical(schema$format, "+s")) {
     struct_names <- vapply(schema$children, function(x) x$name, character(1))
     struct_formats <- vapply(schema$children, function(x) x$format, character(1))
@@ -425,16 +435,6 @@ geoarrow_create_point_array <- function(coords, schema) {
       # not supporting float32 yet
       all(struct_formats == "g")
     )
-
-    struct_nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
-    if (struct_nullable) {
-      is_na <- Reduce("&", lapply(coords_dim, is.na))
-      null_count <- sum(is_na)
-      validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
-    } else {
-      validity_buffer <- NULL
-      null_count <- 0
-    }
 
     carrow::carrow_array(
       schema,
@@ -464,12 +464,15 @@ geoarrow_create_point_array <- function(coords, schema) {
       schema,
       carrow::carrow_array_data(
         length = ncol(interleaved),
+        buffers = list(validity_buffer),
         children = list(
           carrow::carrow_array_data(
-            buffers = list(interleaved),
-            length = length(interleaved)
+            buffers = list(NULL, interleaved),
+            length = length(interleaved),
+            null_count = 0
           )
-        )
+        ),
+        null_count = null_count
       ),
       validate = FALSE
     )

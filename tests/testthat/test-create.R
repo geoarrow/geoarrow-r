@@ -599,6 +599,40 @@ test_that("linestring arrays error for invalid schemas", {
   )
 })
 
+test_that("point arrays can be created with and without null points", {
+  coords <- wk::xy(c(1:2, NA), c(3:4, NA))
+
+  array_not_null <- geoarrow_create_point_array(
+    coords,
+    geoarrow_schema_point(nullable = FALSE)
+  )
+  expect_null(array_not_null$array_data$buffers[[1]])
+
+  array_null <- geoarrow_create_point_array(
+    coords,
+    geoarrow_schema_point(nullable = TRUE)
+  )
+
+  expect_identical(
+    as.logical(array_null$array_data$buffers[[1]])[1:length(coords)],
+    c(TRUE, TRUE, FALSE)
+  )
+
+  skip_if_not_installed("arrow")
+
+  array_not_null_arrow <- carrow::from_carrow_array(array_not_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(array_not_null_arrow), as.numeric),
+    list(c(1, 3), c(2, 4), c(NA_real_, NA_real_))
+  )
+
+  array_null_arrow <- carrow::from_carrow_array(array_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(array_null_arrow), as.numeric),
+    list(c(1, 3), c(2, 4), double())
+  )
+})
+
 test_that("point struct arrays can be created with and without null points", {
   coords <- wk::xy(c(1:2, NA), c(3:4, NA))
 
