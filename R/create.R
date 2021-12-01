@@ -67,13 +67,15 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
       schema = schema
     )
 
+    return(array)
+
   } else if (identical(extension, "geoarrow::multi")) {
     child_schema <- schema$children[[1]]
     sub_extension <- scalar_chr(child_schema$metadata[["ARROW:extension:name"]])
 
     if (identical(sub_extension, "geoarrow::point")) {
-      return(geoarrow_create_linestring_array(coords, counts$n_coord, schema))
-    } else if (identical(extension, "geoarrow::linestring")) {
+      return(geoarrow_create_multipoint_array(coords, counts$n_coord, schema))
+    } else if (identical(sub_extension, "geoarrow::linestring")) {
       flat_counts <- wk::wk_handle(
         handleable,
         wk::wk_flatten_filter(
@@ -88,18 +90,20 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
       )
 
       return(array)
-    } else if (identical(extension, "geoarrow::polygon")) {
+    } else if (identical(sub_extension, "geoarrow::polygon")) {
       flat_counts <- wk::wk_handle(
         handleable,
         wk::wk_flatten_filter(
-          wk::wk_count_handler()
+          wk::wk_count_handler(),
+          add_details = TRUE
         )
       )
+      geom_counts <- rle(attr(flat_counts, "wk_details")$feature_id)$lengths
       ring_coord_counts <- rle(coords$ring_id)$lengths
 
       array <- geoarrow_create_multipolygon_array(
         coords,
-        lengths = list(counts$n_geom - 1L, flat_counts$n_ring, ring_coord_counts),
+        lengths = list(geom_counts, flat_counts$n_ring, ring_coord_counts),
         schema = schema
       )
 

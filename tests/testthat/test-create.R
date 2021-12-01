@@ -1,4 +1,142 @@
 
+test_that("geoarrow_create() works for geoarrow::point", {
+  array <- geoarrow::geoarrow_create(
+    wk::xy(1:5, 1:5),
+    schema = geoarrow_schema_point_struct()
+  )
+
+  expect_identical(
+    carrow::from_carrow_array(array),
+    data.frame(x = as.double(1:5), y = as.double(1:5))
+  )
+})
+
+test_that("geoarrow_create() works for geoarrow::linestring", {
+  array <- geoarrow::geoarrow_create(
+    wk::wkt(c("LINESTRING (0 1, 2 3)", "LINESTRING (4 5, 6 7, 8 9)")),
+    schema = geoarrow_schema_linestring(
+      point = geoarrow_schema_point_struct()
+    )
+  )
+
+  expect_identical(
+    array$array_data$buffers[[2]],
+    c(0L, 2L, 5L)
+  )
+})
+
+test_that("geoarrow_create() works for geoarrow::polygon", {
+  poly <- c(
+    "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))",
+    "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10))"
+  )
+
+  array <- geoarrow::geoarrow_create(
+    wk::wkt(poly),
+    schema = geoarrow_schema_polygon(
+      point = geoarrow_schema_point_struct()
+    )
+  )
+
+  expect_null(array$array_data$buffers[[1]])
+  expect_identical(as.numeric(array$array_data$buffers[[2]]), c(0, 2, 3))
+  expect_identical(as.numeric(array$array_data$children[[1]]$buffers[[2]]), c(0, 5, 9, 14))
+})
+
+test_that("geoarrow_create() works for geoarrow::multi / geoarrow::point", {
+  array <- geoarrow::geoarrow_create(
+    wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (4 5, 6 7, 8 9)")),
+    schema = geoarrow_schema_multi(
+      geoarrow_schema_point_struct()
+    )
+  )
+
+  expect_identical(
+    array$array_data$buffers[[2]],
+    c(0L, 2L, 5L)
+  )
+})
+
+
+test_that("geoarrow_create() works for geoarrow::multi / geoarrow::linestring", {
+  array <- geoarrow::geoarrow_create(
+    wk::wkt(
+      c("MULTILINESTRING ((0 1, 2 3))",
+        "MULTILINESTRING ((4 5, 6 7, 8 9), (10 11, 12 13))")
+    ),
+    schema = geoarrow_schema_multi(
+      geoarrow_schema_linestring(
+        point = geoarrow_schema_point_struct()
+      )
+    )
+  )
+
+  expect_identical(
+    array$array_data$buffers[[2]],
+    c(0L, 1L, 3L)
+  )
+
+  expect_identical(
+    array$array_data$children[[1]]$buffers[[2]],
+    c(0L, 2L, 5L, 7L)
+  )
+})
+
+test_that("geoarrow_create() works for goearrow::multi / geoarrow::polygon", {
+  poly_text <- c(
+    "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)), ((20 30, 35 35, 30 20, 20 30)))",
+    "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)))"
+  )
+
+  poly <- geoarrow::geoarrow_create(
+    wk::wkt(poly_text),
+    schema = geoarrow_schema_multi(
+      geoarrow_schema_polygon(
+        point = geoarrow_schema_point_struct()
+      )
+    )
+  )
+  expect_null(poly$array_data$buffers[[1]])
+  expect_identical(as.numeric(poly$array_data$buffers[[2]]), c(0, 2, 3))
+  expect_identical(
+    as.numeric(poly$array_data$children[[1]]$buffers[[2]]),
+    c(0, 1, 2, 3)
+  )
+  expect_identical(
+    as.numeric(poly$array_data$children[[1]]$children[[1]]$buffers[[2]]),
+    c(0, 5, 9, 14)
+  )
+})
+
+test_that("geoarrow_create() errors for invalid schemas", {
+  expect_error(
+    geoarrow_create(wk::xy(), schema = carrow::carrow_schema("i")),
+    "is not TRUE"
+  )
+  expect_error(
+    geoarrow_create(
+      wk::xy(),
+      schema = carrow::carrow_schema(
+        "i",
+        metadata = list("ARROW:extension:name" = "not an extension")
+      )
+    ),
+    "Extension 'not an extension' not supported by geoarrow_create"
+  )
+  expect_error(
+    geoarrow_create(
+      wk::xy(),
+      schema = geoarrow_schema_multi(
+        carrow::carrow_schema(
+          "i",
+          metadata = list("ARROW:extension:name" = "not an extension")
+        )
+      )
+    ),
+    "Extension 'not an extension' not supported within 'geoarrow::multi'"
+  )
+})
+
 test_that("multipolygons can be created", {
   poly <- c(
     "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)), ((20 30, 35 35, 30 20, 20 30)))",
