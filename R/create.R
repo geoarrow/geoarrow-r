@@ -165,6 +165,15 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
   flat <- unlist(x, use.names = FALSE)
   total_length <- length(flat)
 
+  if (!strict) {
+    unique_lengths <- unique(item_lengths)
+    if (length(unique_lengths) == 1L) {
+      schema$format <- sprintf("w:%d", unique_lengths)
+    } else if (total_length > ((2 ^ 31) - 1)) {
+      schema$format <- "Z"
+    }
+  }
+
   if (identical(schema$format, "z")) {
     array_data <- carrow::carrow_array_data(
       length = length(x),

@@ -29,7 +29,8 @@ test_that("geoarrow_create() works for geoarrow::wkt", {
 test_that("geoarrow_create() works for geoarrow::wkb", {
   array <- geoarrow::geoarrow_create(
     wk::xy(1:2, 1:2),
-    schema = geoarrow_schema_wkb()
+    schema = geoarrow_schema_wkb(format = "z"),
+    strict = TRUE
   )
 
   expect_identical(
@@ -200,6 +201,29 @@ test_that("geojson arrays can be created", {
     carrow::from_carrow_array(array),
     geojson_text
   )
+})
+
+test_that("WKB arrays auto-set format based on data", {
+  array_fixed_width <- geoarrow_create_wkb_array(
+    unclass(wk::as_wkb(c("POINT (1 2)", "POINT (3 4)"))),
+    schema = geoarrow_schema_wkb(format = "z"),
+    strict = FALSE
+  )
+  expect_identical(array_fixed_width$schema$format, "w:21")
+
+  skip_if_not(identical(Sys.getenv("ARROW_LARGE_MEMORY_TESTS"), "true"))
+
+  # invalid WKB but fast to generate
+  array_huge <- geoarrow_create_wkb_array(
+    list(raw(1), raw(2 ^ 31 - 1)),
+    schema = geoarrow_schema_wkb(format = "z"),
+    strict = FALSE
+  )
+  expect_identical(array_huge$schema$format, "Z")
+
+  skip_if_not_installed("arrow")
+  array_huge_arrow <- carrow::from_carrow_array(array_huge, arrow::Array)
+  expect_true(array_huge_arrow$type == arrow::large_binary())
 })
 
 test_that("WKB arrays can be created", {
