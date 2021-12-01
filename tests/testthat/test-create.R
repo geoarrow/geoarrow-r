@@ -199,6 +199,44 @@ test_that("WKB arrays can be created", {
   )
 })
 
+test_that("large WKB arrays can be created", {
+  wkb_list <- unclass(wk::as_wkb(c("POINT (1 2)", "LINESTRING (1 2, 3 4)", NA)))
+  array <- geoarrow_create_wkb_array(
+    wkb_list,
+    schema = geoarrow_schema_wkb(format = "Z")
+  )
+
+  expect_identical(as.logical(array$array_data$buffers[[1]])[1:3], c(TRUE, TRUE, FALSE))
+  expect_identical(diff(as.integer(array$array_data$buffers[[2]])), as.integer(lengths(wkb_list)))
+  expect_identical(array$array_data$buffers[[3]], unlist(wkb_list))
+
+  skip_if_not_installed("arrow")
+
+  array_arrow <- carrow::from_carrow_array(array, arrow::Array)
+  expect_identical(
+    lapply(as.vector(array_arrow), as.raw),
+    lapply(wkb_list, as.raw)
+  )
+})
+
+test_that("fixed-width WKB arrays can be created", {
+  wkb_list <- unclass(wk::as_wkb(c("POINT (1 2)", "POINT (2 3)")))
+  array <- geoarrow_create_wkb_array(
+    wkb_list,
+    schema = geoarrow_schema_wkb(format = "w:21")
+  )
+
+  expect_identical(array$array_data$buffers[[2]], unlist(wkb_list))
+
+  skip_if_not_installed("arrow")
+
+  array_arrow <- carrow::from_carrow_array(array, arrow::Array)
+  expect_identical(
+    lapply(as.vector(array_arrow), as.raw),
+    wkb_list
+  )
+})
+
 test_that("multipolygons can be created", {
   poly <- c(
     "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)), ((20 30, 35 35, 30 20, 20 30)))",

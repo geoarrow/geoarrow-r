@@ -194,7 +194,7 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
       null_count = null_count
     )
 
-    carrow::carrow_array(schema, array_data)
+    carrow::carrow_array(schema, array_data, validate = FALSE)
   } else {
     stop(
       sprintf("Unsupported binary encoding format: '%s'", schema$format),

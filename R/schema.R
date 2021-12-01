@@ -167,7 +167,7 @@ geoarrow_schema_dense_geometrycollection <- function(children = list(), name = "
 #' @export
 geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, ellipsoidal = FALSE,
                                  nullable = TRUE) {
-  stopifnot(isTRUE(format %in% c("z", "Z")))
+  stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z")))
 
   carrow::carrow_schema(
     name = scalar_chr(name),
