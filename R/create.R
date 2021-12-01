@@ -238,7 +238,8 @@ geoarrow_create_multipolygon_array <- function(coords, lengths, schema,
       coords,
       lengths[-1],
       n = n[-1]
-    )
+    ),
+    strict = strict
   )
 }
 
@@ -260,7 +261,8 @@ geoarrow_create_multilinestring_array <- function(coords, lengths, schema,
       coords,
       lengths[[2]],
       n = n[[2]]
-    )
+    ),
+    strict = strict
   )
 }
 
@@ -275,7 +277,8 @@ geoarrow_create_multipoint_array <- function(coords, lengths, schema, n = length
     schema,
     n = n,
     make_child_array = geoarrow_create_point_array,
-    list(coords)
+    list(coords),
+    strict = strict
   )
 }
 
@@ -296,7 +299,8 @@ geoarrow_create_polygon_array <- function(coords, lengths, schema,
       n = n[[2]],
       make_child_array = geoarrow_create_point_array,
       list(coords)
-    )
+    ),
+    strict = strict
   )
 }
 
@@ -311,7 +315,8 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema, n = length
     schema,
     n = n,
     make_child_array = geoarrow_create_point_array,
-    list(coords)
+    list(coords),
+    strict = strict
   )
 }
 
@@ -335,12 +340,22 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
     lengths_finite <- as.double(lengths_finite)
   }
 
+  if (!strict) {
+    unique_lengths <- unique(lengths_finite)
+    if (length(unique_lengths) == 1L) {
+      schema$format <- sprintf("+w:%d", unique_lengths)
+    } else if (total_length > ((2 ^ 31) - 1)) {
+      schema$format <- "+L"
+    }
+  }
+
   if (identical(schema$format, "+l")) {
     stopifnot(total_length < (2 ^ 31))
 
     child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]], strict = strict)))
-    offsets <- c(0L, cumsum(lengths_finite))
+    schema$children[[1]] <- child_array$schema
     stopifnot(as.numeric(child_array$array_data$length) >= total_length)
+    offsets <- c(0L, cumsum(lengths_finite))
 
     carrow::carrow_array(
       schema,
@@ -357,7 +372,8 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
       )
     )
   } else if (identical(schema$format, "+L")) {
-    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]])))
+    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]], strict = strict)))
+    schema$children[[1]] <- child_array$schema
     stopifnot(as.numeric(child_array$array_data$length) >= total_length)
     offsets <- c(0L, cumsum(lengths_finite))
 
@@ -383,7 +399,8 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
       !is.null(validity_buffer) || all(is.finite(lengths))
     )
 
-    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]])))
+    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]], strict = strict)))
+    schema$children[[1]] <- child_array$schema
     stopifnot(
       as.numeric(child_array$array_data$length) >= (width * n)
     )
@@ -445,6 +462,7 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
     null_count <- sum(is_na)
     validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
   } else {
+    # here NAs are OK because they're considered NaN in double math
     validity_buffer <- NULL
     null_count <- 0
   }
