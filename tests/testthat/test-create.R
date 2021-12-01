@@ -137,6 +137,68 @@ test_that("geoarrow_create() errors for invalid schemas", {
   )
 })
 
+test_that("wkt arrays can be created", {
+  array <- geoarrow_create_wkt_array(
+    c("POINT (1 2)", "LINESTRING (1 2, 3 4)"),
+    schema = geoarrow_schema_wkt()
+  )
+  expect_identical(
+    carrow::from_carrow_array(array),
+    c("POINT (1 2)", "LINESTRING (1 2, 3 4)")
+  )
+})
+
+test_that("geojson arrays can be created", {
+  geojson_text <- c(
+    "{\"type\":\"Point\",\"coordinates\":[1.0,2.0]}",
+    "{\"type\":\"LineString\",\"coordinates\":[[1.0,2.0],[3.0,4.0]]}"
+  )
+  array <- geoarrow_create_geojson_array(
+    geojson_text,
+    schema = geoarrow_schema_geojson()
+  )
+  expect_identical(
+    carrow::from_carrow_array(array),
+    geojson_text
+  )
+})
+
+test_that("WKB arrays can be created", {
+  wkb_list <- unclass(wk::as_wkb(c("POINT (1 2)", "LINESTRING (1 2, 3 4)", NA)))
+  array <- geoarrow_create_wkb_array(
+    wkb_list,
+    schema = geoarrow_schema_wkb(format = "z")
+  )
+
+  expect_identical(as.logical(array$array_data$buffers[[1]])[1:3], c(TRUE, TRUE, FALSE))
+  expect_identical(diff(array$array_data$buffers[[2]]), as.integer(lengths(wkb_list)))
+  expect_identical(array$array_data$buffers[[3]], unlist(wkb_list))
+
+  wkb_list_not_null <- unclass(wk::as_wkb(c("POINT (1 2)", "LINESTRING (1 2, 3 4)")))
+  array_not_null <- geoarrow_create_wkb_array(
+    wkb_list_not_null,
+    schema = geoarrow_schema_wkb(format = "z", nullable = FALSE)
+  )
+
+  expect_null(array_not_null$array_data$buffers[[1]])
+  expect_identical(diff(array_not_null$array_data$buffers[[2]]), as.integer(lengths(wkb_list_not_null)))
+  expect_identical(array_not_null$array_data$buffers[[3]], unlist(wkb_list))
+
+  skip_if_not_installed("arrow")
+
+  array_arrow <- carrow::from_carrow_array(array, arrow::Array)
+  expect_identical(
+    lapply(as.vector(array_arrow), as.raw),
+    lapply(wkb_list, as.raw)
+  )
+
+  array_not_null_arrow <- carrow::from_carrow_array(array_not_null, arrow::Array)
+  expect_identical(
+    lapply(as.vector(array_not_null_arrow), as.raw),
+    wkb_list_not_null
+  )
+})
+
 test_that("multipolygons can be created", {
   poly <- c(
     "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)), ((20 30, 35 35, 30 20, 20 30)))",

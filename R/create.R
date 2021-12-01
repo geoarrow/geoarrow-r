@@ -21,8 +21,6 @@ geoarrow_create <- function(handleable, ..., schema = geoarrow_schema_default(ha
 geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable)) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
-  # handle crs
-
   if (identical(extension, "geoarrow::wkt")) {
     return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema))
   } else if (identical(extension, "geoarrow::geojson")) {
@@ -125,7 +123,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 
 geoarrow_create_wkt_array <- function(x, schema, strict = FALSE) {
   stopifnot(
-    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::wkt"),
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::wkt")
   )
 
   geoarrow_create_string_array(x, schema, strict = strict)
@@ -133,7 +131,7 @@ geoarrow_create_wkt_array <- function(x, schema, strict = FALSE) {
 
 geoarrow_create_geojson_array <- function(x, schema, strict = FALSE) {
   stopifnot(
-    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::geojson"),
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::geojson")
   )
 
   geoarrow_create_string_array(x, schema, strict = strict)
@@ -141,15 +139,16 @@ geoarrow_create_geojson_array <- function(x, schema, strict = FALSE) {
 
 geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
   stopifnot(
-    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::wkb"),
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::wkb")
   )
 
   nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  is_na <- vapply(x, is.null, logical(1))
   if (nullable) {
-    is_na <- vapply(x, is.null, logical(1))
     null_count <- sum(is_na)
     validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
   } else {
+    stopifnot(all(!is_na))
     validity_buffer <- NULL
     null_count <- 0
   }
@@ -158,32 +157,50 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
   flat <- unlist(x, use.names = FALSE)
   total_length <- length(flat)
 
-  if (identical(schema$format, "Z")) {
+  if (identical(schema$format, "z")) {
     array_data <- carrow::carrow_array_data(
+      length = length(x),
       buffers = list(
         validity_buffer,
-        as.integer(item_lengths),
+        as.integer(c(0L, cumsum(item_lengths))),
         flat
-      )
+      ),
+      null_count = null_count
     )
+
+    carrow::carrow_array(schema, array_data)
   } else if (identical(schema$format, "Z")) {
     array_data <- carrow::carrow_array_data(
+      length = length(x),
       buffers = list(
         validity_buffer,
-        carrow::as_carrow_int64(item_lengths),
+        carrow::as_carrow_int64(c(0L, cumsum(item_lengths))),
         flat
-      )
+      ),
+      null_count = null_count
     )
-  } else if (startsWith(schema$format, "w:")) {
 
+    carrow::carrow_array(schema, array_data)
+  } else if (startsWith(schema$format, "w:")) {
+    width <- carrow::parse_format(schema$format)$args$n_bytes
+    stopifnot(all(item_lengths == width))
+
+    array_data <- carrow::carrow_array_data(
+      length = length(x),
+      buffers = list(
+        validity_buffer,
+        flat
+      ),
+      null_count = null_count
+    )
+
+    carrow::carrow_array(schema, array_data)
   } else {
     stop(
       sprintf("Unsupported binary encoding format: '%s'", schema$format),
       call. = FALSE
     )
   }
-
-  carrow::carrow_array(schema, array_data)
 }
 
 geoarrow_create_multipolygon_array <- function(coords, lengths, schema,
