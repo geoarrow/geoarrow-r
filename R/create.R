@@ -524,12 +524,6 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point(nu
     all_types <- sort(unique(meta$geometry_type))
     if (length(all_types) == 1L) {
       vector_meta$geometry_type <- all_types
-    } else if (identical(all_types, c(1L, 4L))) {
-      vector_meta$geometry_type <- wk::wk_geometry_type("multipoint")
-    } else if (identical(all_types, c(2L, 5L))) {
-      vector_meta$geometry_type <- wk::wk_geometry_type("multilinestring")
-    } else if (identical(all_types, c(3L, 6L))) {
-      vector_meta$geometry_type <- wk::wk_geometry_type("multipolygon")
     } else {
       vector_meta$geometry_type <- wk::wk_geometry_type("geometrycollection")
     }
@@ -572,7 +566,7 @@ geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, poin
     geoarrow_schema_multi(point),
     geoarrow_schema_multi(geoarrow_schema_linestring(point = point)),
     geoarrow_schema_multi(geoarrow_schema_polygon(point = point)),
-    # for now, fall back to WKB for collections
+    # for now, fall back to WKB for collections or mixed types
     geoarrow_schema_wkb(),
     # geoarrow_schema_sparse_geometrycollection(
     #   children = lapply(

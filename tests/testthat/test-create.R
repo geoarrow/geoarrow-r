@@ -757,6 +757,20 @@ test_that("point arrays can't be created from invalid schemas", {
   )
 })
 
+test_that("geoarrow_schema_default() falls back to WKB for mixed type vectors", {
+  schema_collection <- geoarrow_schema_default(wk::wkt("GEOMETRYCOLLECTION (POINT (1 2))"))
+  expect_identical(
+    schema_collection$metadata[["ARROW:extension:name"]],
+    "geoarrow::wkb"
+  )
+
+  schema_mixed <- geoarrow_schema_default(wk::wkt(c("POINT (1 2)", "MULTIPOINT (1 2, 3 4)")))
+  expect_identical(
+    schema_mixed$metadata[["ARROW:extension:name"]],
+    "geoarrow::wkb"
+  )
+})
+
 test_that("geoarrow_schema_default() works with and without wk::wk_vector_meta()", {
   schema_point <- geoarrow_schema_default(wk::xy(1:2, 1:2))
   expect_identical(schema_point$metadata[["ARROW:extension:name"]], "geoarrow::point")
