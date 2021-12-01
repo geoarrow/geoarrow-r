@@ -1,4 +1,43 @@
 
+test_that("geoarrow_create() works for geoarrow::geojson", {
+  array <- geoarrow::geoarrow_create(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_geojson()
+  )
+
+  expect_identical(
+    carrow::from_carrow_array(array),
+    c(
+      "{\"type\":\"Point\",\"coordinates\":[1.0,1.0]}",
+      "{\"type\":\"Point\",\"coordinates\":[2.0,2.0]}"
+    )
+  )
+})
+
+test_that("geoarrow_create() works for geoarrow::wkt", {
+  array <- geoarrow::geoarrow_create(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_wkt()
+  )
+
+  expect_identical(
+    carrow::from_carrow_array(array),
+    c("POINT (1 1)", "POINT (2 2)")
+  )
+})
+
+test_that("geoarrow_create() works for geoarrow::wkb", {
+  array <- geoarrow::geoarrow_create(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_wkb()
+  )
+
+  expect_identical(
+    array$array_data$buffers[[3]],
+    unlist(wk::as_wkb(c("POINT (1 1)", "POINT (2 2)")))
+  )
+})
+
 test_that("geoarrow_create() works for geoarrow::point", {
   array <- geoarrow::geoarrow_create(
     wk::xy(1:5, 1:5),

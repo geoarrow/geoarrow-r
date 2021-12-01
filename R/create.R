@@ -34,7 +34,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
     geos_geom <- geos::as_geos_geometry(handleable)
     geojson_geom <- geos::geos_write_geojson(geos_geom)
 
-    return(geoarrow_create_geojson_array(geojson_geom))
+    return(geoarrow_create_geojson_array(geojson_geom, schema))
   } else if (identical(extension, "geoarrow::wkb")) {
     return(geoarrow_create_wkb_array(unclass(wk::as_wkb(handleable)), schema))
   }
@@ -572,14 +572,16 @@ geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, poin
     geoarrow_schema_multi(point),
     geoarrow_schema_multi(geoarrow_schema_linestring(point = point)),
     geoarrow_schema_multi(geoarrow_schema_polygon(point = point)),
-    geoarrow_schema_sparse_geometrycollection(
-      children = lapply(
-        all_geometry_types,
-        geoarrow_schema_default_base,
-        all_geometry_types = NULL,
-        point = point
-      )
-    ),
+    # for now, fall back to WKB for collections
+    geoarrow_schema_wkb(),
+    # geoarrow_schema_sparse_geometrycollection(
+    #   children = lapply(
+    #     all_geometry_types,
+    #     geoarrow_schema_default_base,
+    #     all_geometry_types = NULL,
+    #     point = point
+    #   )
+    # ),
     stop(sprintf("Unsupported geometry type ID '%d'", geometry_type), call. = FALSE)
   )
 }
