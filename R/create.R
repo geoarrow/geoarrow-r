@@ -516,7 +516,18 @@ geoarrow_create_string_array <- function(x, schema, strict = FALSE) {
   if (identical(schema$format, "U")) {
     array <- unclass(array)
     array$schema <- schema
-    array$array_data$buffers[[2]] <- carrow::as_carrow_int64(array$array_data$buffers[[2]])
+
+    # carrow makes it hard to mess with the buffers (on purpose)
+    array$array_data <- carrow::carrow_array_data_info(array$array_data)
+    array$array_data$buffers <- list(
+      array$array_data$buffers[[1]],
+      carrow::as_carrow_int64(array$array_data$buffers[[2]]),
+      array$array_data$buffers[[3]]
+    )
+    array$array_data$n_buffers <- NULL
+    array$array_data$n_children <- NULL
+    array$array_data <- do.call(carrow::carrow_array_data, array$array_data)
+
     return(do.call(carrow::carrow_array, array))
   }
 

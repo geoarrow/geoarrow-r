@@ -300,6 +300,35 @@ test_that("fixed-width WKB arrays can be created", {
   )
 })
 
+test_that("geoarrow_create_string_array() respects strict = TRUE", {
+  # make sure output is large if requested
+  not_big_array <- geoarrow_create_string_array(
+    "a totally normal size of string",
+    schema = geoarrow_schema_wkt(format = "U"),
+    strict = TRUE
+  )
+  expect_identical(
+    carrow::from_carrow_array(not_big_array),
+    "a totally normal size of string"
+  )
+
+  skip_if_not(identical(Sys.getenv("ARROW_LARGE_MEMORY_TESTS"), "true"))
+
+  long_text <- c("a", strrep("b", 2 ^ 31 - 1))
+  expect_error(
+    geoarrow_create_string_array(
+      long_text,
+      schema = geoarrow_schema_wkt(format = "u"),
+      strict = TRUE
+    ),
+    "Attempt to create small unicode array with"
+  )
+
+  skip_if_not_installed("arrow")
+  not_big_array_arrow <- carrow::from_carrow_array(not_big_array, arrow::Array)
+  expect_identical(as.vector(not_big_array_arrow), "a totally normal size of string")
+})
+
 test_that("multipolygons can be created", {
   poly <- c(
     "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)), ((20 30, 35 35, 30 20, 20 30)))",
