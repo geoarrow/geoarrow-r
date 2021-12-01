@@ -30,10 +30,12 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
     return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema))
   } else if (identical(extension, "geoarrow::geojson")) {
     if (!requireNamespace("geos", quietly = TRUE) || (geos::geos_version() < "3.10")) {
+      # nocov start
       stop(
         "Package 'geos' with 'libgeos' >= 3.10 required to export handleable as GeoJSON",
         call. = FALSE
       )
+      # nocov end
     }
 
     geos_geom <- geos::as_geos_geometry(handleable)
@@ -587,7 +589,7 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point(nu
 
   if (is.null(point_metadata$crs)) {
     crs <- wk::wk_crs(handleable)
-    if (!is.null(crs)) {
+    if (!is.null(crs) && !inherits(crs, "wk_crs_inherit")) {
       point_metadata$crs <- crs2crs::crs_proj_definition(crs)
     }
   }
@@ -630,6 +632,6 @@ geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, poin
     #     point = point
     #   )
     # ),
-    stop(sprintf("Unsupported geometry type ID '%d'", geometry_type), call. = FALSE)
+    stop(sprintf("Unsupported geometry type ID '%d'", geometry_type), call. = FALSE) # nocov
   )
 }

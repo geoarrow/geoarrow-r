@@ -301,6 +301,22 @@ test_that("fixed-width WKB arrays can be created", {
   )
 })
 
+test_that("WKB creation errors with invalid schema", {
+  expect_error(
+    geoarrow_create_wkb_array(
+      list(raw()),
+      schema = carrow::carrow_schema(
+        "i",
+        metadata = list(
+          "ARROW:extension:name" = "geoarrow::wkb"
+        )
+      ),
+      strict = TRUE
+    ),
+    "Unsupported binary encoding format"
+  )
+})
+
 test_that("geoarrow_create_string_array() respects strict = TRUE", {
   # make sure output is large if requested
   not_big_array <- geoarrow_create_string_array(
@@ -844,6 +860,56 @@ test_that("point arrays can't be created from invalid schemas", {
         ))
     ),
     "Unsupported point storage type"
+  )
+})
+
+test_that("geoarrow_schema_default() works with all geometry types", {
+  schema_point <- geoarrow_schema_default(wk::xy())
+  expect_identical(
+    schema_point$metadata[["ARROW:extension:name"]],
+    "geoarrow::point"
+  )
+
+  schema_linestring <- geoarrow_schema_default(wk::wkt("LINESTRING (1 1, 2 2)"))
+  expect_identical(
+    schema_linestring$metadata[["ARROW:extension:name"]],
+    "geoarrow::linestring"
+  )
+
+  schema_polygon <- geoarrow_schema_default(wk::wkt("POLYGON ((0 0, 1 1, 0 1, 0 0))"))
+  expect_identical(
+    schema_polygon$metadata[["ARROW:extension:name"]],
+    "geoarrow::polygon"
+  )
+
+  schema_multipoint <- geoarrow_schema_default(wk::wkt("MULTIPOINT (1 1, 2 2)"))
+  expect_identical(
+    schema_multipoint$metadata[["ARROW:extension:name"]],
+    "geoarrow::multi"
+  )
+  expect_identical(
+    schema_multipoint$children[[1]]$metadata[["ARROW:extension:name"]],
+    "geoarrow::point"
+  )
+
+  schema_multilinestring <- geoarrow_schema_default(wk::wkt("MULTILINESTRING ((1 1, 2 2))"))
+  expect_identical(
+    schema_multilinestring$metadata[["ARROW:extension:name"]],
+    "geoarrow::multi"
+  )
+  expect_identical(
+    schema_multilinestring$children[[1]]$metadata[["ARROW:extension:name"]],
+    "geoarrow::linestring"
+  )
+
+  schema_multipolygon <- geoarrow_schema_default(wk::wkt("MULTIPOLYGON (((0 0, 1 1, 0 1, 0 0)))"))
+  expect_identical(
+    schema_multipolygon$metadata[["ARROW:extension:name"]],
+    "geoarrow::multi"
+  )
+  expect_identical(
+    schema_multipolygon$children[[1]]$metadata[["ARROW:extension:name"]],
+    "geoarrow::polygon"
   )
 })
 
