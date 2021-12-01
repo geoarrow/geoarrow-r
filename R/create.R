@@ -4,6 +4,9 @@
 #' @param handleable An object with a [wk::wk_handle()] method
 #' @param ... Passed to [wk::wk_handle()]
 #' @param schema A [carrow::carrow_schema()] to use as a storage method.
+#' @param strict Use `TRUE` to respect choices of storage type, dimensions,
+#'   and CRS provided by `schema`. The default, `FALSE`, updates these values
+#'   to match the data.
 #' @inheritParams geoarrow_schema_point
 #'
 #' @return A [carrow::carrow_array()]
@@ -12,13 +15,15 @@
 #' @examples
 #' geoarrow_create(wk::xy(1:5, 1:5))
 #'
-geoarrow_create <- function(handleable, ..., schema = geoarrow_schema_default(handleable)) {
+geoarrow_create <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
+                            strict = FALSE) {
   UseMethod("geoarrow_create")
 }
 
 #' @rdname geoarrow_create
 #' @export
-geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable)) {
+geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
+                                    strict = FALSE) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
   if (identical(extension, "geoarrow::wkt")) {
@@ -34,9 +39,9 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
     geos_geom <- geos::as_geos_geometry(handleable)
     geojson_geom <- geos::geos_write_geojson(geos_geom)
 
-    return(geoarrow_create_geojson_array(geojson_geom, schema))
+    return(geoarrow_create_geojson_array(geojson_geom, schema, strict = strict))
   } else if (identical(extension, "geoarrow::wkb")) {
-    return(geoarrow_create_wkb_array(unclass(wk::as_wkb(handleable)), schema))
+    return(geoarrow_create_wkb_array(unclass(wk::as_wkb(handleable)), schema, strict = strict))
   }
 
   # Eventually this will be done with dedicated wk handlers at the C level with
@@ -53,7 +58,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   counts <- wk::wk_count(handleable)
 
   if (identical(extension, "geoarrow::linestring")) {
-    return(geoarrow_create_linestring_array(coords, counts$n_coord, schema))
+    return(geoarrow_create_linestring_array(coords, counts$n_coord, schema, strict = strict))
   } else if (identical(extension, "geoarrow::polygon")) {
     # wk_count() doesn't do coordinate count for rings, but we can use
     # rle() for this because rings are never empty or null
@@ -62,7 +67,8 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
     array <- geoarrow_create_polygon_array(
       coords,
       lengths = list(counts$n_ring, ring_coord_counts),
-      schema = schema
+      schema = schema,
+      strict = strict
     )
 
     return(array)
@@ -84,7 +90,8 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
       array <- geoarrow_create_multilinestring_array(
         coords,
         lengths = list(counts$n_geom - 1L, flat_counts$n_coord),
-        schema = schema
+        schema = schema,
+        strict = strict
       )
 
       return(array)
@@ -102,7 +109,8 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
       array <- geoarrow_create_multipolygon_array(
         coords,
         lengths = list(geom_counts, flat_counts$n_ring, ring_coord_counts),
-        schema = schema
+        schema = schema,
+        strict = strict
       )
 
       return(array)
@@ -204,7 +212,8 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
 }
 
 geoarrow_create_multipolygon_array <- function(coords, lengths, schema,
-                                                 n = lapply(lengths, length)) {
+                                                 n = lapply(lengths, length),
+                                                 strict = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::multi"),
     length(lengths) == 3,
@@ -225,7 +234,8 @@ geoarrow_create_multipolygon_array <- function(coords, lengths, schema,
 }
 
 geoarrow_create_multilinestring_array <- function(coords, lengths, schema,
-                                                  n = lapply(lengths, length)) {
+                                                  n = lapply(lengths, length),
+                                                  strict = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::multi"),
     length(lengths) == 2,
@@ -245,7 +255,8 @@ geoarrow_create_multilinestring_array <- function(coords, lengths, schema,
   )
 }
 
-geoarrow_create_multipoint_array <- function(coords, lengths, schema, n = length(lengths)) {
+geoarrow_create_multipoint_array <- function(coords, lengths, schema, n = length(lengths),
+                                             strict = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::multi")
   )
@@ -260,7 +271,8 @@ geoarrow_create_multipoint_array <- function(coords, lengths, schema, n = length
 }
 
 geoarrow_create_polygon_array <- function(coords, lengths, schema,
-                                          n = lapply(lengths, length)) {
+                                          n = lapply(lengths, length),
+                                          strict = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::polygon")
   )
@@ -279,7 +291,8 @@ geoarrow_create_polygon_array <- function(coords, lengths, schema,
   )
 }
 
-geoarrow_create_linestring_array <- function(coords, lengths, schema, n = length(lengths)) {
+geoarrow_create_linestring_array <- function(coords, lengths, schema, n = length(lengths),
+                                             strict = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::linestring")
   )
@@ -293,7 +306,7 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema, n = length
   )
 }
 
-geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, args) {
+geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, args, strict = FALSE) {
   nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
   if (nullable) {
     is_na <- is.na(lengths)
@@ -316,7 +329,7 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
   if (identical(schema$format, "+l")) {
     stopifnot(total_length < (2 ^ 31))
 
-    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]])))
+    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]], strict = strict)))
     offsets <- c(0L, cumsum(lengths_finite))
     stopifnot(as.numeric(child_array$array_data$length) >= total_length)
 
@@ -388,7 +401,7 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
   }
 }
 
-geoarrow_create_point_array <- function(coords, schema) {
+geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow::point")
   )

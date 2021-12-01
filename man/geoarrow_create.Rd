@@ -6,9 +6,19 @@
 \alias{geoarrow_schema_default}
 \title{Create GeoArrow Arrays}
 \usage{
-geoarrow_create(handleable, ..., schema = geoarrow_schema_default(handleable))
+geoarrow_create(
+  handleable,
+  ...,
+  schema = geoarrow_schema_default(handleable),
+  strict = FALSE
+)
 
-\method{geoarrow_create}{default}(handleable, ..., schema = geoarrow_schema_default(handleable))
+\method{geoarrow_create}{default}(
+  handleable,
+  ...,
+  schema = geoarrow_schema_default(handleable),
+  strict = FALSE
+)
 
 geoarrow_schema_default(
   handleable,
@@ -21,6 +31,10 @@ geoarrow_schema_default(
 \item{...}{Passed to \code{\link[wk:wk_handle]{wk::wk_handle()}}}
 
 \item{schema}{A \code{\link[carrow:carrow_schema]{carrow::carrow_schema()}} to use as a storage method.}
+
+\item{strict}{Use \code{TRUE} to respect choices of storage type, dimensions,
+and CRS provided by \code{schema}. The default, \code{FALSE}, updates these values
+to match the data.}
 
 \item{point}{The point schema to use for coordinates}
 }
