@@ -3,7 +3,7 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
-SEXP geoarrow_c_schema_wkb(SEXP crs, SEXP ellipsoidal);
+SEXP geoarrow_c_schema_wkb(SEXP crs, SEXP geodesic);
 
 static const R_CallMethodDef CallEntries[] = {
   {"geoarrow_c_schema_wkb", (DL_FUNC) &geoarrow_c_schema_wkb, 2},

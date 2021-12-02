@@ -36,7 +36,7 @@ geoarrow_schema_linestring(
   name = "",
   format = "+l",
   nullable = TRUE,
-  ellipsoidal = FALSE,
+  geodesic = FALSE,
   point = geoarrow_schema_point(nullable = FALSE)
 )
 
@@ -44,7 +44,7 @@ geoarrow_schema_polygon(
   name = "",
   format = c("+l", "+l"),
   nullable = TRUE,
-  ellipsoidal = FALSE,
+  geodesic = FALSE,
   point = geoarrow_schema_point(nullable = FALSE)
 )
 
@@ -58,7 +58,7 @@ geoarrow_schema_wkb(
   name = "",
   format = "z",
   crs = NULL,
-  ellipsoidal = FALSE,
+  geodesic = FALSE,
   nullable = TRUE
 )
 
@@ -66,7 +66,7 @@ geoarrow_schema_wkt(
   name = "",
   format = "u",
   crs = NULL,
-  ellipsoidal = FALSE,
+  geodesic = FALSE,
   nullable = TRUE
 )
 
@@ -75,7 +75,7 @@ geoarrow_schema_geojson(name = "", format = "u", crs = NULL, nullable = TRUE)
 geoarrow_schema_flat_linestring(
   name = "",
   format_id = "i",
-  ellipsoidal = FALSE,
+  geodesic = FALSE,
   nullable = TRUE,
   point = geoarrow_schema_point(nullable = FALSE)
 )
@@ -83,7 +83,7 @@ geoarrow_schema_flat_linestring(
 geoarrow_schema_flat_polygon(
   name = "",
   format_id = c("i", "i"),
-  ellipsoidal = FALSE,
+  geodesic = FALSE,
   nullable = TRUE,
   point = geoarrow_schema_point(nullable = FALSE)
 )
@@ -111,8 +111,8 @@ can be "f" (float/float32) or "g" (double/float64).}
 For \code{\link[=geoarrow_schema_polygon]{geoarrow_schema_polygon()}}, \code{format} has two elements: the first
 for the list of rings and the second for the list of points.}
 
-\item{ellipsoidal}{Use \code{TRUE} to assert that edges should be interpolated
-using the shortest ellipsoidal path (great circle on a sphere).}
+\item{geodesic}{Use \code{TRUE} to assert that edges should be interpolated
+using the shortest geodesic path (great circle on a sphere).}
 
 \item{point}{The point schema to use for coordinates}
 

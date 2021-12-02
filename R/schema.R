@@ -7,8 +7,8 @@
 #'   representation is recommended as the most complete way to encode this
 #'   information; however, any string that can be recognized by the PROJ
 #'   command-line utility (e.g., "OGC:CRS84").
-#' @param ellipsoidal Use `TRUE` to assert that edges should be interpolated
-#'   using the shortest ellipsoidal path (great circle on a sphere).
+#' @param geodesic Use `TRUE` to assert that edges should be interpolated
+#'   using the shortest geodesic path (great circle on a sphere).
 #' @param dim A string with one character per dimension. The string must be one
 #'   of xy, xyz, xym, or xyzm.
 #' @param point The point schema to use for coordinates
@@ -83,7 +83,7 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE, ellipsoidal = FALSE,
+geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE, geodesic = FALSE,
                                         point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(format_is_nested_list(format))
 
@@ -93,7 +93,7 @@ geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow::linestring",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
     ),
     children = list(point)
   )
@@ -101,7 +101,7 @@ geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable = TRUE, ellipsoidal = FALSE,
+geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable = TRUE, geodesic = FALSE,
                                      point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(
     format_is_nested_list(format[1]),
@@ -114,7 +114,7 @@ geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable 
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow::polygon",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
     ),
     children = list(
       carrow::carrow_schema(format = format[2], name = "", children = list(point))
@@ -165,7 +165,7 @@ geoarrow_schema_dense_geometrycollection <- function(children = list(), name = "
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, ellipsoidal = FALSE,
+geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = FALSE,
                                  nullable = TRUE) {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z")))
 
@@ -175,14 +175,14 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, ellipsoidal
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow::wkb",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, ellipsoidal = ellipsoidal)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)
     )
   )
 }
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, ellipsoidal = FALSE, nullable = TRUE) {
+geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = FALSE, nullable = TRUE) {
   stopifnot(isTRUE(format %in% c("u", "U")))
 
   carrow::carrow_schema(
@@ -191,7 +191,7 @@ geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, ellipsoidal
     flags = carrow::carrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow::wkt",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, ellipsoidal = ellipsoidal)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)
     )
   )
 }
@@ -207,7 +207,7 @@ geoarrow_schema_geojson <- function(name = "", format = "u", crs = NULL, nullabl
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_flat_linestring <- function(name = "", format_id = "i",
-                                             ellipsoidal = FALSE, nullable = TRUE,
+                                             geodesic = FALSE, nullable = TRUE,
                                              point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(format_is_id(format_id))
 
@@ -216,7 +216,7 @@ geoarrow_schema_flat_linestring <- function(name = "", format_id = "i",
     name = scalar_chr(name),
     metadata = list(
       "ARROW:extension:name" = "geoarrow::flat_linestring",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
     ),
     children = list(
       carrow::carrow_schema(
@@ -232,7 +232,7 @@ geoarrow_schema_flat_linestring <- function(name = "", format_id = "i",
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_flat_polygon <- function(name = "", format_id = c("i", "i"),
-                                          ellipsoidal = FALSE, nullable = TRUE,
+                                          geodesic = FALSE, nullable = TRUE,
                                           point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(format_is_id(format_id[1]), format_is_id(format_id[2]))
 
@@ -241,7 +241,7 @@ geoarrow_schema_flat_polygon <- function(name = "", format_id = c("i", "i"),
     name = scalar_chr(name),
     metadata = list(
       "ARROW:extension:name" = "geoarrow::flat_polygon",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(ellipsoidal = ellipsoidal)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
     ),
     children = list(
       carrow::carrow_schema(

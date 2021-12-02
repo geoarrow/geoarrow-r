@@ -13,13 +13,13 @@ geoarrow_metadata <- function(schema) {
   geoarrow_metadata_deserialize(schema$metadata[["ARROW:extension:metadata"]])
 }
 
-geoarrow_metadata_serialize <- function(crs = NULL, ellipsoidal = NULL, dim = NULL) {
-  if (!is.null(ellipsoidal)) {
-    ellipsoidal <- scalar_lgl(ellipsoidal)
-    ellipsoidal <- if (ellipsoidal) "true" else NULL
+geoarrow_metadata_serialize <- function(crs = NULL, geodesic = NULL, dim = NULL) {
+  if (!is.null(geodesic)) {
+    geodesic <- scalar_lgl(geodesic)
+    geodesic <- if (geodesic) "true" else NULL
   }
 
-  vals <- list(crs = crs, ellipsoidal = ellipsoidal, dim = dim)
+  vals <- list(crs = crs, geodesic = geodesic, dim = dim)
   vals <- vals[!vapply(vals, is.null, logical(1))]
   vals <- lapply(vals, scalar_chr)
 
