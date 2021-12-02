@@ -19,6 +19,8 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
 geoarrow_create_record_batch <- function(handleable, schema = NULL, strict = FALSE) {
   if (!is.data.frame(handleable)) {
     handleable <- data.frame(geometry = handleable)
+  } else {
+    handleable <- as.data.frame(handleable)
   }
 
   is_handleable <- vapply(handleable, is_handleable_column, logical(1))
