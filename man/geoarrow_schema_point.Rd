@@ -11,9 +11,6 @@
 \alias{geoarrow_schema_wkb}
 \alias{geoarrow_schema_wkt}
 \alias{geoarrow_schema_geojson}
-\alias{geoarrow_schema_flat_linestring}
-\alias{geoarrow_schema_flat_polygon}
-\alias{geoarrow_schema_flat_multi}
 \title{Create low-level Arrow schemas}
 \usage{
 geoarrow_schema_point(
@@ -71,24 +68,6 @@ geoarrow_schema_wkt(
 )
 
 geoarrow_schema_geojson(name = "", format = "u", crs = NULL, nullable = TRUE)
-
-geoarrow_schema_flat_linestring(
-  name = "",
-  format_id = "i",
-  geodesic = FALSE,
-  nullable = TRUE,
-  point = geoarrow_schema_point(nullable = FALSE)
-)
-
-geoarrow_schema_flat_polygon(
-  name = "",
-  format_id = c("i", "i"),
-  geodesic = FALSE,
-  nullable = TRUE,
-  point = geoarrow_schema_point(nullable = FALSE)
-)
-
-geoarrow_schema_flat_multi(child, name = "", format_id = "i", nullable = TRUE)
 }
 \arguments{
 \item{name}{An optional name}
