@@ -10,7 +10,8 @@
 #' geoarrow_metadata(geoarrow_schema_point(crs = "OGC:CRS84"))
 #'
 geoarrow_metadata <- function(schema) {
-  geoarrow_metadata_deserialize(schema$metadata[["ARROW:extension:metadata"]])
+  serialized <- schema$metadata[["ARROW:extension:metadata"]]
+  if (is.null(serialized)) list() else geoarrow_metadata_deserialize(serialized)
 }
 
 geoarrow_metadata_serialize <- function(crs = NULL, geodesic = NULL, dim = NULL) {

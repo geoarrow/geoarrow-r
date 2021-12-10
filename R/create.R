@@ -29,14 +29,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   if (identical(extension, "geoarrow.wkt")) {
     return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema))
   } else if (identical(extension, "geoarrow.geojson")) {
-    if (!requireNamespace("geos", quietly = TRUE) || (geos::geos_version() < "3.10")) {
-      # nocov start
-      stop(
-        "Package 'geos' with 'libgeos' >= 3.10 required to export handleable as GeoJSON",
-        call. = FALSE
-      )
-      # nocov end
-    }
+    assert_geos_with_geojson()
 
     geos_geom <- geos::as_geos_geometry(handleable)
     geojson_geom <- geos::geos_write_geojson(geos_geom)
@@ -574,10 +567,11 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point(nu
   if (has_mising_info) {
     meta <- wk::wk_meta(handleable)
     vector_meta$size <- nrow(meta)
-    vector_meta$has_z <- any(meta$has_z)
-    vector_meta$has_m <- any(meta$has_m)
+    vector_meta$has_z <- any(meta$has_z, na.rm = TRUE)
+    vector_meta$has_m <- any(meta$has_m, na.rm = TRUE)
 
     all_types <- sort(unique(meta$geometry_type))
+    all_type <- all_types[!is.na(all_types)]
     if (length(all_types) == 1L) {
       vector_meta$geometry_type <- all_types
     } else {

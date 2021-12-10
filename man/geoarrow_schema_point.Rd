@@ -98,8 +98,6 @@ using the shortest geodesic path (great circle on a sphere).}
 \item{child}{The child schema to use in a single-type (multi) collection}
 
 \item{children}{The child schemas for children in the union}
-
-\item{format_id}{The type to use for a flat identifier column.}
 }
 \value{
 A \code{\link[=carrow_schema]{carrow_schema()}}.

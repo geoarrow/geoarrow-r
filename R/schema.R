@@ -20,7 +20,6 @@
 #'   for the list of rings and the second for the list of points.
 #' @param format_coord A format for floating point coordinate storage. This
 #'   can be "f" (float/float32) or "g" (double/float64).
-#' @param format_id The type to use for a flat identifier column.
 #' @inheritParams carrow::carrow_schema
 #'
 #' @return A [carrow_schema()].
