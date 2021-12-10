@@ -70,8 +70,3 @@ geoarrow_metadata_deserialize <- function(metadata) {
   names(out) <- out_names
   out
 }
-
-temporary_to_keep_rmd_check_clean <- function() {
-  .Call(geoarrow_c_schema_wkb, 1, 2)
-}
-
