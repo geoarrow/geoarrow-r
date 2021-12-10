@@ -15,9 +15,7 @@ wk_handle.carrow_array <- function(handleable, handler, ...) {
 
   switch(
     extension,
-    "geoarrow.wkb" = {
-      stop("Not implemented")
-    },
+    "geoarrow.wkb" = handle_geoarrow_wkb(handleable, handler),
     "geoarrow.wkt" = {
       chr <- carrow::from_carrow_array(handleable, character())
       wk::wk_handle(wk::new_wk_wkt(chr, crs = geo_metadata$crs), handler)
