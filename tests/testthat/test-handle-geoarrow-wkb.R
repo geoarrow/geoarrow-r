@@ -246,3 +246,93 @@ test_that("wkb reader can read 1000-3000 style WKB input", {
     wk::wkt(c("POINT Z (1 2 3)", "POINT M (1 2 3)", "POINT ZM (1 2 3 4)"))
   )
 })
+
+test_that("large binary is supported", {
+  point <- as.raw(c(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x3e, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x24, 0x40))
+  arr_wkb <- geoarrow_create(
+    wk::new_wk_wkb(list(point)),
+    schema = geoarrow_schema_wkb(format = "Z"),
+    strict = TRUE
+  )
+
+  expect_identical(wk::as_wkt(arr_wkb), wk::wkt("POINT (30 10)"))
+})
+
+test_that("invalid geometry type code errors", {
+  bad_point <- as.raw(c(0x01,
+                        0x01, 0x01, 0x01, 0x01,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x40,
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x40))
+  arr_wkb <- geoarrow_create(
+    wk::new_wk_wkb(list(bad_point)),
+    schema = geoarrow_schema_wkb()
+  )
+
+  expect_error(wk::wk_void(arr_wkb), "Unrecognized geometry type code")
+
+  arr_wkb <- geoarrow_create(
+    wk::new_wk_wkb(list(as.raw(0x01))),
+    schema = geoarrow_schema_wkb()
+  )
+  expect_error(wk::wk_void(arr_wkb), "Unexpected end of buffer")
+})
+
+test_that("truncated buffer errors", {
+  arr_wkb <- geoarrow_create(
+    wk::new_wk_wkb(list(as.raw(0x01))),
+    schema = geoarrow_schema_wkb()
+  )
+  expect_error(wk::wk_void(arr_wkb), "Unexpected end of buffer")
+})
+
+test_that("bad arrays error", {
+  arr_wkb <- carrow::carrow_array(
+    geoarrow_schema_wkb(format = "w:1"),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkb), "Expected ArrowArray with 2 buffers")
+
+  arr_wkb <- carrow::carrow_array(
+    geoarrow_schema_wkb(format = "w:0"),
+    carrow::carrow_array_data(buffers = list(raw(1), raw(1))),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkb), "width must be >= 0")
+
+  arr_wkb <- carrow::carrow_array(
+    geoarrow_schema_wkb(format = "z"),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkb), "Expected ArrowArray with 3 buffers")
+
+  arr_wkb <- carrow::carrow_array(
+    geoarrow_schema_wkb(format = "Z"),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkb), "Expected ArrowArray with 3 buffers")
+
+  arr_wkb <- carrow::carrow_array(
+    carrow::carrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkb")),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkb), "Can't handle schema format 'i'")
+})
+
+test_that("Early returns are supported from the WKB reader", {
+  point <- as.raw(c(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00, 0x00, 0x00, 0x3e, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x24, 0x40))
+  arr_wkb <- geoarrow_create(
+    wk::new_wk_wkb(list(point)),
+    schema = geoarrow_schema_wkb()
+  )
+
+  expect_identical(wk::wk_vector_meta(arr_wkb)$size, 1)
+  expect_identical(wk::wk_meta(arr_wkb)$geometry_type, 1L)
+})

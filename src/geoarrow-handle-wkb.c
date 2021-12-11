@@ -217,14 +217,13 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
     struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 0), "handleable$schema");
     struct ArrowArray* array_data = array_data_from_xptr(VECTOR_ELT(data, 1), "handleable$array_data");
 
-    unsigned char* validity_buffer = (unsigned char*) array_data->buffers[0];
     int32_t* offset_buffer = NULL;
     int64_t* large_offset_buffer = NULL;
     unsigned char* data_buffer = NULL;
 
     int64_t n_features = array_data->length;
     int64_t start_offset, end_offset;
-    int64_t fixed_width = 0;
+    int64_t fixed_width = -1;
 
     switch (schema->format[0]) {
     case 'z':
@@ -248,12 +247,17 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
         if (schema->format[1] == ':') {
             data_buffer =(unsigned char*) array_data->buffers[1];
             fixed_width = atol(schema->format + 2);
+            if (fixed_width <= 0) {
+                Rf_error("width must be >= 0");
+            }
             break;
         }
 
     default:
         Rf_error("Can't handle schema format '%s' as WKB", schema->format);
     }
+
+    unsigned char* validity_buffer = (unsigned char*) array_data->buffers[0];
 
     wk_vector_meta_t vector_meta;
     WK_VECTOR_META_RESET(vector_meta, WK_GEOMETRY);
@@ -267,7 +271,6 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
         memset(reader.error_buf, 0, 1024);
 
         for (int64_t i = array_data->offset; i < n_features; i++) {
-            // each feature could be huge, so check frequently
             if (((i + 1) % 1000) == 0) R_CheckUserInterrupt();
 
             reader.feat_id = i;
@@ -281,7 +284,7 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
                 start_offset = large_offset_buffer[i];
                 end_offset = large_offset_buffer[i + 1];
             } else {
-                Rf_error("Can't locate feature in buffers");
+                Rf_error("Can't locate feature in buffers"); // # nocov
             }
 
             HANDLE_CONTINUE_OR_BREAK(handler->feature_start(&vector_meta, i, handler->handler_data));
@@ -308,7 +311,7 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
             }
 
             if (handler->feature_end(&vector_meta, i, handler->handler_data) == WK_ABORT) {
-                break;
+                break; // # nocov
             }
         }
     }
