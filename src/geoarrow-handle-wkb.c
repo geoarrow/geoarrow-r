@@ -171,11 +171,12 @@ int wkb_read_geometry_type(wkb_reader_t* reader, wk_meta_t* meta) {
 int wkb_read_coordinates(wkb_reader_t* reader, const wk_meta_t* meta, uint32_t n_coords, int n_dim) {
     double coord[4];
     int result;
+    HANDLE_OR_RETURN(wkb_read_check_buffer(reader, sizeof(uint64_t) * n_dim * n_coords));
 
     if (reader->swap_endian) {
         uint64_t swappable, swapped;
         for (uint32_t i = 0; i < n_coords; i++) {
-            HANDLE_OR_RETURN(wkb_read_check_buffer(reader, sizeof(uint64_t) * n_dim));
+            
 
             for (int j = 0; j < n_dim; j++) {
                 memcpy(&swappable, reader->buffer + reader->offset, sizeof(uint64_t));
@@ -191,7 +192,6 @@ int wkb_read_coordinates(wkb_reader_t* reader, const wk_meta_t* meta, uint32_t n
         // seems to be slightly faster than memcpy(coord, ..., coord_size)
         uint64_t swappable;
         for (uint32_t i = 0; i < n_coords; i++) {
-            HANDLE_OR_RETURN(wkb_read_check_buffer(reader, sizeof(uint64_t) * n_dim));
             for (int j = 0; j < n_dim; j++) {
                 memcpy(&swappable, reader->buffer + reader->offset, sizeof(uint64_t));
                 reader->offset += sizeof(double);
