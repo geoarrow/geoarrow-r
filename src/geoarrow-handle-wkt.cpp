@@ -3,6 +3,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "wk-v1.h"
+#include "carrow.h"
 
 #define FASTFLOAT_ASSERT(x) { if (!(x)) Rf_error("fastfloat assert failed"); }
 #include "internal/buffered-reader.hpp"
@@ -390,9 +391,50 @@ void finalize_cpp_xptr(SEXP xptr) {
 }
 
 SEXP geoarrow_read_wkt(SEXP data, wk_handler_t* handler) {
-  SEXP wkt_sexp = VECTOR_ELT(data, 0);
+  struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 0), "handleable$schema");
+  struct ArrowArray* array_data = array_data_from_xptr(VECTOR_ELT(data, 1), "handleable$array_data");
 
-  R_xlen_t n_features = Rf_xlength(wkt_sexp);
+  int32_t* offset_buffer = NULL;
+  int64_t* large_offset_buffer = NULL;
+  char* data_buffer = NULL;
+
+  int64_t n_features = array_data->length;
+  int64_t start_offset, end_offset;
+  int64_t fixed_width = -1;
+
+  switch (schema->format[0]) {
+  case 'z':
+    if (array_data->n_buffers != 3) {
+      Rf_error("Expected ArrowArray with 3 buffers but got %d", array_data->n_buffers);
+    }
+    offset_buffer = (int32_t*) array_data->buffers[1];
+    data_buffer = (char*) array_data->buffers[2];
+    break;
+  case 'Z':
+    if (array_data->n_buffers != 3) {
+      Rf_error("Expected ArrowArray with 3 buffers but got %d", array_data->n_buffers);
+    }
+    large_offset_buffer = (int64_t*) array_data->buffers[1];
+    data_buffer = (char*) array_data->buffers[2];
+    break;
+  case 'w':
+    if (array_data->n_buffers != 2) {
+      Rf_error("Expected ArrowArray with 2 buffers but got %d", array_data->n_buffers);
+    }
+    if (schema->format[1] == ':') {
+      data_buffer =(char*) array_data->buffers[1];
+      fixed_width = atol(schema->format + 2);
+      if (fixed_width <= 0) {
+        Rf_error("width must be >= 0");
+      }
+      break;
+    }
+
+  default:
+      Rf_error("Can't handle schema format '%s' as WKB", schema->format);
+  }
+
+  unsigned char* validity_buffer = (unsigned char*) array_data->buffers[0];
 
   wk_vector_meta_t global_meta;
   WK_VECTOR_META_RESET(global_meta, WK_GEOMETRY);
@@ -403,22 +445,31 @@ SEXP geoarrow_read_wkt(SEXP data, wk_handler_t* handler) {
   // (so longjmp in this frame is OK).
   SimpleBufferSource source;
   BufferedWKTReader<SimpleBufferSource, wk_handler_t> reader(handler);
-  
+
   int result = handler->vector_start(&global_meta, handler->handler_data);
   if (result != WK_ABORT) {
-    R_xlen_t n_features = Rf_xlength(wkt_sexp);
-    SEXP item;
     int result;
 
     for (R_xlen_t i = 0; i < n_features; i++) {
       if (((i + 1) % 1000) == 0) R_CheckUserInterrupt();
 
-      item = STRING_ELT(wkt_sexp, i);
-      if (item == NA_STRING) {
+      if (fixed_width > 0) {
+        start_offset = i * fixed_width;
+        end_offset = start_offset + fixed_width;
+      } else if (offset_buffer != NULL) {
+        start_offset = offset_buffer[i];
+        end_offset = offset_buffer[i + 1];
+      } else if (large_offset_buffer != NULL) {
+        start_offset = large_offset_buffer[i];
+        end_offset = large_offset_buffer[i + 1];
+      } else {
+        Rf_error("Can't locate feature in buffers"); // # nocov
+      }
+
+      if (validity_buffer && (0 == (validity_buffer[i / 8] & (1 << (i % 8))))) {
         HANDLE_CONTINUE_OR_BREAK(reader.readFeature(&global_meta, i, nullptr));
       } else {
-        const char* chars = CHAR(item);
-        source.set_buffer(chars, strlen(chars));
+        source.set_buffer(data_buffer + start_offset, end_offset - start_offset);
         HANDLE_CONTINUE_OR_BREAK(reader.readFeature(&global_meta, i, &source));
       }
 
