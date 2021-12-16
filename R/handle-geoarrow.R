@@ -16,10 +16,7 @@ wk_handle.carrow_array <- function(handleable, handler, ...) {
   switch(
     extension,
     "geoarrow.wkb" = handle_geoarrow_wkb(handleable, handler),
-    "geoarrow.wkt" = {
-      chr <- carrow::from_carrow_array(handleable, character())
-      wk::wk_handle(wk::new_wk_wkt(chr, crs = geo_metadata$crs), handler)
-    },
+    "geoarrow.wkt" = handle_geoarrow_wkt(handleable, handler),
     "geoarrow.geojson" = {
       assert_geos_with_geojson()
       chr <- carrow::from_carrow_array(handleable, character())
