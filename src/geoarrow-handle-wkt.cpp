@@ -404,6 +404,7 @@ SEXP geoarrow_read_wkt(SEXP data, wk_handler_t* handler) {
 
   switch (schema->format[0]) {
   case 'z':
+  case 'u':
     if (array_data->n_buffers != 3) {
       Rf_error("Expected ArrowArray with 3 buffers but got %d", array_data->n_buffers);
     }
@@ -411,6 +412,7 @@ SEXP geoarrow_read_wkt(SEXP data, wk_handler_t* handler) {
     data_buffer = (char*) array_data->buffers[2];
     break;
   case 'Z':
+  case 'U':
     if (array_data->n_buffers != 3) {
       Rf_error("Expected ArrowArray with 3 buffers but got %d", array_data->n_buffers);
     }
@@ -431,7 +433,7 @@ SEXP geoarrow_read_wkt(SEXP data, wk_handler_t* handler) {
     }
 
   default:
-      Rf_error("Can't handle schema format '%s' as WKB", schema->format);
+      Rf_error("Can't handle schema format '%s' as WKT", schema->format);
   }
 
   unsigned char* validity_buffer = (unsigned char*) array_data->buffers[0];
