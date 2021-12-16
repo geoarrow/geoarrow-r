@@ -5,3 +5,4 @@
 ^\.github$
 ^codecov\.yml$
 ^\.vscode$
+^\.covrignore$
