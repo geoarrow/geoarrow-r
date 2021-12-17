@@ -1,57 +1,174 @@
 
-test_that("WKT reader works with multipoint", {
+test_that("WKT reader works on non-empty 2D geoms", {
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POINT (30 10)")),
+    wk::new_wk_wkt("POINT (30 10)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("LINESTRING (30 10, 0 0)")),
+    wk::new_wk_wkt("LINESTRING (30 10, 0 0)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POLYGON ((30 10, 0 0, 10 10, 30 10))")),
+    wk::new_wk_wkt("POLYGON ((30 10, 0 0, 10 10, 30 10))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))")),
+    wk::new_wk_wkt("POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT (30 10, 0 0, 10 10)")),
+    wk::new_wk_wkt("MULTIPOINT ((30 10), (0 0), (10 10))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT ((30 10), (0 0), (10 10))")),
+    wk::new_wk_wkt("MULTIPOINT ((30 10), (0 0), (10 10))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTILINESTRING ((30 10, 0 0), (20 20, 0 0))")),
+    wk::new_wk_wkt("MULTILINESTRING ((30 10, 0 0), (20 20, 0 0))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOLYGON (((30 10, 0 0, 10 10, 30 10)), ((30 10, 0 0, 10 10, 30 10)))")),
+    wk::new_wk_wkt("MULTIPOLYGON (((30 10, 0 0, 10 10, 30 10)), ((30 10, 0 0, 10 10, 30 10)))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt(
+      "GEOMETRYCOLLECTION (POINT (30 10), GEOMETRYCOLLECTION (POINT (12 6)), LINESTRING (1 2, 3 4))"
+    )),
+    wk::new_wk_wkt("GEOMETRYCOLLECTION (POINT (30 10), GEOMETRYCOLLECTION (POINT (12 6)), LINESTRING (1 2, 3 4))")
+  )
+})
+
+test_that("WKT reader works on empty geoms", {
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POINT EMPTY")),
+    wk::new_wk_wkt("POINT EMPTY")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("LINESTRING EMPTY")),
+    wk::new_wk_wkt("LINESTRING EMPTY")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POLYGON EMPTY")),
+    wk::new_wk_wkt("POLYGON EMPTY")
+  )
   expect_identical(
     wk::as_wkt(geoarrow_create_wkt("MULTIPOINT EMPTY")),
     wk::new_wk_wkt("MULTIPOINT EMPTY")
   )
-
-  expect_identical(
-    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT (EMPTY)")),
-    wk::new_wk_wkt("MULTIPOINT (EMPTY)")
-  )
-
-  expect_identical(
-    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT (10 40)")),
-    wk::new_wk_wkt("MULTIPOINT ((10 40))")
-  )
-
-  expect_identical(
-    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT ((10 40))")),
-    wk::new_wk_wkt("MULTIPOINT ((10 40))")
-  )
-
-  expect_identical(
-    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT (10 40)")),
-    wk::new_wk_wkt("MULTIPOINT ((10 40))")
-  )
-
-  wkt <- "MULTIPOINT ((10 40), (40 30), (20 20), (30 10))"
-  expect_identical(
-    wk::as_wkt(geoarrow_create_wkt(wkt)),
-    wk::new_wk_wkt(wkt)
-  )
-
-  expect_identical(
-    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT (10 40, 40 30, 20 20, 30 10)")),
-    wk::new_wk_wkt(wkt)
-  )
-})
-
-test_that("WKT reader works with multilinestring", {
   expect_identical(
     wk::as_wkt(geoarrow_create_wkt("MULTILINESTRING EMPTY")),
     wk::new_wk_wkt("MULTILINESTRING EMPTY")
   )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOLYGON EMPTY")),
+    wk::new_wk_wkt("MULTIPOLYGON EMPTY")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt(
+      "GEOMETRYCOLLECTION EMPTY"
+    )),
+    wk::new_wk_wkt("GEOMETRYCOLLECTION EMPTY")
+  )
+})
 
+test_that("WKT reader works with NULLs", {
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt(NA_character_)),
+    wk::new_wk_wkt(NA_character_)
+  )
+})
+
+test_that("WKT reader mutli* geometries can contain empties", {
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT (EMPTY)")),
+    wk::new_wk_wkt("MULTIPOINT (EMPTY)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT (1 1, EMPTY)")),
+    wk::new_wk_wkt("MULTIPOINT ((1 1), EMPTY)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT ((1 1), EMPTY)")),
+    wk::new_wk_wkt("MULTIPOINT ((1 1), EMPTY)")
+  )
   expect_identical(
     wk::as_wkt(geoarrow_create_wkt("MULTILINESTRING (EMPTY)")),
     wk::new_wk_wkt("MULTILINESTRING (EMPTY)")
   )
-
-  wkt <- "MULTILINESTRING ((10 40, 40 30, 20 20, 30 10))"
   expect_identical(
-    wk::as_wkt(geoarrow_create_wkt("MULTILINESTRING ((10 40, 40 30, 20 20, 30 10))")),
-    wk::new_wk_wkt(wkt)
+    wk::as_wkt(geoarrow_create_wkt("MULTILINESTRING ((1 1, 2 4), EMPTY)")),
+    wk::new_wk_wkt("MULTILINESTRING ((1 1, 2 4), EMPTY)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOLYGON (((1 1, 2 4, 3 6)), EMPTY)")),
+    wk::new_wk_wkt("MULTIPOLYGON (((1 1, 2 4, 3 6)), EMPTY)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOLYGON (EMPTY)")),
+    wk::new_wk_wkt("MULTIPOLYGON (EMPTY)")
+  )
+})
+
+test_that("WKT reader Z, ZM, and M prefixes are parsed", {
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POINT (30 10)")),
+    wk::new_wk_wkt("POINT (30 10)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POINT Z (30 10 1)")),
+    wk::new_wk_wkt("POINT Z (30 10 1)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POINT M (30 10 1)")),
+    wk::new_wk_wkt("POINT M (30 10 1)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POINT ZM (30 10 0 1)")),
+    wk::new_wk_wkt("POINT ZM (30 10 0 1)")
+  )
+})
+
+test_that("WKT reader SRID prefixes are parsed", {
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("SRID=218;POINT (30 10)")),
+    wk::new_wk_wkt("SRID=218;POINT (30 10)")
+  )
+})
+
+test_that("WKT reader parses correctly formatted ZM geomteries", {
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POINT ZM (30 10 0 1)")),
+    wk::new_wk_wkt("POINT ZM (30 10 0 1)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("LINESTRING ZM (30 10 0 1, 0 0 2 3)")),
+    wk::new_wk_wkt("LINESTRING ZM (30 10 0 1, 0 0 2 3)")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("POLYGON ZM ((30 10 2 1, 0 0 9 10, 10 10 10 8, 30 10 3 8))")),
+    wk::new_wk_wkt("POLYGON ZM ((30 10 2 1, 0 0 9 10, 10 10 10 8, 30 10 3 8))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT ZM (30 10 32 1, 0 0 2 8, 10 10 1 99)")),
+    wk::new_wk_wkt("MULTIPOINT ZM ((30 10 32 1), (0 0 2 8), (10 10 1 99))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOINT ZM ((30 10 32 1), (0 0 2 8), (10 10 1 99))")),
+    wk::new_wk_wkt("MULTIPOINT ZM ((30 10 32 1), (0 0 2 8), (10 10 1 99))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTILINESTRING ZM ((30 10 2 1, 0 0 2 8), (20 20 1 1, 0 0 2 2))")),
+    wk::new_wk_wkt("MULTILINESTRING ZM ((30 10 2 1, 0 0 2 8), (20 20 1 1, 0 0 2 2))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("MULTIPOLYGON ZM (((30 10 1 3, 0 0 9 1, 10 10 5 9, 30 10 1 2)))")),
+    wk::new_wk_wkt("MULTIPOLYGON ZM (((30 10 1 3, 0 0 9 1, 10 10 5 9, 30 10 1 2)))")
+  )
+  expect_identical(
+    wk::as_wkt(geoarrow_create_wkt("GEOMETRYCOLLECTION (POINT ZM (30 10 1 2))")),
+    wk::new_wk_wkt("GEOMETRYCOLLECTION (POINT ZM (30 10 1 2))")
   )
 })
 
