@@ -208,6 +208,7 @@ test_that("WKT reader can handle non-finite values", {
 test_that("Invalid WKT fails with reasonable error messages", {
   # this tests all the ways (according to test coverage) that
   # the parser can throw an error
+  expect_error(wk::wk_void(geoarrow_create_wkt("NOT WKT")), "^Expected")
   expect_error(wk::wk_void(geoarrow_create_wkt("MULTIPOINT (iambic 3)")), "^Expected")
   expect_error(wk::wk_void(geoarrow_create_wkt("")), "^Expected")
   expect_error(wk::wk_void(geoarrow_create_wkt("SRID=fish;POINT (30 10)")), "^Expected")
@@ -229,4 +230,66 @@ test_that("Invalid WKT fails with reasonable error messages", {
     wk::wk_void(geoarrow_create_wkt(strrep("a", 4096))),
     "Expected a value with fewer than 4096 character"
   )
+})
+
+
+test_that("bad arrays error", {
+  arr_wkt <- carrow::carrow_array(
+    geoarrow_schema_wkt(format = "w:1"),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkt), "Expected ArrowArray with 2 buffers")
+
+  arr_wkt <- carrow::carrow_array(
+    geoarrow_schema_wkt(format = "w:0"),
+    carrow::carrow_array_data(buffers = list(raw(1), raw(1))),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkt), "width must be >= 0")
+
+  arr_wkt <- carrow::carrow_array(
+    geoarrow_schema_wkt(format = "z"),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkt), "Expected ArrowArray with 3 buffers")
+
+  arr_wkt <- carrow::carrow_array(
+    geoarrow_schema_wkt(format = "Z"),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkt), "Expected ArrowArray with 3 buffers")
+
+  arr_wkt <- carrow::carrow_array(
+    carrow::carrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkt")),
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(arr_wkt), "Can't handle schema format 'i'")
+})
+
+test_that("large binary/unicode is supported", {
+  arr_wkt <- geoarrow_create(
+    wk::wkt("POINT (0 1)"),
+    schema = geoarrow_schema_wkt(format = "Z"),
+    strict = TRUE
+  )
+
+  expect_identical(wk::as_wkt(arr_wkt), wk::wkt("POINT (0 1)"))
+
+  arr_wkt <- geoarrow_create(
+    wk::wkt("POINT (0 1)"),
+    schema = geoarrow_schema_wkt(format = "U"),
+    strict = TRUE
+  )
+
+  expect_identical(wk::as_wkt(arr_wkt), wk::wkt("POINT (0 1)"))
+})
+
+test_that("Early returns are supported from the WKT reader", {
+  arr_wkt <- geoarrow_create_wkt("POINT Z (0 1 2)")
+  expect_identical(wk::wk_vector_meta(arr_wkt)$size, 1)
+  expect_identical(wk::wk_meta(arr_wkt)$geometry_type, 1L)
 })

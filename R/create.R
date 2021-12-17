@@ -27,7 +27,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
   if (identical(extension, "geoarrow.wkt")) {
-    return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema))
+    return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema, strict = strict))
   } else if (identical(extension, "geoarrow.geojson")) {
     assert_geos_with_geojson()
 
@@ -526,7 +526,7 @@ geoarrow_create_string_array <- function(x, schema, strict = FALSE) {
   }
 
   # we can totally convert a regular unicode to large unicode
-  if (identical(schema$format, "U")) {
+  if (schema$format %in% c("U", "Z") && array$schema$format %in% c("u", "z")) {
     array <- unclass(array)
     array$schema <- schema
 

@@ -182,7 +182,7 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = 
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = FALSE, nullable = TRUE) {
-  stopifnot(isTRUE(format %in% c("u", "U")))
+  stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z", "u", "U")))
 
   carrow::carrow_schema(
     name = scalar_chr(name),
