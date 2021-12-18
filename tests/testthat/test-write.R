@@ -15,6 +15,17 @@ test_that("geoarrow_write_parquet() works", {
   unlink(f)
 })
 
+test_that("geoarrow_write_parquet() roundtrips metadata", {
+  skip_if_not_installed("arrow")
+
+  f <- tempfile(fileext = ".parquet")
+  write_geoarrow_parquet(data.frame(col = wk::xy(1:10, 11:20)), f, schema = NULL)
+  table <- arrow::read_parquet(f, as_data_frame = FALSE)
+  meta <- jsonlite::fromJSON(table$metadata$geo)
+  expect_identical(meta$primary_column, "col")
+  expect_identical(meta$columns$col$encoding, "point")
+})
+
 test_that("geoarrow_write_parquet() works with explicit schema", {
   skip_if_not_installed("arrow")
 

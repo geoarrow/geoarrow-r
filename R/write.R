@@ -33,11 +33,26 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
     )
   }
 
+  # create file metadata
+  handleable_schema <- carrow::carrow_schema(
+    format = "+s",
+    children = lapply(arrays_handleable, "[[", "schema")
+  )
+  for (i in seq_along(handleable_schema$children)) {
+    handleable_schema$children[[i]]$name <- names(arrays_handleable)[i]
+  }
+  file_metadata <- file_metadata_table(handleable_schema)
+
+  # create arrow Arrays
   arrays_attr <- lapply(df_attr, arrow::Array$create)
   arrays_handleable_arrow <- lapply(arrays_handleable, carrow::from_carrow_array, arrow::Array)
   arrays <- c(arrays_attr, arrays_handleable_arrow)[names(handleable)]
-
   batch <- arrow::record_batch(!!! arrays)
+
+  # add file metadata
+  batch$metadata$geo <- jsonlite::toJSON(file_metadata, null = "null", auto_unbox = TRUE)
+
+  # write!
   arrow::write_parquet(batch, ...)
 }
 
