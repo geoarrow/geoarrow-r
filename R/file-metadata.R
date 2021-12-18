@@ -93,3 +93,120 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
 
   result
 }
+
+schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NULL, dim = NULL) {
+  encoding <- meta$encoding
+  if (is.list(meta$encoding)) {
+    encoding <- encoding$name
+  }
+
+  encoding <- scalar_chr(encoding)
+
+  if (is.null(crs)) {
+    crs <- meta$crs
+  }
+
+  if (is.null(geodesic)) {
+    geodesic <- meta$geodesic
+  }
+
+  if (is.null(geodesic)) {
+    geodesic <- FALSE
+  }
+
+  if (is.null(dim)) {
+    dim <- meta$dim
+  }
+
+  nullable <- bitwAnd(shcema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+
+  switch(
+    encoding,
+    "WKB" = geoarrow_schema_wkb(
+      name = schema$name,
+      format = schema$format,
+      crs = crs,
+      geodesic = geodesic,
+      nullable = nullable
+    ),
+    "WKT" = geoarrow_schema_wkt(
+      name = schema$name,
+      format = schema$format,
+      crs = crs,
+      geodesic = geodesic,
+      nullable = nullable
+    ),
+    "GeoJSON" = geoarrow_schema_geojson(
+      name = schema$name,
+      format = schema$format,
+      crs = crs,
+      geodesic = geodesic,
+      nullable = nullable
+    ),
+    "point" = {
+      if (identical(schema$format, "+s")) {
+        dim <- vapply(schema$children, function(s) s$name, character(1))
+        dim <- paste(dim, collapse = "")
+
+        format_coord <- vapply(schema$children, function(s) s$format, character(1))
+        format_coord <- unique(format_coord)
+        if (length(format_coord) != 1) {
+          stop("Can't parse schema with multiple child formats as point struct", call. = FALSE)
+        }
+
+        geoarrow_schema_point_struct(
+          name = schema$name,
+          format = schema$format,
+          crs = crs,
+          format_coord = format_coord,
+          nullable = nullable
+        )
+      } else {
+        geoarrow_schema_point(
+          name = schema$name,
+          dim = dim,
+          crs = crs,
+          format_coord = schema$children[[1]]$format,
+          nullable = nullable
+        )
+      }
+    },
+    "linestring" = geoarrow_schema_linestring(
+      name = schema$name,
+      format = schema$format,
+      geodesic = geodesic,
+      nullable = nullable,
+      point = schema_from_column_metadata(
+        meta$point,
+        schema$children[[1]],
+        crs = crs,
+        dim = dim
+      )
+    ),
+    "polygon" = geoarrow_schema_polygon(
+      name = schema$name,
+      format = c(schema$format, schema$children[[1]]$format),
+      geodesic = geodesic,
+      nullable = nullable,
+      point = schema_from_column_metadata(
+        meta$point,
+        schema$children[[1]]$children[[1]],
+        crs = crs,
+        dim = dim
+      )
+    ),
+    "multi" = geoarrow_schema_polygon(
+      name = schema$name,
+      format = schema$format,
+      nullable = nullable,
+      child = schema_from_column_metadata(
+        meta$child,
+        schema$children[[1]],
+        crs = crs,
+        dim = dim,
+        geodesic = geodesic
+      )
+    ),
+    stop(sprintf("Unsupported encoding: '%s'", encoding))
+  )
+}
