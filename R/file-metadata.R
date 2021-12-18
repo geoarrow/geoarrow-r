@@ -1,8 +1,8 @@
 
 file_metadata_table <- function(schema, primary_column = NULL) {
   columns <- lapply(schema$children, file_metadata_column, include_crs = TRUE)
-  names(column) <- vapply(schema$children, function(child) child$name, character(1))
-  columns <- colunns[!vapply(columns, is.null, logical(1))]
+  names(columns) <- vapply(schema$children, function(child) child$name, character(1))
+  columns <- columns[!vapply(columns, is.null, logical(1))]
 
   if (length(columns) == 0) {
     stop("Can't create parquet metadata for zero columns", call. = FALSE)
@@ -14,7 +14,7 @@ file_metadata_table <- function(schema, primary_column = NULL) {
       library = "geoarrow",
       version = as.character(packageVersion("geoarrow"))
     ),
-    primary_column <- primary_column %||% names(columns)[1],
+    primary_column = if (is.null(primary_column)) names(columns)[1] else primary_column,
     schema_version = "0.1.0.9000"
   )
 }

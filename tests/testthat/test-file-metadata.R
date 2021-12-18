@@ -1,4 +1,24 @@
 
+test_that("file_metadata_table() works", {
+  expect_error(file_metadata_table(carrow::carrow_schema("i")), "zero columns")
+
+  schema <- carrow::carrow_schema(
+    format = "+s",
+    children = list(
+      geoarrow_schema_wkb(name = "col1"),
+      geoarrow_schema_wkt(name = "col2")
+    )
+  )
+
+  meta <- file_metadata_table(schema)
+  expect_identical(meta$primary_column, "col1")
+  expect_identical(meta$columns$col1$encoding, "WKB")
+  expect_identical(meta$columns$col2$encoding, "WKT")
+
+  meta2 <- file_metadata_table(schema, primary_column = "col2")
+  expect_identical(meta2$primary_column, "col2")
+})
+
 test_that("file_metadata_column() works for flat types", {
   expect_mapequal(
     file_metadata_column(geoarrow_schema_wkt()),
