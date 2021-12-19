@@ -46,13 +46,13 @@ test_that("file_metadata_column() works for flat types", {
   )
 
   expect_mapequal(
-    file_metadata_column(geoarrow_schema_point()),
-    list(crs = NULL, encoding = "point")
+    file_metadata_column(geoarrow_schema_point(dim = "xyz")),
+    list(crs = NULL, dim = "xyz", encoding = "point")
   )
 
   expect_mapequal(
     file_metadata_column(geoarrow_schema_point(crs = "EPSG:1234")),
-    list(crs = "EPSG:1234", encoding = "point")
+    list(crs = "EPSG:1234", dim = "xy", encoding = "point")
   )
 })
 
@@ -61,6 +61,7 @@ test_that("file_metadata_column() works for linestring", {
     file_metadata_column(geoarrow_schema_linestring()),
     list(
       crs = NULL,
+      dim = "xy",
       encoding = list(
         name = "linestring",
         point = list(
@@ -74,6 +75,7 @@ test_that("file_metadata_column() works for linestring", {
     file_metadata_column(geoarrow_schema_linestring(geodesic = TRUE)),
     list(
       crs = NULL,
+      dim = "xy",
       geodesic = TRUE,
       encoding = list(
         name = "linestring",
@@ -92,6 +94,7 @@ test_that("file_metadata_column() works for linestring", {
     ),
     list(
       crs = "EPSG:1234",
+      dim = "xy",
       encoding = list(
         name = "linestring",
         point = list(
@@ -107,6 +110,7 @@ test_that("file_metadata_column() works for polygon", {
     file_metadata_column(geoarrow_schema_polygon()),
     list(
       crs = NULL,
+      dim = "xy",
       encoding = list(
         name = "polygon",
         point = list(
@@ -120,6 +124,7 @@ test_that("file_metadata_column() works for polygon", {
     file_metadata_column(geoarrow_schema_polygon(geodesic = TRUE)),
     list(
       crs = NULL,
+      dim = "xy",
       geodesic = TRUE,
       encoding = list(
         name = "polygon",
@@ -138,6 +143,7 @@ test_that("file_metadata_column() works for polygon", {
     ),
     list(
       crs = "EPSG:1234",
+      dim = "xy",
       encoding = list(
         name = "polygon",
         point = list(
@@ -157,6 +163,7 @@ test_that("file_metadata_column() works for polygon", {
     ),
     list(
       crs = NULL,
+      dim = "xy",
       encoding = list(
         name = "multi",
         child = list(
@@ -174,6 +181,7 @@ test_that("file_metadata_column() works for polygon", {
     ),
     list(
       crs = NULL,
+      dim = "xy",
       geodesic = TRUE,
       encoding = list(
         name = "multi",
@@ -197,6 +205,7 @@ test_that("file_metadata_column() works for polygon", {
     ),
     list(
       crs = "EPSG:1234",
+      dim = "xy",
       encoding = list(
         name = "multi",
         child = list(

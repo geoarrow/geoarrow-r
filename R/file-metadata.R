@@ -40,9 +40,14 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
       encoding = "WKT"
     ),
     "geoarrow.geojson" = list(crs = ext_meta$crs, encoding = "GeoJSON"),
-    "geoarrow.point" = list(crs = ext_meta$crs, encoding = "point"),
+    "geoarrow.point" = list(
+      crs = ext_meta$crs,
+      dim = ext_meta$dim,
+      encoding = "point"
+    ),
     "geoarrow.linestring" = list(
       crs = geoarrow_metadata(schema$children[[1]])$crs,
+      dim = geoarrow_metadata(schema$children[[1]])$dim,
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = list(
         name = "linestring",
@@ -51,6 +56,7 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
     ),
     "geoarrow.polygon" = list(
       crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs,
+      dim = geoarrow_metadata(schema$children[[1]]$children[[1]])$dim,
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = list(
         name = "polygon",
@@ -63,12 +69,15 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
     "geoarrow.multi" = {
       child <- file_metadata_column(schema$children[[1]], include_crs = TRUE)
       crs <- child$crs
+      dim <- child$dim
       geodesic <- child$geodesic
       child$crs <- NULL
       child$geodesic <- NULL
+      child$dim <- NULL
 
       list(
         crs = crs,
+        dim = dim,
         geodesic = geodesic,
         encoding = list(
           name = "multi",
@@ -85,10 +94,16 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
     result$geodesic <- NULL
   }
 
-  # don't include crs or geodesic if not top level
+  # don't include dim if NULL
+  if (is.null(result$dim)) {
+    result$dim <- NULL
+  }
+
+  # don't include crs, geodesic, or dim if not top level
   if (!include_crs) {
     result$crs <- NULL
     result$geodesic <- NULL
+    result$dim <- NULL
   }
 
   result
