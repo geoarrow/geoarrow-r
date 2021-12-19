@@ -110,6 +110,18 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
 }
 
 schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NULL, dim = NULL) {
+  if (!is.null(schema$dictionary)) {
+    schema$dictionary <- schema_from_column_metadata(
+      meta,
+      schema$dictionary,
+      crs = crs,
+      geodesic = geodesic,
+      dim = dim
+    )
+
+    return(schema)
+  }
+
   encoding <- meta$encoding
   if (is.list(meta$encoding)) {
     encoding <- encoding$name
@@ -133,7 +145,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
     dim <- meta$dim
   }
 
-  nullable <- bitwAnd(shcema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
 
   switch(
     encoding,
@@ -160,8 +172,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
     ),
     "point" = {
       if (identical(schema$format, "+s")) {
-        dim <- vapply(schema$children, function(s) s$name, character(1))
-        dim <- paste(dim, collapse = "")
+        stopifnot(identical(nchar(dim), length(schema$children)))
 
         format_coord <- vapply(schema$children, function(s) s$format, character(1))
         format_coord <- unique(format_coord)
@@ -173,6 +184,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
           name = schema$name,
           format = schema$format,
           crs = crs,
+          dim = dim,
           format_coord = format_coord,
           nullable = nullable
         )

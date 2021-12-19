@@ -215,3 +215,139 @@ test_that("file_metadata_column() works for polygon", {
     )
   )
 })
+
+test_that("schema_from_column_metadata() works for WKT", {
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "WKT"),
+    carrow::carrow_schema(name = "", format = "u")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkt(nullable = FALSE)
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = "EPSG:1234", encoding = "WKT"),
+    carrow::carrow_schema(format = "u", name = "")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkt(crs = "EPSG:1234", nullable = FALSE)
+    )
+  )
+
+  # with geodesic
+  schema_reconstructed <- schema_from_column_metadata(
+    list(geodesic = TRUE, encoding = "WKT"),
+    carrow::carrow_schema(format = "u", name = "")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkt(geodesic = TRUE, nullable = FALSE)
+    )
+  )
+
+  # nullable
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "WKT"),
+    carrow::carrow_schema(
+      format = "u",
+      name = "",
+      flags = carrow::carrow_schema_flags(nullable = TRUE)
+    )
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkt(format = "u", nullable = TRUE)
+    )
+  )
+
+  # non-default storage type
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "WKT"),
+    carrow::carrow_schema(
+      format = "w:12",
+      name = ""
+    )
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkt(format = "w:12", nullable = FALSE)
+    )
+  )
+})
+
+test_that("schema_from_column_metadata() works for WKB", {
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "WKB"),
+    carrow::carrow_schema(name = "", format = "z")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkb(nullable = FALSE)
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = "EPSG:1234", encoding = "WKB"),
+    carrow::carrow_schema(format = "z", name = "")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkb(crs = "EPSG:1234", nullable = FALSE)
+    )
+  )
+
+  # with geodesic
+  schema_reconstructed <- schema_from_column_metadata(
+    list(geodesic = TRUE, encoding = "WKB"),
+    carrow::carrow_schema(format = "z", name = "")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkb(geodesic = TRUE, nullable = FALSE)
+    )
+  )
+
+  # nullable
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "WKB"),
+    carrow::carrow_schema(
+      format = "z",
+      name = "",
+      flags = carrow::carrow_schema_flags(nullable = TRUE)
+    )
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkb(format = "z", nullable = TRUE)
+    )
+  )
+
+  # non-default storage type
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "WKB"),
+    carrow::carrow_schema(
+      format = "w:12",
+      name = ""
+    )
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_wkb(format = "w:12", nullable = FALSE)
+    )
+  )
+})
