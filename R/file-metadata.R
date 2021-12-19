@@ -12,7 +12,7 @@ file_metadata_table <- function(schema, primary_column = NULL) {
     columns = columns,
     creator = list(
       library = "geoarrow",
-      version = as.character(packageVersion("geoarrow"))
+      version = as.character(utils::packageVersion("geoarrow"))
     ),
     primary_column = if (is.null(primary_column)) names(columns)[1] else primary_column,
     schema_version = "0.1.0.9000"
@@ -225,7 +225,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
         dim = dim
       )
     ),
-    "multi" = geoarrow_schema_polygon(
+    "multi" = geoarrow_schema_multi(
       name = schema$name,
       format = schema$format,
       nullable = nullable,
