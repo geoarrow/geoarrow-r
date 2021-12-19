@@ -525,3 +525,97 @@ test_that("schema_from_column_metadata() works for point struct", {
     )
   )
 })
+
+test_that("schema_from_column_metadata() works for linestring", {
+  bare <- geoarrow_schema_linestring()
+  bare$metadata <- NULL
+  bare$flags <- 0L
+
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy",
+      encoding = list(name = "linestring", point = list(encoding = "point"))
+    ),
+    bare
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_linestring(nullable = FALSE),
+      recursive = TRUE
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = "EPSG:1234", dim = "xy",
+      encoding = list(name = "linestring", point = list(encoding = "point"))
+    ),
+    bare
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_linestring(
+        point = geoarrow_schema_point(crs = "EPSG:1234", nullable = FALSE),
+        nullable = FALSE
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # with geodesic
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, geodesic = TRUE, dim = "xy",
+      encoding = list(name = "linestring", point = list(encoding = "point"))
+    ),
+    bare
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_linestring(
+        geodesic = TRUE,
+        point = geoarrow_schema_point(nullable = FALSE),
+        nullable = FALSE
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # nullable
+  bare$flags <- carrow::carrow_schema_flags(nullable = TRUE)
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy",
+      encoding = list(name = "linestring", point = list(encoding = "point"))
+    ),
+    bare
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_linestring(nullable = TRUE),
+      recursive = TRUE
+    )
+  )
+
+  # non-default storage type
+  bare$format <- "+L"
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy",
+      encoding = list(name = "linestring", point = list(encoding = "point"))
+    ),
+    bare
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_linestring(nullable = TRUE, format = "+L"),
+      recursive = TRUE
+    )
+  )
+})

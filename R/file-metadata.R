@@ -207,7 +207,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       geodesic = geodesic,
       nullable = nullable,
       point = schema_from_column_metadata(
-        meta$point,
+        meta$encoding$point,
         schema$children[[1]],
         crs = crs,
         dim = dim
@@ -219,7 +219,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       geodesic = geodesic,
       nullable = nullable,
       point = schema_from_column_metadata(
-        meta$point,
+        meta$encoding$point,
         schema$children[[1]]$children[[1]],
         crs = crs,
         dim = dim
@@ -230,7 +230,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       format = schema$format,
       nullable = nullable,
       child = schema_from_column_metadata(
-        meta$child,
+        meta$encoding$child,
         schema$children[[1]],
         crs = crs,
         dim = dim,
