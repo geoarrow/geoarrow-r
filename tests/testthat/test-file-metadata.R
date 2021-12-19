@@ -351,3 +351,177 @@ test_that("schema_from_column_metadata() works for WKB", {
     )
   )
 })
+
+test_that("schema_from_column_metadata() works for GeoJSON", {
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "GeoJSON"),
+    carrow::carrow_schema(name = "", format = "u")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_geojson(nullable = FALSE)
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = "EPSG:1234", encoding = "GeoJSON"),
+    carrow::carrow_schema(format = "u", name = "")
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_geojson(crs = "EPSG:1234", nullable = FALSE)
+    )
+  )
+
+  # nullable
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "GeoJSON"),
+    carrow::carrow_schema(
+      format = "u",
+      name = "",
+      flags = carrow::carrow_schema_flags(nullable = TRUE)
+    )
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_geojson(format = "u", nullable = TRUE)
+    )
+  )
+
+  # non-default storage type
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "GeoJSON"),
+    carrow::carrow_schema(
+      format = "w:12",
+      name = ""
+    )
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed),
+    carrow::carrow_schema_info(
+      geoarrow_schema_geojson(format = "w:12", nullable = FALSE)
+    )
+  )
+})
+
+test_that("schema_from_column_metadata() works for point", {
+  bare_point <- geoarrow_schema_point(dim = "xy")
+  bare_point$metadata <- NULL
+  bare_point$flags <- 0L
+
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "point", dim = "xy"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point(nullable = FALSE),
+      recursive = TRUE
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = "EPSG:1234", encoding = "point", dim = "xy"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point(nullable = FALSE, crs = "EPSG:1234"),
+      recursive = TRUE
+    )
+  )
+
+  # with dim
+  bare_point$format <- "w:4"
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = "EPSG:1234", encoding = "point", dim = "xyzm"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point(nullable = FALSE, dim = "xyzm", crs = "EPSG:1234"),
+      recursive = TRUE
+    )
+  )
+
+  # nullable
+  bare_point$flags <- carrow::carrow_schema_flags(nullable = TRUE)
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "point", dim = "xy"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point(nullable = TRUE),
+      recursive = TRUE
+    )
+  )
+})
+
+test_that("schema_from_column_metadata() works for point struct", {
+  bare_point <- geoarrow_schema_point_struct(dim = "xy")
+  bare_point$metadata <- NULL
+  bare_point$flags <- 0L
+
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "point", dim = "xy"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point_struct(nullable = FALSE),
+      recursive = TRUE
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = "EPSG:1234", encoding = "point", dim = "xy"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point_struct(nullable = FALSE, crs = "EPSG:1234"),
+      recursive = TRUE
+    )
+  )
+
+  # nullable
+  bare_point$flags <- carrow::carrow_schema_flags(nullable = TRUE)
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = NULL, encoding = "point", dim = "xy"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point_struct(nullable = TRUE),
+      recursive = TRUE
+    )
+  )
+
+  # with dim
+  bare_point$children <- lapply(1:4, function(x) carrow::carrow_schema("g"))
+  schema_reconstructed <- schema_from_column_metadata(
+    list(crs = "EPSG:1234", encoding = "point", dim = "xyzm"),
+    bare_point
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_point_struct(dim = "xyzm", crs = "EPSG:1234"),
+      recursive = TRUE
+    )
+  )
+})

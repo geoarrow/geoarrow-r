@@ -163,14 +163,18 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       geodesic = geodesic,
       nullable = nullable
     ),
-    "GeoJSON" = geoarrow_schema_geojson(
-      name = schema$name,
-      format = schema$format,
-      crs = crs,
-      geodesic = geodesic,
-      nullable = nullable
-    ),
+    "GeoJSON" = {
+      stopifnot(identical(geodesic, FALSE))
+      geoarrow_schema_geojson(
+        name = schema$name,
+        format = schema$format,
+        crs = crs,
+        nullable = nullable
+      )
+    },
     "point" = {
+      stopifnot(identical(geodesic, FALSE))
+
       if (identical(schema$format, "+s")) {
         stopifnot(identical(nchar(dim), length(schema$children)))
 
@@ -182,7 +186,6 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
 
         geoarrow_schema_point_struct(
           name = schema$name,
-          format = schema$format,
           crs = crs,
           dim = dim,
           format_coord = format_coord,
