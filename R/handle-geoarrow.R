@@ -2,6 +2,11 @@
 #' Handle Arrow arrays
 #'
 #' @inheritParams wk::wk_handle
+#' @param geoarrow_schema Override the `schema` of the array stream
+#'   (e.g., to provide geo metadata).
+#' @param geoarrow_n_features Manually specify the number of features
+#'   when reading a stream if this value is known (or `NA_integer`
+#'   if it is not).
 #'
 #' @return The result of `handler`
 #' @export
@@ -42,6 +47,7 @@ wk_handle.carrow_array_stream <- function(handleable, handler, ...,
   switch(
     extension,
     "geoarrow.wkb" = handle_geoarrow_wkb_stream(handleable, handler),
+    "geoarrow.wkt" = handle_geoarrow_wkt_stream(handleable, handler),
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }

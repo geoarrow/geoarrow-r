@@ -6,6 +6,7 @@
 #include <memory.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include "util.h"
 
 #define WK_DEFAULT_ERROR_CODE 0
 #define WK_NO_ERROR_CODE -1
@@ -213,13 +214,6 @@ void wkb_read_set_errorf(wkb_reader_t* reader, const char* error_buf, ...) {
     va_end(args);
 }
 
-void geoarrow_finalize_array_data(SEXP array_data_xptr) {
-    struct ArrowArray* array_data = (struct ArrowArray*) R_ExternalPtrAddr(array_data_xptr);
-    if (array_data != NULL && array_data->release != NULL) {
-        array_data->release(array_data);
-    }
-}
-
 SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
     struct ArrowArrayStream* array_stream = array_stream_from_xptr(VECTOR_ELT(data, 0), "handleable");
     struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 1), "schema");
@@ -247,13 +241,13 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
         }
     }
 
-    if (handler->vector_start(&vector_meta, handler->handler_data) == WK_CONTINUE) {
-        int result;
+    int result = handler->vector_start(&vector_meta, handler->handler_data);
+    if (result == WK_CONTINUE) {
         wkb_reader_t reader;
         reader.handler = handler;
         reader.feat_id = -1;
         memset(reader.error_buf, 0, 1024);
-        struct ArrowArray* array_data = malloc(sizeof(struct ArrowArray));
+        struct ArrowArray* array_data = (struct ArrowArray*) malloc(sizeof(struct ArrowArray));
         if (array_data == NULL) {
             Rf_error("Failed to allocate struct ArrowArray");
         }
@@ -262,7 +256,7 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
         R_RegisterCFinalizer(array_data_wrapper, &geoarrow_finalize_array_data);
 
         int stream_result = 0;
-        while(1) {
+        while(result != WK_ABORT) {
             stream_result = array_stream->get_next(array_stream, array_data);
             if (stream_result != 0) {
                 const char* error_message = array_stream->get_last_error(array_stream);
@@ -351,9 +345,9 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
         UNPROTECT(1);
     }
 
-    SEXP result = PROTECT(handler->vector_end(&vector_meta, handler->handler_data));
+    SEXP result_sexp = PROTECT(handler->vector_end(&vector_meta, handler->handler_data));
     UNPROTECT(1);
-    return result;
+    return result_sexp;
 }
 
 SEXP geoarrow_c_handle_wkb(SEXP data, SEXP handler_xptr) {

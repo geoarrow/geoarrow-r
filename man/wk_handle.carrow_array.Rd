@@ -22,6 +22,13 @@
 \item{handler}{A \link[wk:wk_handle]{wk_handler} object.}
 
 \item{...}{Passed to the \code{\link[wk:wk_handle]{wk_handle()}} method.}
+
+\item{geoarrow_schema}{Override the \code{schema} of the array stream
+(e.g., to provide geo metadata).}
+
+\item{geoarrow_n_features}{Manually specify the number of features
+when reading a stream if this value is known (or \code{NA_integer}
+if it is not).}
 }
 \value{
 The result of \code{handler}
