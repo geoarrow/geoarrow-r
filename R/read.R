@@ -62,7 +62,7 @@ read_geoarrow_parquet <- function(file, ..., col_select = NULL,
       function(col_name) {
         chunked <- handleable_table[[col_name]]
         geoarrow_schema <- schema_from_column_metadata(
-          meta = metadata$columns[["geom"]],
+          meta = metadata$columns[[col_name]],
           schema = carrow::as_carrow_schema(chunked$type)
         )
         result <- vector("list", chunked$num_chunks)
@@ -87,5 +87,6 @@ read_geoarrow_parquet <- function(file, ..., col_select = NULL,
     handleable_df <- NULL
   }
 
-  dplyr::bind_cols(attrs_df, handleable_df)[col_select]
+  tbl <- dplyr::bind_cols(attrs_df, handleable_df)
+  tbl[intersect(col_select, names(tbl))]
 }
