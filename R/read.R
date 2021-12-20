@@ -48,8 +48,7 @@ read_geoarrow_parquet <- function(file, ..., col_select = NULL,
   }
 
   if (length(handleable_cols) > 0) {
-    # we could avoid reading a copy here by making the handlers
-    # accept an ArrowArrayStream with an overridden schema
+    # currently read everything into memory once and then do the conversion
     handleable_table <- arrow::read_parquet(
       file,
       ...,
@@ -61,21 +60,18 @@ read_geoarrow_parquet <- function(file, ..., col_select = NULL,
       handleable_cols,
       function(col_name) {
         chunked <- handleable_table[[col_name]]
+
         geoarrow_schema <- schema_from_column_metadata(
           meta = metadata$columns[[col_name]],
           schema = carrow::as_carrow_schema(chunked$type)
         )
-        result <- vector("list", chunked$num_chunks)
-        for (i in seq_along(result)) {
-          array <- carrow::carrow_array(
-            geoarrow_schema,
-            carrow::as_carrow_array(chunked$chunk(i - 1L))$array_data,
-            validate = FALSE
-          )
-          result[[i]] <- wk::wk_handle(array, wk::as_wk_handler(handler))
-        }
 
-        vctrs::vec_c(!!! result)
+        wk::wk_handle(
+          carrow::as_carrow_array_stream(chunked),
+          wk::as_wk_handler(handler),
+          geoarrow_schema = geoarrow_schema,
+          geoarrow_n_features = chunked$length()
+        )
       }
     )
 
