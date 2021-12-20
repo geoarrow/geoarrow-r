@@ -29,5 +29,6 @@ Suggests:
     covr,
     testthat (>= 3.0.0),
     geos (>= 0.1.3),
-    jsonlite
+    jsonlite,
+    dplyr
 Config/testthat/edition: 3
