@@ -41,7 +41,7 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
   for (i in seq_along(handleable_schema$children)) {
     handleable_schema$children[[i]]$name <- names(arrays_handleable)[i]
   }
-  file_metadata <- file_metadata_table(handleable_schema)
+  file_metadata <- geoarrow_metadata_table(handleable_schema)
 
   # create arrow Arrays
   arrays_attr <- lapply(df_attr, arrow::Array$create)

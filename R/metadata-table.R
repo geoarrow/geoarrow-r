@@ -1,6 +1,6 @@
 
-file_metadata_table <- function(schema, primary_column = NULL) {
-  columns <- lapply(schema$children, file_metadata_column, include_crs = TRUE)
+geoarrow_metadata_table <- function(schema, primary_column = NULL) {
+  columns <- lapply(schema$children, geoarrow_metadata_column, include_crs = TRUE)
   names(columns) <- vapply(schema$children, function(child) child$name, character(1))
   columns <- columns[!vapply(columns, is.null, logical(1))]
 
@@ -19,7 +19,7 @@ file_metadata_table <- function(schema, primary_column = NULL) {
   )
 }
 
-file_metadata_column <- function(schema, include_crs = TRUE) {
+geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
   ext_name <- schema$metadata[["ARROW:extension:name"]]
   ext_meta <- geoarrow_metadata(schema)
 
@@ -51,7 +51,7 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = list(
         name = "linestring",
-        point = file_metadata_column(schema$children[[1]], include_crs = FALSE)
+        point = geoarrow_metadata_column(schema$children[[1]], include_crs = FALSE)
       )
     ),
     "geoarrow.polygon" = list(
@@ -60,14 +60,14 @@ file_metadata_column <- function(schema, include_crs = TRUE) {
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = list(
         name = "polygon",
-        point = file_metadata_column(
+        point = geoarrow_metadata_column(
           schema$children[[1]]$children[[1]],
           include_crs = FALSE
         )
       )
     ),
     "geoarrow.multi" = {
-      child <- file_metadata_column(schema$children[[1]], include_crs = TRUE)
+      child <- geoarrow_metadata_column(schema$children[[1]], include_crs = TRUE)
       crs <- child$crs
       dim <- child$dim
       geodesic <- child$geodesic
