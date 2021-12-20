@@ -257,6 +257,9 @@ SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
 
         int stream_result = 0;
         while(result != WK_ABORT) {
+            if (array_data->release != NULL) {
+                array_data->release(array_data);
+            }
             stream_result = array_stream->get_next(array_stream, array_data);
             if (stream_result != 0) {
                 const char* error_message = array_stream->get_last_error(array_stream);
