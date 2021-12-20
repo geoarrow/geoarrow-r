@@ -28,3 +28,20 @@ wk_handle.carrow_array <- function(handleable, handler, ...) {
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }
+
+#' @export
+#' @rdname wk_handle.carrow_array
+wk_handle.carrow_array_stream <- function(handleable, handler, ...,
+                                          geoarrow_schema = carrow::carrow_array_stream_get_schema(handleable),
+                                          geoarrow_n_features = NA_integer_) {
+  handler <- wk::as_wk_handler(handler)
+  metadata <- geoarrow_schema$metadata
+  extension <- scalar_chr(metadata[["ARROW:extension:name"]])
+  geo_metadata <- geoarrow_metadata(geoarrow_schema)
+
+  switch(
+    extension,
+    "geoarrow.wkb" = handle_geoarrow_wkb_stream(handleable, handler),
+    stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
+  )
+}

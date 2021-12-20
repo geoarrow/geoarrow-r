@@ -2,9 +2,18 @@
 % Please edit documentation in R/handle-geoarrow.R
 \name{wk_handle.carrow_array}
 \alias{wk_handle.carrow_array}
+\alias{wk_handle.carrow_array_stream}
 \title{Handle Arrow arrays}
 \usage{
 \method{wk_handle}{carrow_array}(handleable, handler, ...)
+
+\method{wk_handle}{carrow_array_stream}(
+  handleable,
+  handler,
+  ...,
+  geoarrow_schema = carrow::carrow_array_stream_get_schema(handleable),
+  geoarrow_n_features = NA_integer_
+)
 }
 \arguments{
 \item{handleable}{A geometry vector (e.g., \code{\link[wk:wkb]{wkb()}}, \code{\link[wk:wkt]{wkt()}}, \code{\link[wk:xy]{xy()}},
