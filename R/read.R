@@ -75,7 +75,7 @@ read_geoarrow_parquet <- function(file, ..., col_select = NULL,
           result[[i]] <- wk::wk_handle(array, wk::as_wk_handler(handler))
         }
 
-        do.call(c, result)
+        vctrs::vec_c(!!! result)
       }
     )
 
