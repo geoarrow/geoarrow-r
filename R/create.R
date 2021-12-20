@@ -157,7 +157,7 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
   }
 
   item_lengths <- as.numeric(lengths(x, use.names = FALSE))
-  flat <- unlist(x, use.names = FALSE)
+  flat <- as.raw(unlist(x, use.names = FALSE))
   total_length <- length(flat)
 
   if (!strict) {
