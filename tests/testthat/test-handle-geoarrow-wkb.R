@@ -289,13 +289,6 @@ test_that("truncated buffer errors", {
 
 test_that("bad arrays error", {
   arr_wkb <- carrow::carrow_array(
-    geoarrow_schema_wkb(format = "w:1"),
-    carrow::carrow_array_data(),
-    validate = FALSE
-  )
-  expect_error(wk::wk_void(arr_wkb), "Expected ArrowArray with 2 buffers")
-
-  arr_wkb <- carrow::carrow_array(
     geoarrow_schema_wkb(format = "w:0"),
     carrow::carrow_array_data(buffers = list(raw(1), raw(1))),
     validate = FALSE
@@ -303,22 +296,8 @@ test_that("bad arrays error", {
   expect_error(wk::wk_void(arr_wkb), "width must be >= 0")
 
   arr_wkb <- carrow::carrow_array(
-    geoarrow_schema_wkb(format = "z"),
-    carrow::carrow_array_data(),
-    validate = FALSE
-  )
-  expect_error(wk::wk_void(arr_wkb), "Expected ArrowArray with 3 buffers")
-
-  arr_wkb <- carrow::carrow_array(
-    geoarrow_schema_wkb(format = "Z"),
-    carrow::carrow_array_data(),
-    validate = FALSE
-  )
-  expect_error(wk::wk_void(arr_wkb), "Expected ArrowArray with 3 buffers")
-
-  arr_wkb <- carrow::carrow_array(
     carrow::carrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkb")),
-    carrow::carrow_array_data(),
+    carrow::carrow_array_data(buffers = list(NULL, integer())),
     validate = FALSE
   )
   expect_error(wk::wk_void(arr_wkb), "Can't handle schema format 'i'")

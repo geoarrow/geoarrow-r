@@ -213,107 +213,142 @@ void wkb_read_set_errorf(wkb_reader_t* reader, const char* error_buf, ...) {
     va_end(args);
 }
 
+void geoarrow_finalize_array_data(SEXP array_data_xptr) {
+    struct ArrowArray* array_data = (struct ArrowArray*) R_ExternalPtrAddr(array_data_xptr);
+    if (array_data != NULL && array_data->release != NULL) {
+        array_data->release(array_data);
+    }
+}
+
 SEXP geoarrow_read_wkb(SEXP data, wk_handler_t* handler) {
-    struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 0), "handleable$schema");
-    struct ArrowArray* array_data = array_data_from_xptr(VECTOR_ELT(data, 1), "handleable$array_data");
+    struct ArrowArrayStream* array_stream = array_stream_from_xptr(VECTOR_ELT(data, 0), "handleable");
+    struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 1), "schema");
+    SEXP n_features_sexp = VECTOR_ELT(data, 2);
 
     int32_t* offset_buffer = NULL;
     int64_t* large_offset_buffer = NULL;
     unsigned char* data_buffer = NULL;
 
-    int64_t n_features = array_data->length;
     int64_t start_offset, end_offset;
     int64_t fixed_width = -1;
 
-    switch (schema->format[0]) {
-    case 'z':
-        if (array_data->n_buffers != 3) {
-            Rf_error("Expected ArrowArray with 3 buffers but got %d", array_data->n_buffers);
-        }
-        offset_buffer = (int32_t*) array_data->buffers[1];
-        data_buffer = (unsigned char*) array_data->buffers[2];
-        break;
-    case 'Z':
-        if (array_data->n_buffers != 3) {
-            Rf_error("Expected ArrowArray with 3 buffers but got %d", array_data->n_buffers);
-        }
-        large_offset_buffer = (int64_t*) array_data->buffers[1];
-        data_buffer = (unsigned char*) array_data->buffers[2];
-        break;
-    case 'w':
-        if (array_data->n_buffers != 2) {
-            Rf_error("Expected ArrowArray with 2 buffers but got %d", array_data->n_buffers);
-        }
-        if (schema->format[1] == ':') {
-            data_buffer =(unsigned char*) array_data->buffers[1];
-            fixed_width = atol(schema->format + 2);
-            if (fixed_width <= 0) {
-                Rf_error("width must be >= 0");
-            }
-            break;
-        }
-
-    default:
-        Rf_error("Can't handle schema format '%s' as WKB", schema->format);
-    }
-
-    unsigned char* validity_buffer = (unsigned char*) array_data->buffers[0];
-
     wk_vector_meta_t vector_meta;
     WK_VECTOR_META_RESET(vector_meta, WK_GEOMETRY);
-    vector_meta.size = n_features;
     vector_meta.flags |= WK_FLAG_DIMS_UNKNOWN;
+
+    if (TYPEOF(n_features_sexp) == INTSXP) {
+        if (INTEGER(n_features_sexp)[0] != NA_INTEGER) {
+            vector_meta.size = INTEGER(n_features_sexp)[0];
+        }
+    } else {
+        double n_features_double = REAL(n_features_sexp)[0];
+        if (!ISNA(n_features_double) && !ISNAN(n_features_double)) {
+            vector_meta.size = n_features_double;
+        }
+    }
 
     if (handler->vector_start(&vector_meta, handler->handler_data) == WK_CONTINUE) {
         int result;
         wkb_reader_t reader;
         reader.handler = handler;
+        reader.feat_id = -1;
         memset(reader.error_buf, 0, 1024);
+        struct ArrowArray* array_data = malloc(sizeof(struct ArrowArray));
+        if (array_data == NULL) {
+            Rf_error("Failed to allocate struct ArrowArray");
+        }
+        array_data->release = NULL;
+        SEXP array_data_wrapper = PROTECT(R_MakeExternalPtr(array_data, R_NilValue, R_NilValue));
+        R_RegisterCFinalizer(array_data_wrapper, &geoarrow_finalize_array_data);
 
-        for (int64_t i = array_data->offset; i < n_features; i++) {
-            if (((i + 1) % 1000) == 0) R_CheckUserInterrupt();
-
-            reader.feat_id = i;
-            if (fixed_width > 0) {
-                start_offset = i * fixed_width;
-                end_offset = start_offset + fixed_width;
-            } else if (offset_buffer != NULL) {
-                start_offset = offset_buffer[i];
-                end_offset = offset_buffer[i + 1];
-            } else if (large_offset_buffer != NULL) {
-                start_offset = large_offset_buffer[i];
-                end_offset = large_offset_buffer[i + 1];
-            } else {
-                Rf_error("Can't locate feature in buffers"); // # nocov
+        int stream_result = 0;
+        while(1) {
+            stream_result = array_stream->get_next(array_stream, array_data);
+            if (stream_result != 0) {
+                const char* error_message = array_stream->get_last_error(array_stream);
+                if (error_message != NULL) {
+                    Rf_error("[%d] %s", stream_result, error_message);
+                } else {
+                    Rf_error("ArrowArrayStream->get_next() failed with code %d", stream_result);
+                }
             }
 
-            HANDLE_CONTINUE_OR_BREAK(handler->feature_start(&vector_meta, i, handler->handler_data));
+            if (array_data->release == NULL) {
+                break;
+            }
 
-            if (validity_buffer && (0 == (validity_buffer[i / 8] & (1 << (i % 8))))) {
-                HANDLE_CONTINUE_OR_BREAK(handler->null_feature(handler->handler_data));
-            } else {
-                reader.offset = 0;
-                reader.size = end_offset - start_offset;
-                reader.buffer = data_buffer + start_offset;
-                reader.error_code = WK_NO_ERROR_CODE;
-                reader.error_buf[0] = '\0';
-
-                result = wkb_read_geometry(&reader, WK_PART_ID_NONE);
-                if (result == WK_ABORT_FEATURE && reader.error_code != WK_NO_ERROR_CODE) {
-                    result = handler->error(reader.error_buf, handler->handler_data);
-                }
-
-                if (result == WK_ABORT_FEATURE) {
-                    continue;
-                } else if (result == WK_ABORT) {
+            switch (schema->format[0]) {
+            case 'z':
+                offset_buffer = (int32_t*) array_data->buffers[1];
+                data_buffer = (unsigned char*) array_data->buffers[2];
+                break;
+            case 'Z':
+                large_offset_buffer = (int64_t*) array_data->buffers[1];
+                data_buffer = (unsigned char*) array_data->buffers[2];
+                break;
+            case 'w':
+                if (schema->format[1] == ':') {
+                    data_buffer =(unsigned char*) array_data->buffers[1];
+                    fixed_width = atol(schema->format + 2);
+                    if (fixed_width <= 0) {
+                        Rf_error("width must be >= 0");
+                    }
                     break;
                 }
+
+            default:
+                Rf_error("Can't handle schema format '%s' as WKB", schema->format);
             }
 
-            if (handler->feature_end(&vector_meta, i, handler->handler_data) == WK_ABORT) {
-                break; // # nocov
+            unsigned char* validity_buffer = (unsigned char*) array_data->buffers[0];
+
+            for (int64_t i = array_data->offset; i < array_data->length; i++) {
+                if (((i + 1) % 1000) == 0) R_CheckUserInterrupt();
+
+                reader.feat_id++;
+                if (fixed_width > 0) {
+                    start_offset = i * fixed_width;
+                    end_offset = start_offset + fixed_width;
+                } else if (offset_buffer != NULL) {
+                    start_offset = offset_buffer[i];
+                    end_offset = offset_buffer[i + 1];
+                } else if (large_offset_buffer != NULL) {
+                    start_offset = large_offset_buffer[i];
+                    end_offset = large_offset_buffer[i + 1];
+                } else {
+                    Rf_error("Can't locate feature in buffers"); // # nocov
+                }
+
+                HANDLE_CONTINUE_OR_BREAK(handler->feature_start(&vector_meta, i, handler->handler_data));
+
+                if (validity_buffer && (0 == (validity_buffer[i / 8] & (1 << (i % 8))))) {
+                    HANDLE_CONTINUE_OR_BREAK(handler->null_feature(handler->handler_data));
+                } else {
+                    reader.offset = 0;
+                    reader.size = end_offset - start_offset;
+                    reader.buffer = data_buffer + start_offset;
+                    reader.error_code = WK_NO_ERROR_CODE;
+                    reader.error_buf[0] = '\0';
+
+                    result = wkb_read_geometry(&reader, WK_PART_ID_NONE);
+                    if (result == WK_ABORT_FEATURE && reader.error_code != WK_NO_ERROR_CODE) {
+                        result = handler->error(reader.error_buf, handler->handler_data);
+                    }
+
+                    if (result == WK_ABORT_FEATURE) {
+                        continue;
+                    } else if (result == WK_ABORT) {
+                        break;
+                    }
+                }
+
+                if (handler->feature_end(&vector_meta, i, handler->handler_data) == WK_ABORT) {
+                    break; // # nocov
+                }
             }
         }
+
+        UNPROTECT(1);
     }
 
     SEXP result = PROTECT(handler->vector_end(&vector_meta, handler->handler_data));
