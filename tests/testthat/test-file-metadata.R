@@ -565,6 +565,25 @@ test_that("schema_from_column_metadata() works for linestring", {
     )
   )
 
+  # with dim
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xyzm",
+      encoding = list(name = "linestring", point = list(encoding = "point"))
+    ),
+    bare
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_linestring(
+        point = geoarrow_schema_point(dim = "xyzm", nullable = FALSE),
+        nullable = FALSE
+      ),
+      recursive = TRUE
+    )
+  )
+
   # with geodesic
   schema_reconstructed <- schema_from_column_metadata(
     list(
@@ -653,6 +672,25 @@ test_that("schema_from_column_metadata() works for polygon", {
     carrow::carrow_schema_info(
       geoarrow_schema_polygon(
         point = geoarrow_schema_point(crs = "EPSG:1234", nullable = FALSE),
+        nullable = FALSE
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # with dim
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xyzm",
+      encoding = list(name = "polygon", point = list(encoding = "point"))
+    ),
+    bare
+  )
+  expect_identical(
+    carrow::carrow_schema_info(schema_reconstructed, recursive = TRUE),
+    carrow::carrow_schema_info(
+      geoarrow_schema_polygon(
+        point = geoarrow_schema_point(dim = "xyzm", nullable = FALSE),
         nullable = FALSE
       ),
       recursive = TRUE
