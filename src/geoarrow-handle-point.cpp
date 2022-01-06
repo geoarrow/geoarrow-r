@@ -54,6 +54,8 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
                 break;
             }
 
+            view.set_array(array_data);
+            
             for (int64_t i = array_data->offset; i < array_data->length; i++) {
                 if (((i + 1) % 1000) == 0) R_CheckUserInterrupt();
                 HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler));

@@ -73,10 +73,13 @@ class GeoArrowMeta {
 
                 if (name_len >= 3 && strncmp(name, "dim", 3) == 0) {
                     memcpy(dim_, value, std::min<int32_t>(4, value_len));
+                    Rprintf("Found dim! '%s'\n", dim_);
                 } else if (name_len >= 3 && strncmp(name, "crs", 3) == 0) {
+                    Rprintf("Found crs!\n");
                     crs_size_ = value_len;
                     crs_ = value;
                 } else if (name_len >= 3 && strncmp(name, "geodesic", 3) == 0) {
+                    Rprintf("Found geodesic!\n");
                     if (value_len >= 4 && strncmp(value, "true", 4) == 0) {
                         geodesic_ = true;
                     }
@@ -138,8 +141,9 @@ class GeoArrowArrayView {
 
 class GeoArrowPointView: public GeoArrowArrayView {
   public:    
-    GeoArrowPointView(struct ArrowSchema* schema): GeoArrowArrayView(schema) {
+    GeoArrowPointView(struct ArrowSchema* schema): GeoArrowArrayView(schema), data_buffer_(nullptr) {
         meta_.geometry_type = WK_POINT;
+        vector_meta_.geometry_type = WK_POINT;
         meta_.size = 1;
 
         coord_size_ = 2;
@@ -149,6 +153,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
 
     void set_array(struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
+        data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
     }
 
     int read_feature(wk_handler_t* handler) {
