@@ -1,6 +1,6 @@
 
 handle_geoarrow_point <- function(array, handler) {
-  handle_geoarrow_native_point_stream(
+  handle_geoarrow_point_stream(
     carrow::as_carrow_array_stream(array),
     handler,
     array$schema,

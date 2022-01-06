@@ -584,7 +584,7 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point(nu
   if (is.null(point_metadata$crs)) {
     crs <- wk::wk_crs(handleable)
     if (!is.null(crs) && !inherits(crs, "wk_crs_inherit")) {
-      point_metadata$crs <- crs2crs::crs_proj_definition(crs)
+      point_metadata$crs <- wk::wk_crs_proj_definition(crs, verbose = TRUE)
     }
   }
 

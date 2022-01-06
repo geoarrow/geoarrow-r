@@ -3,7 +3,7 @@
 #include <Rinternals.h>
 #include "wk-v1.h"
 #include "carrow.h"
-#include "geoarrow-native.hpp"
+#include "internal/geoarrow-native.hpp"
 #include "util.h"
 
 

@@ -15,16 +15,14 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports: 
     carrow,
-    wk
+    wk (>= 0.6.0)
 LinkingTo: 
     carrow,
     wk
 Remotes: 
-    paleolimbot/carrow,
-    paleolimbot/crs2crs
+    paleolimbot/carrow
 Suggests: 
     arrow,
-    crs2crs,
     covr,
     testthat (>= 3.0.0),
     geos (>= 0.1.3),
