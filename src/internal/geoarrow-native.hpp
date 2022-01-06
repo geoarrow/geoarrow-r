@@ -15,6 +15,34 @@
     if (result == WK_ABORT_FEATURE) continue; else if (result == WK_ABORT) break
 
 
+template <class ArrayView>
+int read_point_feature(ArrayView& view, wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
+    int result;
+    view.feature_id_++;
+    result = handler->feature_start(&view.vector_meta_, view.feature_id_, handler->handler_data);
+    if (result != WK_CONTINUE) {
+        view.offset_++;
+        return result;
+    }
+
+    if (view.is_null(1)) {
+        view.offset_++;
+        HANDLE_OR_RETURN(handler->null_feature(handler->handler_data));
+    } else {
+        result = handler->geometry_start(&view.meta_, part_id, handler->handler_data);
+        if (result != WK_CONTINUE) {
+            view.offset_++;
+            return result;
+        }
+        HANDLE_OR_RETURN(view.read_coord(handler, 0));
+        HANDLE_OR_RETURN(handler->geometry_end(&view.meta_, part_id, handler->handler_data));
+    }
+
+    HANDLE_OR_RETURN(handler->feature_end(&view.vector_meta_, view.feature_id_, handler->handler_data));
+    return WK_CONTINUE;
+}
+
+
 class GeoArrowMeta {
   public:
     GeoArrowMeta(const char* metadata = nullptr): 
@@ -73,13 +101,10 @@ class GeoArrowMeta {
 
                 if (name_len >= 3 && strncmp(name, "dim", 3) == 0) {
                     memcpy(dim_, value, std::min<int32_t>(4, value_len));
-                    Rprintf("Found dim! '%s'\n", dim_);
                 } else if (name_len >= 3 && strncmp(name, "crs", 3) == 0) {
-                    Rprintf("Found crs!\n");
                     crs_size_ = value_len;
                     crs_ = value;
                 } else if (name_len >= 3 && strncmp(name, "geodesic", 3) == 0) {
-                    Rprintf("Found geodesic!\n");
                     if (value_len >= 4 && strncmp(value, "true", 4) == 0) {
                         geodesic_ = true;
                     }
@@ -99,7 +124,7 @@ class GeoArrowArrayView {
   public:
     GeoArrowArrayView(const struct ArrowSchema* schema): 
       schema_(schema), array_(nullptr), geoarrow_meta_(schema->metadata),
-      offset_(-1), validity_buffer_(nullptr) {
+      offset_(-1), feature_id_(-1), validity_buffer_(nullptr) {
         WK_META_RESET(meta_, WK_GEOMETRY);
         WK_VECTOR_META_RESET(vector_meta_, WK_GEOMETRY);
 
@@ -135,6 +160,7 @@ class GeoArrowArrayView {
     const struct ArrowArray* array_;
     GeoArrowMeta geoarrow_meta_;
     int64_t offset_;
+    int64_t feature_id_;
     const uint8_t* validity_buffer_;
 };
 
@@ -156,23 +182,8 @@ class GeoArrowPointView: public GeoArrowArrayView {
         data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
     }
 
-    int read_feature(wk_handler_t* handler) {
-        int result;
-        result = handler->feature_start(&vector_meta_, offset_ + 1, handler->handler_data);
-        if (result != WK_CONTINUE) {
-            offset_++;
-            return result;
-        }
-
-        if (is_null()) {
-            offset_++;
-            HANDLE_OR_RETURN(handler->null_feature(handler->handler_data));
-        } else {
-            HANDLE_OR_RETURN(read_coord(handler, 0));
-        }
-
-        HANDLE_OR_RETURN(handler->feature_end(&vector_meta_, offset_, handler->handler_data));
-        return WK_CONTINUE;
+    int read_feature(wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
+        return read_point_feature<GeoArrowPointView>(*this, handler, part_id);
     }
 
     int read_coord(wk_handler_t* handler, int64_t coord_id) {
@@ -212,23 +223,8 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         }
     }
 
-    int read_feature(wk_handler_t* handler) {
-        int result;
-        result = handler->feature_start(&vector_meta_, offset_ + 1, handler->handler_data);
-        if (result != WK_CONTINUE) {
-            offset_++;
-            return result;
-        }
-
-        if (is_null()) {
-            offset_++;
-            HANDLE_OR_RETURN(handler->null_feature(handler->handler_data));
-        } else {
-            HANDLE_OR_RETURN(read_coord(handler, 0));
-        }
-
-        HANDLE_OR_RETURN(handler->feature_end(&vector_meta_, offset_, handler->handler_data));
-        return WK_CONTINUE;
+    int read_feature(wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
+        return read_point_feature<GeoArrowPointStructView>(*this, handler, part_id);
     }
 
     int read_coord(wk_handler_t* handler, int64_t coord_id) {
