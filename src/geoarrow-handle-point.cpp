@@ -7,7 +7,7 @@
 #include "util.h"
 
 
-SEXP geoarrow_read_native_point(SEXP data, wk_handler_t* handler) {
+SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     struct ArrowArrayStream* array_stream = array_stream_from_xptr(VECTOR_ELT(data, 0), "handleable");
     struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 1), "schema");
     SEXP n_features_sexp = VECTOR_ELT(data, 2);
@@ -71,6 +71,6 @@ SEXP geoarrow_read_native_point(SEXP data, wk_handler_t* handler) {
 }
 
 
-extern "C" SEXP geoarrow_c_handle_native_point(SEXP data, SEXP handler_xptr) {
-  return wk_handler_run_xptr(&geoarrow_read_native_point, data, handler_xptr);
+extern "C" SEXP geoarrow_c_handle_point(SEXP data, SEXP handler_xptr) {
+  return wk_handler_run_xptr(&geoarrow_read_point, data, handler_xptr);
 }
