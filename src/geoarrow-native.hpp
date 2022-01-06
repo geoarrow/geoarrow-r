@@ -94,14 +94,11 @@ class GeoArrowMeta {
 
 class GeoArrowArrayView {
   public:
-    GeoArrowArrayView(const struct ArrowSchema* schema, const struct ArrowArray* array): 
-      schema_(schema), array_(array), geoarrow_meta_(schema->metadata),
+    GeoArrowArrayView(const struct ArrowSchema* schema): 
+      schema_(schema), array_(nullptr), geoarrow_meta_(schema->metadata),
       offset_(-1), validity_buffer_(nullptr) {
-        validity_buffer_ = reinterpret_cast<const uint8_t*>(array->buffers[0]);
-
         WK_META_RESET(meta_, WK_GEOMETRY);
         WK_VECTOR_META_RESET(vector_meta_, WK_GEOMETRY);
-        vector_meta_.size = array->length;
 
         if (strcmp(geoarrow_meta_.dim_, "xyz") == 0 || strcmp(geoarrow_meta_.dim_, "xyzm") == 0) {
             meta_.flags |= WK_FLAG_HAS_Z;
@@ -114,11 +111,21 @@ class GeoArrowArrayView {
         }
     }
 
-    bool is_null() {
+    void set_array(struct ArrowArray* array) {
+        array_ = array;
+        offset_ = -1;
+        validity_buffer_ = reinterpret_cast<const uint8_t*>(array->buffers[0]);
+    }
+
+    void set_vector_size(int64_t size) {
+        vector_meta_.size = size;
+    }
+
+    bool is_null(int64_t delta = 0) {
         return false;
     }
 
-  protected:
+
     wk_meta_t meta_;
     wk_vector_meta_t vector_meta_;
     const struct ArrowSchema* schema_;
@@ -131,8 +138,7 @@ class GeoArrowArrayView {
 
 class GeoArrowPointView: public GeoArrowArrayView {
   public:    
-    GeoArrowPointView(struct ArrowSchema* schema, struct ArrowArray* array): 
-      GeoArrowArrayView(schema, array) {
+    GeoArrowPointView(struct ArrowSchema* schema): GeoArrowArrayView(schema) {
         meta_.geometry_type = WK_POINT;
         meta_.size = 1;
 
@@ -141,9 +147,13 @@ class GeoArrowPointView: public GeoArrowArrayView {
         if (vector_meta_.flags & WK_FLAG_HAS_M) coord_size_++;
     }
 
-    int read_feature(wk_handler_t* handler, wk_vector_meta_t* vector_meta) {
+    void set_array(struct ArrowArray* array) {
+        GeoArrowArrayView::set_array(array);
+    }
+
+    int read_feature(wk_handler_t* handler) {
         int result;
-        result = handler->feature_start(vector_meta, offset_ + 1, handler->handler_data);
+        result = handler->feature_start(&vector_meta_, offset_ + 1, handler->handler_data);
         if (result != WK_CONTINUE) {
             offset_++;
             return result;
@@ -156,7 +166,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
             HANDLE_OR_RETURN(read_coord(handler, 0));
         }
 
-        HANDLE_OR_RETURN(handler->feature_end(vector_meta, offset_, handler->handler_data));
+        HANDLE_OR_RETURN(handler->feature_end(&vector_meta_, offset_, handler->handler_data));
         return WK_CONTINUE;
     }
 
@@ -178,15 +188,18 @@ class GeoArrowPointView: public GeoArrowArrayView {
 
 class GeoArrowPointStructView: public GeoArrowArrayView {
   public:    
-    GeoArrowPointStructView(struct ArrowSchema* schema, struct ArrowArray* array): 
-      GeoArrowArrayView(schema, array) {
+    GeoArrowPointStructView(struct ArrowSchema* schema): GeoArrowArrayView(schema) {
         meta_.geometry_type = WK_POINT;
         meta_.size = 1;
 
         coord_size_ = 2;
         if (vector_meta_.flags & WK_FLAG_HAS_Z) coord_size_++;
         if (vector_meta_.flags & WK_FLAG_HAS_M) coord_size_++;
+        memset(coord_buffer_, 0, sizeof(coord_buffer_));
+    }
 
+    void set_array(struct ArrowArray* array) {
+        GeoArrowArrayView::set_array(array);
         memset(coord_buffer_, 0, sizeof(coord_buffer_));
         for (int i = 0; i < coord_size_; i++) {
             const void* buffer_void = array->children[i]->buffers[1];
@@ -194,9 +207,9 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         }
     }
 
-    int read_feature(wk_handler_t* handler, wk_vector_meta_t* vector_meta) {
+    int read_feature(wk_handler_t* handler) {
         int result;
-        result = handler->feature_start(vector_meta, offset_ + 1, handler->handler_data);
+        result = handler->feature_start(&vector_meta_, offset_ + 1, handler->handler_data);
         if (result != WK_CONTINUE) {
             offset_++;
             return result;
@@ -209,7 +222,7 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
             HANDLE_OR_RETURN(read_coord(handler, 0));
         }
 
-        HANDLE_OR_RETURN(handler->feature_end(vector_meta, offset_, handler->handler_data));
+        HANDLE_OR_RETURN(handler->feature_end(&vector_meta_, offset_, handler->handler_data));
         return WK_CONTINUE;
     }
 
