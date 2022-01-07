@@ -108,7 +108,7 @@ class GeoArrowMeta {
         if (schema == nullptr) {
             storage_type_ = StorageType::StorageTypeNone;
             extension_ = Extension::ExtensionNone;
-            snprintf(error_, 1024 - 1, "schema is NULL");
+            snprintf(error_, 1024, "schema is NULL");
             return false;
         }
 
@@ -119,13 +119,95 @@ class GeoArrowMeta {
     }
 
     bool schema_valid(const struct ArrowSchema* schema) {
+        switch (storage_type_) {
+        case StorageType::FixedWidthList:
+        case StorageType::List:
+        case StorageType::LargeList:
+            if (schema->n_children != 1) {
+                snprintf(
+                    error_, 1024, 
+                    "Expected container schema to have one child but found %lld", schema->n_children);
+                return false;
+            }
+            break;
+        default:
+            break;
+        }
 
-        // switch (extension_) {
-        // case Extension::Point:
-        // case Extension::Linestring:
-        // case Extension::Polygon:
-        // case Extension::Multi:
-        // }
+
+        GeoArrowMeta child;
+        int n_dims;
+
+        switch (extension_) {
+        case Extension::Point:
+            n_dims = strlen(dim_);
+
+            switch (storage_type_) {
+            case StorageType::FixedWidthList:
+                if (fixed_width_ != n_dims) {
+                    snprintf(
+                        error_, 1024,
+                        "Expected geoarrow.point with dimensions '%s' to have width %d but found width %lld",
+                        dim_, n_dims, fixed_width_);
+                    return false;
+                }
+                if (!child.set_schema(schema->children[0])) {
+                    snprintf(
+                        error_, 1024,
+                        "geoarrow.point has an invalid child schema: %s",
+                        child.error_);
+                    return false;
+                }
+                if (child.storage_type_ != Float64) {
+                    snprintf(
+                        error_, 1024,
+                        "Expected child of fixed-width list geoarrow.point to have type Float64");
+                    return false;
+                }
+                break;
+            case StorageType::Struct:
+                if (schema->n_children < n_dims) {
+                    snprintf(
+                        error_, 1024,
+                        "Expected struct geoarrow.point with dimensions '%s' to have %d or more children but found %lld",
+                        dim_, n_dims, schema->n_children);
+                    return false;
+                }
+
+                for (uint64_t i = 0; i < n_dims; i++) {
+                    if (!child.set_schema(schema->children[i])) {
+                        snprintf(
+                            error_, 1024,
+                            "Struct geoarrow.point child %lld has an invalid schema: %s",
+                            i, child.error_
+                        );
+                        return false;
+                    }
+
+                    if (child.storage_type_ != StorageType::Float64) {
+                        snprintf(
+                            error_, 1024,
+                            "Struct geoarrow.point child %lld had an unsupported storage type '%s'",
+                            i, schema->format);
+                        return false;
+                    }
+                }
+
+                break;
+            default:
+                snprintf(
+                    error_, 1024,
+                    "Expected geoarrow.point schema to be a struct or a fixed-width list but found '%s'",
+                    schema->format);
+                return false;
+            }
+            break;
+        case Extension::Linestring:
+        case Extension::Polygon:
+        case Extension::Multi:
+        default:
+            break;
+        }
 
         return true;
     }
