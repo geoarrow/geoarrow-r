@@ -165,6 +165,7 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
   public:
     GeoArrowPointStructView(struct ArrowSchema* schema): GeoArrowArrayView(schema) {
         meta_.geometry_type = WK_POINT;
+        vector_meta_.geometry_type = WK_POINT;
         meta_.size = 1;
 
         coord_size_ = 2;
