@@ -58,7 +58,8 @@ class GeoArrowMeta {
         Linestring,
         Polygon,
         Multi,
-        Unknown
+        Unknown,
+        ExtensionNone
     };
 
     enum StorageType {
@@ -72,58 +73,116 @@ class GeoArrowMeta {
         Struct,
         List,
         LargeList,
-        Other
+        Other,
+        StorageTypeNone
     };
 
-    GeoArrowMeta(const struct ArrowSchema* schema = nullptr): 
-      storage_type_(StorageType::Other), fixed_width_(0), nullable_(false),
-      extension_(Extension::Unknown), geodesic_(false), crs_size_(0), crs_(nullptr) {
+    GeoArrowMeta(const struct ArrowSchema* schema = nullptr) {
+        if (!set_schema(schema) && schema != nullptr) {
+            throw std::runtime_error(error_);
+        }
+    }
+
+    void reset_error() {
+        memset(error_, 0, 1024);
+    }
+
+    void reset() {
+        storage_type_ = StorageType::Other;
+        fixed_width_ = 0;
+        expected_buffers_ = -1;
+        nullable_ = false;
+        extension_ = Extension::Unknown;
+        geodesic_ = false;
+        crs_size_ = false;
+        crs_ = nullptr;
+        reset_error();
+
         memset(dim_, 0, sizeof(dim_));
         dim_[0] = 'x';
         dim_[1] = 'y';
+    }
 
-        if (schema != nullptr) {
-            nullable_ = schema->flags & ARROW_FLAG_NULLABLE;
-            walk_format(schema->format);
-            walk_metadata(schema->metadata);
+    bool set_schema(const struct ArrowSchema* schema = nullptr) {
+        reset();
+        if (schema == nullptr) {
+            storage_type_ = StorageType::StorageTypeNone;
+            extension_ = Extension::ExtensionNone;
+            snprintf(error_, 1024 - 1, "schema is NULL");
+            return false;
         }
+
+        nullable_ = schema->flags & ARROW_FLAG_NULLABLE;
+        walk_format(schema->format);
+        walk_metadata(schema->metadata);
+        return schema_valid(schema);
+    }
+
+    bool schema_valid(const struct ArrowSchema* schema) {
+
+        // switch (extension_) {
+        // case Extension::Point:
+        // case Extension::Linestring:
+        // case Extension::Polygon:
+        // case Extension::Multi:
+        // }
+
+        return true;
+    }
+
+    bool array_valid(const struct ArrowArray* array) {
+        if (array->n_buffers != expected_buffers_) {
+            return false;
+        }
+
+        return true;
     }
     
     void walk_format(const char* format) {
         switch (format[0]) {
         case 'f':
             storage_type_ = StorageType::Float32;
+            expected_buffers_ = 2;
             break;
         case 'g':
             storage_type_ = StorageType::Float64;
+            expected_buffers_ = 2;
             break;
         case 'u':
             storage_type_ = StorageType::String;
+            expected_buffers_ = 3;
             break;
         case 'z':
             storage_type_ = StorageType::Binary;
+            expected_buffers_ = 3;
             break;
         case 'Z':
             storage_type_ = StorageType::LargeBinary;
+            expected_buffers_ = 3;
             break;
         case 'w':
             storage_type_ = StorageType::FixedWidthBinary;
             fixed_width_ = atol(format + 2);
+            expected_buffers_ = 2;
             break;
         case '+':
             switch (format[1]) {
             case 'l':
                 storage_type_ = StorageType::List;
+                expected_buffers_ = 2;
                 break;
             case 'L':
                 storage_type_ = StorageType::LargeList;
+                expected_buffers_ = 2;
                 break;
             case 'w':
                 storage_type_ = StorageType::FixedWidthList;
                 fixed_width_ = atol(format + 3);
+                expected_buffers_ = 1;
                 break;
             case 's':
                 storage_type_ = StorageType::Struct;
+                expected_buffers_ = 1;
                 break;
             }
         }
@@ -209,6 +268,7 @@ class GeoArrowMeta {
 
     StorageType storage_type_;
     int64_t fixed_width_;
+    int32_t expected_buffers_;
     bool nullable_;
 
     Extension extension_;
@@ -216,6 +276,8 @@ class GeoArrowMeta {
     bool geodesic_;
     int32_t crs_size_;
     const char* crs_;
+
+    char error_[1024];
 };
 
 
@@ -266,7 +328,8 @@ class GeoArrowArrayView {
 
 class GeoArrowPointView: public GeoArrowArrayView {
   public:    
-    GeoArrowPointView(struct ArrowSchema* schema): GeoArrowArrayView(schema), data_buffer_(nullptr) {
+    GeoArrowPointView(struct ArrowSchema* schema): 
+      GeoArrowArrayView(schema), data_buffer_(nullptr) {
         meta_.geometry_type = WK_POINT;
         vector_meta_.geometry_type = WK_POINT;
         meta_.size = 1;
