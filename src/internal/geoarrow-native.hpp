@@ -16,7 +16,20 @@
 
 
 template <class ArrayView>
-int read_point_feature(ArrayView& view, wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
+int read_point_geometry(ArrayView& view, wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
+    int result = handler->geometry_start(&view.meta_, part_id, handler->handler_data);
+    if (result != WK_CONTINUE) {
+        view.offset_++;
+        return result;
+    }
+    HANDLE_OR_RETURN(view.read_coord(handler, 0));
+    HANDLE_OR_RETURN(handler->geometry_end(&view.meta_, part_id, handler->handler_data));
+    return WK_CONTINUE;
+}
+
+
+template <class ArrayView>
+int read_point_feature(ArrayView& view, wk_handler_t* handler) {
     int result;
     view.feature_id_++;
     result = handler->feature_start(&view.vector_meta_, view.feature_id_, handler->handler_data);
@@ -29,13 +42,7 @@ int read_point_feature(ArrayView& view, wk_handler_t* handler, int64_t part_id =
         view.offset_++;
         HANDLE_OR_RETURN(handler->null_feature(handler->handler_data));
     } else {
-        result = handler->geometry_start(&view.meta_, part_id, handler->handler_data);
-        if (result != WK_CONTINUE) {
-            view.offset_++;
-            return result;
-        }
-        HANDLE_OR_RETURN(view.read_coord(handler, 0));
-        HANDLE_OR_RETURN(handler->geometry_end(&view.meta_, part_id, handler->handler_data));
+        HANDLE_OR_RETURN(read_point_geometry<ArrayView>(view, handler, WK_PART_ID_NONE));
     }
 
     HANDLE_OR_RETURN(handler->feature_end(&view.vector_meta_, view.feature_id_, handler->handler_data));
@@ -182,8 +189,12 @@ class GeoArrowPointView: public GeoArrowArrayView {
         data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
     }
 
-    int read_feature(wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
-        return read_point_feature<GeoArrowPointView>(*this, handler, part_id);
+    int read_feature(wk_handler_t* handler) {
+        return read_point_feature<GeoArrowPointView>(*this, handler);
+    }
+
+    int read_geometry(wk_handler_t* handler, uint32_t part_id = WK_PART_ID_NONE) {
+        return read_point_geometry<GeoArrowPointView>(*this, handler, part_id);
     }
 
     int read_coord(wk_handler_t* handler, int64_t coord_id) {
@@ -223,8 +234,12 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         }
     }
 
-    int read_feature(wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
-        return read_point_feature<GeoArrowPointStructView>(*this, handler, part_id);
+    int read_feature(wk_handler_t* handler) {
+        return read_point_feature<GeoArrowPointStructView>(*this, handler);
+    }
+
+    int read_geometry(wk_handler_t* handler, uint32_t part_id = WK_PART_ID_NONE) {
+        return read_point_geometry<GeoArrowPointStructView>(*this, handler, part_id);
     }
 
     int read_coord(wk_handler_t* handler, int64_t coord_id) {
@@ -250,19 +265,72 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
 };
 
 
-template <class PointView>
-struct GeoArrowLinestringView: public GeoArrowArrayView {
-    PointView point;
-};
-
-
-template <class PointView>
-struct GeoArrowPolygonView: public GeoArrowArrayView {
-    PointView point;
-};
-
-
 template <class ChildView>
-struct GeoArrowMultiView {
+class FixedWidthListView: public GeoArrowArrayView {
+  public:
+    FixedWidthListView(struct ArrowSchema* schema): 
+      GeoArrowArrayView(schema), ChildView(schema->children[0]) {
+          width_ = atoi(schema->format + 3);
+      }
+
+    void set_array(struct ArrowArray* array) {
+        GeoArrowArrayView::set_array(array);
+        child.set_array(array->children[0]);
+    }
+
+    int64_t child_offset(int32_t delta = 0) {
+        return (array_->offset + offset_ + delta) * width_;
+    }
+
+    int64_t child_size(int32_t delta = 0) {
+        return child_offset(delta + 1) - child_offset(delta);
+    }
+
     ChildView child;
+    int32_t width_;
+};
+
+
+template <class ChildView, class offset_buffer_t = int32_t>
+class ListView: public GeoArrowArrayView {
+  public:
+    ListView(struct ArrowSchema* schema): 
+      GeoArrowArrayView(schema), ChildView(schema->children[0]), offset_buffer_(nullptr) {}
+
+    void set_array(struct ArrowArray* array) {
+        GeoArrowArrayView::set_array(array);
+        child.set_array(array->children[0]);
+        offset_buffer_ = reinterpret_cast<const offset_buffer_t*>(array->buffers[1]);
+    }
+
+    int64_t child_offset(int32_t delta = 0) {
+        return offset_buffer_[array_->offset + offset_ + delta];
+    }
+
+    int64_t child_size(int32_t delta = 0) {
+        return child_offset(delta + 1) - child_offset(delta);
+    }
+
+    ChildView child;
+    const offset_buffer_t* offset_buffer_;
+};
+
+
+template <class PointView = GeoArrowPointView, class CoordContainerView = ListView<PointView>>
+class GeoArrowLinestringView: public CoordContainerView {
+    GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {}
+};
+
+
+template <class PointView = GeoArrowPointView, 
+          class CoordContainerView = ListView<PointView>, 
+          class RingContainerView = ListView<CoordContainerView>>
+class GeoArrowPolygonView: public RingContainerView {
+    GeoArrowPolygonView(struct ArrowSchema* schema): RingContainerView(schema) {}
+};
+
+
+template <class ChildView, class ChildContainerView = ListView<ChildView>>
+class GeoArrowMultiView: public ChildContainerView {
+    GeoArrowMultiView(struct ArrowSchema* schema): ChildContainerView(schema) {}
 };
