@@ -6,8 +6,21 @@
 #include "internal/geoarrow-native.hpp"
 #include "util.h"
 
+#define CPP_START                         \
+    char cpp_exception_error[8096];       \
+    memset(cpp_exception_error, 0, 8096); \
+    try {
+
+#define CPP_END                                           \
+    } catch (std::exception& e) {                         \
+        strncpy(cpp_exception_error, e.what(), 8096 - 1); \
+    }                                                     \
+    Rf_error("%s", cpp_exception_error);                  \
+    return R_NilValue;
 
 SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
+    CPP_START
+
     struct ArrowArrayStream* array_stream = array_stream_from_xptr(VECTOR_ELT(data, 0), "handleable");
     struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 1), "schema");
     SEXP n_features_sexp = VECTOR_ELT(data, 2);
@@ -69,7 +82,7 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     UNPROTECT(1);
     return result_sexp;
     
-    return R_NilValue;
+    CPP_END
 }
 
 

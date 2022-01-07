@@ -38,3 +38,7 @@ test_that("geoarrow point reader works for xyzm", {
   expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
   expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
 })
+
+test_that("geoarrow point reader errors for invalid schemas", {
+
+})
