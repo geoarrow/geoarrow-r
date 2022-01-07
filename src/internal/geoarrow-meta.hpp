@@ -86,7 +86,7 @@ class GeoArrowMeta {
         case StorageType::LargeList:
             if (schema->n_children != 1) {
                 snprintf(
-                    error_, 1024, 
+                    error_, 1024,
                     "Expected container schema to have one child but found %lld", schema->n_children);
                 return false;
             }
@@ -188,7 +188,7 @@ class GeoArrowMeta {
         case StorageType::LargeList:
             if (array->n_children != 1) {
                 snprintf(
-                    error_, 1024, 
+                    error_, 1024,
                     "Expected container array to have one child but found %lld", array->n_children);
                 return false;
             }
@@ -199,7 +199,7 @@ class GeoArrowMeta {
 
         return true;
     }
-    
+
     void walk_format(const char* format) {
         switch (format[0]) {
         case 'f':

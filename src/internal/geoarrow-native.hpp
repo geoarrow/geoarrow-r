@@ -66,7 +66,7 @@ int read_features_templ(ArrayView& view, wk_handler_t* handler) {
 
 class GeoArrowArrayView {
   public:
-    GeoArrowArrayView(const struct ArrowSchema* schema): 
+    GeoArrowArrayView(const struct ArrowSchema* schema):
       schema_(schema), array_(nullptr), geoarrow_meta_(schema),
       offset_(-1), feature_id_(-1), validity_buffer_(nullptr) {
         WK_META_RESET(meta_, WK_GEOMETRY);
@@ -119,8 +119,8 @@ class GeoArrowArrayView {
 
 
 class GeoArrowPointView: public GeoArrowArrayView {
-  public:    
-    GeoArrowPointView(struct ArrowSchema* schema): 
+  public:
+    GeoArrowPointView(struct ArrowSchema* schema):
       GeoArrowArrayView(schema), data_buffer_(nullptr) {
         meta_.geometry_type = WK_POINT;
         vector_meta_.geometry_type = WK_POINT;
@@ -149,7 +149,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
         int result;
         offset_++;
         HANDLE_OR_RETURN(handler->coord(
-            &meta_, 
+            &meta_,
             data_buffer_ + (offset_ + array_->offset) * coord_size_,
             coord_id,
             handler->handler_data));
@@ -162,7 +162,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
 
 
 class GeoArrowPointStructView: public GeoArrowArrayView {
-  public:    
+  public:
     GeoArrowPointStructView(struct ArrowSchema* schema): GeoArrowArrayView(schema) {
         meta_.geometry_type = WK_POINT;
         meta_.size = 1;
@@ -203,11 +203,11 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         }
 
         HANDLE_OR_RETURN(handler->coord(
-            &meta_, 
+            &meta_,
             coord_,
             coord_id,
             handler->handler_data));
-        
+
         return WK_CONTINUE;
     }
 
@@ -220,7 +220,7 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
 template <class ChildView>
 class FixedWidthListView: public GeoArrowArrayView {
   public:
-    FixedWidthListView(struct ArrowSchema* schema): 
+    FixedWidthListView(struct ArrowSchema* schema):
       GeoArrowArrayView(schema), ChildView(schema->children[0]) {}
 
     void set_array(struct ArrowArray* array) {
@@ -243,7 +243,7 @@ class FixedWidthListView: public GeoArrowArrayView {
 template <class ChildView, class offset_buffer_t = int32_t>
 class ListView: public GeoArrowArrayView {
   public:
-    ListView(struct ArrowSchema* schema): 
+    ListView(struct ArrowSchema* schema):
       GeoArrowArrayView(schema), ChildView(schema->children[0]), offset_buffer_(nullptr) {}
 
     void set_array(struct ArrowArray* array) {
@@ -273,8 +273,8 @@ class GeoArrowLinestringView: public CoordContainerView {
 };
 
 
-template <class PointView = GeoArrowPointView, 
-          class CoordContainerView = ListView<PointView>, 
+template <class PointView = GeoArrowPointView,
+          class CoordContainerView = ListView<PointView>,
           class RingContainerView = ListView<CoordContainerView>>
 class GeoArrowPolygonView: public RingContainerView {
     GeoArrowPolygonView(struct ArrowSchema* schema): RingContainerView(schema) {}
