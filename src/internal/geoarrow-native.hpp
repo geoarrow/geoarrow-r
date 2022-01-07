@@ -68,7 +68,11 @@ class GeoArrowArrayView {
         }
     }
 
-    void set_array(struct ArrowArray* array) {
+    void set_array(const struct ArrowArray* array) {
+        if (!geoarrow_meta_.array_valid(array)) {
+            throw GeoArrowMeta::ValidationError(geoarrow_meta_.error_);
+        }
+
         array_ = array;
         offset_ = -1;
         validity_buffer_ = reinterpret_cast<const uint8_t*>(array->buffers[0]);
@@ -81,7 +85,6 @@ class GeoArrowArrayView {
     bool is_null(int64_t delta = 0) {
         return false;
     }
-
 
     wk_meta_t meta_;
     wk_vector_meta_t vector_meta_;

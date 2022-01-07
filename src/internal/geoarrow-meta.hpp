@@ -175,7 +175,26 @@ class GeoArrowMeta {
 
     bool array_valid(const struct ArrowArray* array) {
         if (array->n_buffers != expected_buffers_) {
+            snprintf(
+                error_, 1024,
+                "Expected array with %d buffers but found %lld",
+                expected_buffers_, array->n_buffers);
             return false;
+        }
+
+        switch (storage_type_) {
+        case StorageType::FixedWidthList:
+        case StorageType::List:
+        case StorageType::LargeList:
+            if (array->n_children != 1) {
+                snprintf(
+                    error_, 1024, 
+                    "Expected container array to have one child but found %lld", array->n_children);
+                return false;
+            }
+            break;
+        default:
+            break;
         }
 
         return true;

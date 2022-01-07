@@ -60,5 +60,21 @@ test_that("geoarrow point reader errors for invalid schemas", {
   points_array <- carrow::carrow_array(schema, validate = FALSE)
   expect_error(wk::wk_void(points_array), "invalid child schema")
 
+  schema <- geoarrow_schema_point()
+  points_array <- carrow::carrow_array(
+    schema,
+    carrow::carrow_array_data(),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(points_array), "array with 1 buffer")
 
+  schema <- geoarrow_schema_point()
+  points_array <- carrow::carrow_array(
+    schema,
+    carrow::carrow_array_data(
+      buffers = list(NULL)
+    ),
+    validate = FALSE
+  )
+  expect_error(wk::wk_void(points_array), "one child but found 0")
 })
