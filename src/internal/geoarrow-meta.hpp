@@ -149,7 +149,7 @@ class GeoArrowMeta {
                         snprintf(
                             error_, 1024,
                             "Struct geoarrow.point child %lld had an unsupported storage type '%s'",
-                            i, schema->format);
+                            i, schema->children[i]->format);
                         return false;
                     }
                 }
