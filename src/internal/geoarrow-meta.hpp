@@ -33,9 +33,14 @@ class GeoArrowMeta {
         StorageTypeNone
     };
 
+    class ValidationError: public std::runtime_error {
+      public:
+        ValidationError(const char* what): std::runtime_error(what) {}
+    };
+
     GeoArrowMeta(const struct ArrowSchema* schema = nullptr) {
         if (!set_schema(schema) && schema != nullptr) {
-            throw std::runtime_error(error_);
+            throw ValidationError(error_);
         }
     }
 
@@ -237,7 +242,6 @@ class GeoArrowMeta {
         pos += sizeof(int32_t);
 
         for (int i = 0; i < n; i++) {
-            
             memcpy(&name_len, metadata + pos, sizeof(int32_t));
             pos += sizeof(int32_t);
 
@@ -248,7 +252,7 @@ class GeoArrowMeta {
             memcpy(&value_len, metadata + pos, sizeof(int32_t));
             pos += sizeof(int32_t);
 
-            if (name_len >= 20 && strncmp(name, "ARROW:extension:name", 24) == 0) {
+            if (name_len >= 20 && strncmp(name, "ARROW:extension:name", 20) == 0) {
                 // !! not null-terminated!
                 const char* value = metadata + pos;
                 pos += value_len;

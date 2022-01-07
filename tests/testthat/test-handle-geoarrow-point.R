@@ -40,5 +40,25 @@ test_that("geoarrow point reader works for xyzm", {
 })
 
 test_that("geoarrow point reader errors for invalid schemas", {
+  schema <- geoarrow_schema_point()
+  schema$format <- "n"
+  points_array <- carrow::carrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(points_array), "struct or a fixed-width list")
+
+  schema <- geoarrow_schema_point()
+  schema$children <- list()
+  points_array <- carrow::carrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(points_array), "one child but found 0")
+
+  schema <- geoarrow_schema_point()
+  schema$children[[1]] <- carrow::carrow_schema("n")
+  points_array <- carrow::carrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(points_array), "type Float64")
+
+  schema <- geoarrow_schema_point()
+  schema$children[[1]] <- carrow::carrow_schema("+l")
+  points_array <- carrow::carrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(points_array), "invalid child schema")
+
 
 })
