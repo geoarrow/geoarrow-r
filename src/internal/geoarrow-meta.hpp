@@ -113,10 +113,16 @@ class GeoArrowMeta {
                     return false;
                 }
                 if (!child.set_schema(schema->children[0])) {
+                    // straight using child.error_ gives a format warning because the
+                    // complier knows that it could contain some characters and might
+                    // truncate (which is fine, but we need the warning to go away).
+                    char child_error[800];
+                    memset(child_error, 0, sizeof(child_error));
+                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
                     snprintf(
                         error_, 1024,
                         "geoarrow.point has an invalid child schema: %s",
-                        child.error_);
+                        child_error);
                     return false;
                 }
                 if (child.storage_type_ != Float64) {
@@ -137,11 +143,14 @@ class GeoArrowMeta {
 
                 for (uint64_t i = 0; i < n_dims; i++) {
                     if (!child.set_schema(schema->children[i])) {
+                        // see above note about snprintf(..., child.error_)
+                        char child_error[800];
+                        memset(child_error, 0, sizeof(child_error));
+                        memcpy(child_error, child.error_, sizeof(child_error) - 1);
                         snprintf(
                             error_, 1024,
                             "Struct geoarrow.point child %lld has an invalid schema: %s",
-                            i, child.error_
-                        );
+                            i, child_error);
                         return false;
                     }
 
