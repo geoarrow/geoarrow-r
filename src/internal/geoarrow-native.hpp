@@ -197,7 +197,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
         return read_point_geometry<GeoArrowPointView>(*this, handler, part_id);
     }
 
-    int read_coord(wk_handler_t* handler, int64_t coord_id) {
+    int read_coord(wk_handler_t* handler, int64_t coord_id = 0) {
         int result;
         offset_++;
         HANDLE_OR_RETURN(handler->coord(
@@ -242,7 +242,7 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         return read_point_geometry<GeoArrowPointStructView>(*this, handler, part_id);
     }
 
-    int read_coord(wk_handler_t* handler, int64_t coord_id) {
+    int read_coord(wk_handler_t* handler, int64_t coord_id = 0) {
         int result;
         offset_++;
 
@@ -275,7 +275,7 @@ class FixedWidthListView: public GeoArrowArrayView {
 
     void set_array(struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
-        child.set_array(array->children[0]);
+        child_.set_array(array->children[0]);
     }
 
     int64_t child_offset(int32_t delta = 0) {
@@ -286,7 +286,7 @@ class FixedWidthListView: public GeoArrowArrayView {
         return child_offset(delta + 1) - child_offset(delta);
     }
 
-    ChildView child;
+    ChildView child_;
     int32_t width_;
 };
 
@@ -299,7 +299,7 @@ class ListView: public GeoArrowArrayView {
 
     void set_array(struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
-        child.set_array(array->children[0]);
+        child_.set_array(array->children[0]);
         offset_buffer_ = reinterpret_cast<const offset_buffer_t*>(array->buffers[1]);
     }
 
@@ -311,7 +311,7 @@ class ListView: public GeoArrowArrayView {
         return child_offset(delta + 1) - child_offset(delta);
     }
 
-    ChildView child;
+    ChildView child_;
     const offset_buffer_t* offset_buffer_;
 };
 
@@ -319,6 +319,8 @@ class ListView: public GeoArrowArrayView {
 template <class PointView = GeoArrowPointView, class CoordContainerView = ListView<PointView>>
 class GeoArrowLinestringView: public CoordContainerView {
     GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {}
+
+
 };
 
 
