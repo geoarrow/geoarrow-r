@@ -123,10 +123,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
         meta_.geometry_type = WK_POINT;
         vector_meta_.geometry_type = WK_POINT;
         meta_.size = 1;
-
-        coord_size_ = 2;
-        if (vector_meta_.flags & WK_FLAG_HAS_Z) coord_size_++;
-        if (vector_meta_.flags & WK_FLAG_HAS_M) coord_size_++;
+        coord_size_ = geoarrow_meta_.fixed_width_;
     }
 
     void set_array(struct ArrowArray* array) {
@@ -183,6 +180,10 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         }
     }
 
+    int read_features(wk_handler_t* handler) {
+        return read_features_templ<GeoArrowPointStructView>(*this, handler);
+    }
+
     int read_feature(wk_handler_t* handler) {
         return read_point_feature<GeoArrowPointStructView>(*this, handler);
     }
@@ -218,9 +219,7 @@ template <class ChildView>
 class FixedWidthListView: public GeoArrowArrayView {
   public:
     FixedWidthListView(struct ArrowSchema* schema): 
-      GeoArrowArrayView(schema), ChildView(schema->children[0]) {
-          width_ = atoi(schema->format + 3);
-      }
+      GeoArrowArrayView(schema), ChildView(schema->children[0]) {}
 
     void set_array(struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
@@ -228,7 +227,7 @@ class FixedWidthListView: public GeoArrowArrayView {
     }
 
     int64_t child_offset(int32_t delta = 0) {
-        return (array_->offset + offset_ + delta) * width_;
+        return (array_->offset + offset_ + delta) * geoarrow_meta_.fixed_width_;
     }
 
     int64_t child_size(int32_t delta = 0) {
@@ -236,7 +235,6 @@ class FixedWidthListView: public GeoArrowArrayView {
     }
 
     ChildView child_;
-    int32_t width_;
 };
 
 
@@ -285,5 +283,27 @@ template <class ChildView, class ChildContainerView = ListView<ChildView>>
 class GeoArrowMultiView: public ChildContainerView {
     GeoArrowMultiView(struct ArrowSchema* schema): ChildContainerView(schema) {}
 };
+
+
+GeoArrowArrayView* create_view(struct ArrowSchema* schema) {
+    GeoArrowMeta geoarrow_meta(schema);
+    switch (geoarrow_meta.extension_) {
+    case GeoArrowMeta::Extension::Point:
+        switch (geoarrow_meta.storage_type_) {
+        case GeoArrowMeta::StorageType::FixedWidthList:
+            return new GeoArrowPointView(schema);
+        case GeoArrowMeta::StorageType::Struct:
+            return new GeoArrowPointStructView(schema);
+        default: break;
+        }
+        break;
+    case GeoArrowMeta::Extension::Linestring:
+    case GeoArrowMeta::Extension::Polygon:
+    case GeoArrowMeta::Extension::Multi:
+    default: break;
+    }
+
+    throw GeoArrowMeta::ValidationError("No appropriate reader was found");
+}
 
 }; // namespace geoarrow
