@@ -52,12 +52,84 @@ int read_point_feature(ArrayView& view, wk_handler_t* handler) {
 
 class GeoArrowMeta {
   public:
-    GeoArrowMeta(const char* metadata = nullptr): 
-      geodesic_(false), crs_size_(0), crs_(nullptr) {
+
+    enum Extension {
+        Point,
+        Linestring,
+        Polygon,
+        Multi,
+        Unknown
+    };
+
+    enum StorageType {
+        Float32,
+        Float64,
+        String,
+        FixedWidthBinary,
+        Binary,
+        LargeBinary,
+        FixedWidthList,
+        Struct,
+        List,
+        LargeList,
+        Other
+    };
+
+    GeoArrowMeta(const struct ArrowSchema* schema = nullptr): 
+      storage_type_(StorageType::Other), fixed_width_(0), nullable_(false),
+      extension_(Extension::Unknown), geodesic_(false), crs_size_(0), crs_(nullptr) {
         memset(dim_, 0, sizeof(dim_));
         dim_[0] = 'x';
         dim_[1] = 'y';
 
+        if (schema != nullptr) {
+            nullable_ = schema->flags & ARROW_FLAG_NULLABLE;
+            walk_format(schema->format);
+            walk_metadata(schema->metadata);
+        }
+    }
+    
+    void walk_format(const char* format) {
+        switch (format[0]) {
+        case 'f':
+            storage_type_ = StorageType::Float32;
+            break;
+        case 'g':
+            storage_type_ = StorageType::Float64;
+            break;
+        case 'u':
+            storage_type_ = StorageType::String;
+            break;
+        case 'z':
+            storage_type_ = StorageType::Binary;
+            break;
+        case 'Z':
+            storage_type_ = StorageType::LargeBinary;
+            break;
+        case 'w':
+            storage_type_ = StorageType::FixedWidthBinary;
+            fixed_width_ = atol(format + 2);
+            break;
+        case '+':
+            switch (format[1]) {
+            case 'l':
+                storage_type_ = StorageType::List;
+                break;
+            case 'L':
+                storage_type_ = StorageType::LargeList;
+                break;
+            case 'w':
+                storage_type_ = StorageType::FixedWidthList;
+                fixed_width_ = atol(format + 3);
+                break;
+            case 's':
+                storage_type_ = StorageType::Struct;
+                break;
+            }
+        }
+    }
+
+    void walk_metadata(const char* metadata) {
         if (metadata == nullptr) {
             return;
         }
@@ -73,53 +145,73 @@ class GeoArrowMeta {
             pos += sizeof(int32_t);
 
             // !! not null-terminated!
-            const char* name = reinterpret_cast<const char*>(metadata + pos);
+            const char* name = metadata + pos;
             pos += name_len;
 
             memcpy(&value_len, metadata + pos, sizeof(int32_t));
             pos += sizeof(int32_t);
 
-            if (name_len < 24 || strncmp(name, "ARROW:extension:metadata", 24) != 0) {
-                pos += value_len;
-                continue;
-            }
-
-            memcpy(&m, metadata + pos, sizeof(int32_t));
-            pos += sizeof(int32_t);
-
-            for (int j = 0; j < m; j++) {
-                memcpy(&name_len, metadata + pos, sizeof(int32_t));
-                pos += sizeof(int32_t);
-
+            if (name_len >= 20 && strncmp(name, "ARROW:extension:name", 24) == 0) {
                 // !! not null-terminated!
-                const char* name = reinterpret_cast<const char*>(metadata + pos);
-                pos += name_len;
-
-                memcpy(&value_len, metadata + pos, sizeof(int32_t));
-                pos += sizeof(int32_t);
-
-                // !! not null-terminated!
-                const char* value = reinterpret_cast<const char*>(metadata + pos);
+                const char* value = metadata + pos;
                 pos += value_len;
 
-                if (name_len == 0 || value_len == 0) {
-                    continue;
+                if (value_len >= 14 && strncmp(value, "geoarrow.point", 14) == 0) {
+                    extension_ = Extension::Point;
+                } else if (value_len >= 19 && strncmp(value, "geoarrow.linestring", 19) == 0) {
+                    extension_ = Extension::Linestring;
+                } else if (value_len >= 16 && strncmp(value, "geoarrow.polygon", 16) == 0) {
+                    extension_ = Extension::Polygon;
+                } else if (value_len >= 14 && strncmp(value, "geoarrow.multi", 14) == 0) {
+                    extension_ = Extension::Multi;
                 }
 
-                if (name_len >= 3 && strncmp(name, "dim", 3) == 0) {
-                    memcpy(dim_, value, std::min<int32_t>(4, value_len));
-                } else if (name_len >= 3 && strncmp(name, "crs", 3) == 0) {
-                    crs_size_ = value_len;
-                    crs_ = value;
-                } else if (name_len >= 3 && strncmp(name, "geodesic", 3) == 0) {
-                    if (value_len >= 4 && strncmp(value, "true", 4) == 0) {
-                        geodesic_ = true;
+            } else if (name_len >= 24 && strncmp(name, "ARROW:extension:metadata", 24) == 0) {
+                memcpy(&m, metadata + pos, sizeof(int32_t));
+                pos += sizeof(int32_t);
+
+                for (int j = 0; j < m; j++) {
+                    memcpy(&name_len, metadata + pos, sizeof(int32_t));
+                    pos += sizeof(int32_t);
+
+                    // !! not null-terminated!
+                    const char* name = metadata + pos;
+                    pos += name_len;
+
+                    memcpy(&value_len, metadata + pos, sizeof(int32_t));
+                    pos += sizeof(int32_t);
+
+                    // !! not null-terminated!
+                    const char* value = metadata + pos;
+                    pos += value_len;
+
+                    if (name_len == 0 || value_len == 0) {
+                        continue;
+                    }
+
+                    if (name_len >= 3 && strncmp(name, "dim", 3) == 0) {
+                        memcpy(dim_, value, std::min<int32_t>(4, value_len));
+                    } else if (name_len >= 3 && strncmp(name, "crs", 3) == 0) {
+                        crs_size_ = value_len;
+                        crs_ = value;
+                    } else if (name_len >= 3 && strncmp(name, "geodesic", 3) == 0) {
+                        if (value_len >= 4 && strncmp(value, "true", 4) == 0) {
+                            geodesic_ = true;
+                        }
                     }
                 }
+            } else {
+                pos += value_len;
+                continue;
             }
         }
     }
 
+    StorageType storage_type_;
+    int64_t fixed_width_;
+    bool nullable_;
+
+    Extension extension_;
     char dim_[5];
     bool geodesic_;
     int32_t crs_size_;
@@ -130,7 +222,7 @@ class GeoArrowMeta {
 class GeoArrowArrayView {
   public:
     GeoArrowArrayView(const struct ArrowSchema* schema): 
-      schema_(schema), array_(nullptr), geoarrow_meta_(schema->metadata),
+      schema_(schema), array_(nullptr), geoarrow_meta_(schema),
       offset_(-1), feature_id_(-1), validity_buffer_(nullptr) {
         WK_META_RESET(meta_, WK_GEOMETRY);
         WK_VECTOR_META_RESET(vector_meta_, WK_GEOMETRY);
@@ -336,3 +428,8 @@ template <class ChildView, class ChildContainerView = ListView<ChildView>>
 class GeoArrowMultiView: public ChildContainerView {
     GeoArrowMultiView(struct ArrowSchema* schema): ChildContainerView(schema) {}
 };
+
+
+
+
+
