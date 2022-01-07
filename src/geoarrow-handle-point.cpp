@@ -3,7 +3,7 @@
 #include <Rinternals.h>
 #include "wk-v1.h"
 #include "carrow.h"
-#include "internal/geoarrow-native.hpp"
+#include "internal/geoarrow-factory.hpp"
 #include "util.h"
 
 #define CPP_START                         \
@@ -18,6 +18,16 @@
     Rf_error("%s", cpp_exception_error);                  \
     return R_NilValue;
 
+
+void delete_array_view_xptr(SEXP array_view_xptr) {
+    geoarrow::GeoArrowArrayView* array_view = 
+        reinterpret_cast<geoarrow::GeoArrowArrayView*>(R_ExternalPtrAddr(array_view_xptr));
+
+    if (array_view != nullptr) {
+        delete array_view;
+    }
+}
+
 SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     CPP_START
 
@@ -25,20 +35,26 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 1), "schema");
     SEXP n_features_sexp = VECTOR_ELT(data, 2);
 
-    geoarrow::GeoArrowPointView view(schema);
+    // We can't stack allocate this because we don't know the exact type that is returned
+    // and we can't rely on the deleter to run because one of the handler
+    // calls could longjmp. We use the same trick for making sure the array_data is
+    // released for each array in the stream.
+    geoarrow::GeoArrowArrayView* view = geoarrow::create_view(schema);
+    SEXP view_xptr = PROTECT(R_MakeExternalPtr(view, R_NilValue, R_NilValue));
+    R_RegisterCFinalizer(view_xptr, &delete_array_view_xptr);
 
     if (TYPEOF(n_features_sexp) == INTSXP) {
         if (INTEGER(n_features_sexp)[0] != NA_INTEGER) {
-            view.set_vector_size(INTEGER(n_features_sexp)[0]);
+            view->set_vector_size(INTEGER(n_features_sexp)[0]);
         }
     } else {
         double n_features_double = REAL(n_features_sexp)[0];
         if (!ISNA(n_features_double) && !ISNAN(n_features_double)) {
-            view.set_vector_size(n_features_double);
+            view->set_vector_size(n_features_double);
         }
     }
 
-    int result = handler->vector_start(&view.vector_meta_, handler->handler_data);
+    int result = handler->vector_start(&view->vector_meta_, handler->handler_data);
     if (result == WK_CONTINUE) {
         struct ArrowArray* array_data = (struct ArrowArray*) malloc(sizeof(struct ArrowArray));
         if (array_data == NULL) {
@@ -67,15 +83,15 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
                 break;
             }
 
-            view.set_array(array_data);
-            HANDLE_CONTINUE_OR_BREAK(view.read_features(handler));
+            view->set_array(array_data);
+            HANDLE_CONTINUE_OR_BREAK(view->read_features(handler));
         }
 
         UNPROTECT(1);
     }
 
-    SEXP result_sexp = PROTECT(handler->vector_end(&view.vector_meta_, handler->handler_data));
-    UNPROTECT(1);
+    SEXP result_sexp = PROTECT(handler->vector_end(&view->vector_meta_, handler->handler_data));
+    UNPROTECT(2);
     return result_sexp;
     
     CPP_END

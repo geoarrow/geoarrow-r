@@ -83,11 +83,13 @@ class GeoArrowArrayView {
         }
     }
 
+    virtual ~GeoArrowArrayView() {}
+
     virtual int read_features(wk_handler_t* handler) {
         throw std::runtime_error("GeoArrowArrayView::read_features() not implemented");
     }
 
-    void set_array(const struct ArrowArray* array) {
+    virtual void set_array(const struct ArrowArray* array) {
         if (!geoarrow_meta_.array_valid(array)) {
             throw GeoArrowMeta::ValidationError(geoarrow_meta_.error_);
         }
@@ -126,7 +128,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
         coord_size_ = geoarrow_meta_.fixed_width_;
     }
 
-    void set_array(struct ArrowArray* array) {
+    void set_array(const struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
         data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
     }
@@ -171,7 +173,7 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         memset(coord_buffer_, 0, sizeof(coord_buffer_));
     }
 
-    void set_array(struct ArrowArray* array) {
+    void set_array(const struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
         memset(coord_buffer_, 0, sizeof(coord_buffer_));
         for (int i = 0; i < coord_size_; i++) {
@@ -283,27 +285,5 @@ template <class ChildView, class ChildContainerView = ListView<ChildView>>
 class GeoArrowMultiView: public ChildContainerView {
     GeoArrowMultiView(struct ArrowSchema* schema): ChildContainerView(schema) {}
 };
-
-
-GeoArrowArrayView* create_view(struct ArrowSchema* schema) {
-    GeoArrowMeta geoarrow_meta(schema);
-    switch (geoarrow_meta.extension_) {
-    case GeoArrowMeta::Extension::Point:
-        switch (geoarrow_meta.storage_type_) {
-        case GeoArrowMeta::StorageType::FixedWidthList:
-            return new GeoArrowPointView(schema);
-        case GeoArrowMeta::StorageType::Struct:
-            return new GeoArrowPointStructView(schema);
-        default: break;
-        }
-        break;
-    case GeoArrowMeta::Extension::Linestring:
-    case GeoArrowMeta::Extension::Polygon:
-    case GeoArrowMeta::Extension::Multi:
-    default: break;
-    }
-
-    throw GeoArrowMeta::ValidationError("No appropriate reader was found");
-}
 
 }; // namespace geoarrow
