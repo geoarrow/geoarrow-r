@@ -25,7 +25,7 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     struct ArrowSchema* schema = schema_from_xptr(VECTOR_ELT(data, 1), "schema");
     SEXP n_features_sexp = VECTOR_ELT(data, 2);
 
-    GeoArrowPointView view(schema);
+    geoarrow::GeoArrowPointView view(schema);
 
     if (TYPEOF(n_features_sexp) == INTSXP) {
         if (INTEGER(n_features_sexp)[0] != NA_INTEGER) {
@@ -68,11 +68,7 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
             }
 
             view.set_array(array_data);
-
-            for (int64_t i = array_data->offset; i < array_data->length; i++) {
-                if (((i + 1) % 1000) == 0) R_CheckUserInterrupt();
-                HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler));
-            }
+            HANDLE_CONTINUE_OR_BREAK(view.read_features(handler));
         }
 
         UNPROTECT(1);

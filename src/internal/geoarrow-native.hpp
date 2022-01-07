@@ -13,6 +13,7 @@
     result = expr;                                             \
     if (result == WK_ABORT_FEATURE) continue; else if (result == WK_ABORT) break
 
+namespace geoarrow {
 
 template <class ArrayView>
 int read_point_geometry(ArrayView& view, wk_handler_t* handler, int64_t part_id = WK_PART_ID_NONE) {
@@ -48,6 +49,20 @@ int read_point_feature(ArrayView& view, wk_handler_t* handler) {
     return WK_CONTINUE;
 }
 
+template <class ArrayView>
+int read_features_templ(ArrayView& view, wk_handler_t* handler) {
+    int result;
+
+    for (uint64_t i = 0; i < view.array_->length; i++) {
+        HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler));
+    }
+
+    if (result == WK_ABORT) {
+        return WK_ABORT;
+    } else {
+        return WK_CONTINUE;
+    }
+}
 
 class GeoArrowArrayView {
   public:
@@ -66,6 +81,10 @@ class GeoArrowArrayView {
             meta_.flags |= WK_FLAG_HAS_M;
             vector_meta_.flags |= WK_FLAG_HAS_M;
         }
+    }
+
+    virtual int read_features(wk_handler_t* handler) {
+        throw std::runtime_error("GeoArrowArrayView::read_features() not implemented");
     }
 
     void set_array(const struct ArrowArray* array) {
@@ -113,6 +132,10 @@ class GeoArrowPointView: public GeoArrowArrayView {
     void set_array(struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
         data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
+    }
+
+    int read_features(wk_handler_t* handler) {
+        return read_features_templ<GeoArrowPointView>(*this, handler);
     }
 
     int read_feature(wk_handler_t* handler) {
@@ -263,7 +286,4 @@ class GeoArrowMultiView: public ChildContainerView {
     GeoArrowMultiView(struct ArrowSchema* schema): ChildContainerView(schema) {}
 };
 
-
-
-
-
+}; // namespace geoarrow
