@@ -17,21 +17,55 @@ GeoArrowArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& g
     }
 }
 
-GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema, GeoArrowMeta& geoarrow_meta) {
-    switch (geoarrow_meta.storage_type_) {
-    // case GeoArrowMeta::StorageType::FixedWidthList:
-    //     break;
+GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema, GeoArrowMeta& linestring_meta) {
+    GeoArrowMeta point_meta(schema->children[0]);
 
-    // case GeoArrowMeta::StorageType::List:
-    //     break;
+    switch (linestring_meta.storage_type_) {
+    case GeoArrowMeta::StorageType::FixedWidthList:
+        switch (point_meta.storage_type_) {
+        case GeoArrowMeta::StorageType::FixedWidthList:
+            return new GeoArrowLinestringView<GeoArrowPointView, FixedWidthListView<GeoArrowPointView>>(schema);
 
-    // case GeoArrowMeta::StorageType::LargeList:
-    //     break;
+        case GeoArrowMeta::StorageType::Struct:
+            return new GeoArrowLinestringView<GeoArrowPointStructView, FixedWidthListView<GeoArrowPointView>>(schema);
+
+        default:
+            break;
+        }
+        break;
+
+    case GeoArrowMeta::StorageType::List:
+        switch (point_meta.storage_type_) {
+        case GeoArrowMeta::StorageType::FixedWidthList:
+            return new GeoArrowLinestringView<GeoArrowPointView, ListView<GeoArrowPointView, int32_t>>(schema);
+
+        case GeoArrowMeta::StorageType::Struct:
+            return new GeoArrowLinestringView<GeoArrowPointStructView, ListView<GeoArrowPointView, int32_t>>(schema);
+
+        default:
+            break;
+        }
+        break;
+
+    case GeoArrowMeta::StorageType::LargeList:
+        switch (point_meta.storage_type_) {
+        case GeoArrowMeta::StorageType::FixedWidthList:
+            return new GeoArrowLinestringView<GeoArrowPointView, ListView<GeoArrowPointView, int64_t>>(schema);
+
+        case GeoArrowMeta::StorageType::Struct:
+            return new GeoArrowLinestringView<GeoArrowPointStructView, ListView<GeoArrowPointView, int64_t>>(schema);
+
+        default:
+            break;
+        }
+        break;
 
     default:
-        throw GeoArrowMeta::ValidationError(
-            "Unsupported storage type for extension geoarrow.linestring");
+        break;
     }
+
+    throw GeoArrowMeta::ValidationError(
+            "Unsupported storage type for extension geoarrow.linestring");
 }
 
 GeoArrowArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& geoarrow_meta) {

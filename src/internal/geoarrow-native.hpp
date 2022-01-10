@@ -28,7 +28,7 @@ int read_point_geometry(ArrayView& view, wk_handler_t* handler, int64_t offset, 
 
 
 template <class ArrayView>
-int read_point_feature(ArrayView& view, int64_t offset, wk_handler_t* handler) {
+int read_feature_templ(ArrayView& view, int64_t offset, wk_handler_t* handler) {
     int result;
     view.feature_id_++;
     HANDLE_OR_RETURN(handler->feature_start(&view.vector_meta_, view.feature_id_, handler->handler_data));
@@ -36,7 +36,7 @@ int read_point_feature(ArrayView& view, int64_t offset, wk_handler_t* handler) {
     if (view.is_null(offset)) {
         HANDLE_OR_RETURN(handler->null_feature(handler->handler_data));
     } else {
-        HANDLE_OR_RETURN(read_point_geometry<ArrayView>(view, handler, offset, WK_PART_ID_NONE));
+        HANDLE_OR_RETURN(view.read_geometry(handler, offset, WK_PART_ID_NONE));
     }
 
     HANDLE_OR_RETURN(handler->feature_end(&view.vector_meta_, view.feature_id_, handler->handler_data));
@@ -113,7 +113,7 @@ class GeoArrowArrayView {
 
 class GeoArrowPointView: public GeoArrowArrayView {
   public:
-    GeoArrowPointView(struct ArrowSchema* schema):
+    GeoArrowPointView(const struct ArrowSchema* schema):
       GeoArrowArrayView(schema), data_buffer_(nullptr) {
         meta_.geometry_type = WK_POINT;
         vector_meta_.geometry_type = WK_POINT;
@@ -131,7 +131,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
     }
 
     int read_feature(wk_handler_t* handler, int64_t offset) {
-        return read_point_feature<GeoArrowPointView>(*this, offset, handler);
+        return read_feature_templ<GeoArrowPointView>(*this, offset, handler);
     }
 
     int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
@@ -155,7 +155,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
 
 class GeoArrowPointStructView: public GeoArrowArrayView {
   public:
-    GeoArrowPointStructView(struct ArrowSchema* schema): GeoArrowArrayView(schema) {
+    GeoArrowPointStructView(const struct ArrowSchema* schema): GeoArrowArrayView(schema) {
         meta_.geometry_type = WK_POINT;
         vector_meta_.geometry_type = WK_POINT;
         meta_.size = 1;
@@ -180,7 +180,7 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
     }
 
     int read_feature(wk_handler_t* handler, int64_t offset) {
-        return read_point_feature<GeoArrowPointStructView>(*this, offset, handler);
+        return read_feature_templ<GeoArrowPointStructView>(*this, offset, handler);
     }
 
     int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
@@ -212,10 +212,10 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
 template <class ChildView>
 class FixedWidthListView: public GeoArrowArrayView {
   public:
-    FixedWidthListView(struct ArrowSchema* schema):
-      GeoArrowArrayView(schema), ChildView(schema->children[0]) {}
+    FixedWidthListView(const struct ArrowSchema* schema):
+      GeoArrowArrayView(schema), child_(schema->children[0]) {}
 
-    void set_array(struct ArrowArray* array) {
+    void set_array(const struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
         child_.set_array(array->children[0]);
     }
@@ -235,10 +235,10 @@ class FixedWidthListView: public GeoArrowArrayView {
 template <class ChildView, class offset_buffer_t = int32_t>
 class ListView: public GeoArrowArrayView {
   public:
-    ListView(struct ArrowSchema* schema):
-      GeoArrowArrayView(schema), ChildView(schema->children[0]), offset_buffer_(nullptr) {}
+    ListView(const struct ArrowSchema* schema):
+      GeoArrowArrayView(schema), child_(schema->children[0]), offset_buffer_(nullptr) {}
 
-    void set_array(struct ArrowArray* array) {
+    void set_array(const struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
         child_.set_array(array->children[0]);
         offset_buffer_ = reinterpret_cast<const offset_buffer_t*>(array->buffers[1]);
@@ -257,29 +257,30 @@ class ListView: public GeoArrowArrayView {
 };
 
 
-// template <class PointView = GeoArrowPointView, class CoordContainerView = ListView<PointView>>
-// class GeoArrowLinestringView: public CoordContainerView {
-//     GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {}
+template <class PointView = GeoArrowPointView, class CoordContainerView = ListView<PointView>>
+class GeoArrowLinestringView: public CoordContainerView {
+  public:
+    GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {}
 
-//     int read_feature(wk_handler_t* handler) {
-//         return 0;
-//     }
+    int read_feature(wk_handler_t* handler, int64_t offset) {
+        return read_feature_templ<GeoArrowLinestringView>(*this, offset, handler);
+    }
 
-//     int read_geometry(wk_handler_t* handler, int64_t id, uint32_t part_id = WK_PART_ID_NONE) {
-//         offset_++;
-//         HANDLE_OR_RETURN(handler->geometry_start(&meta_, part_id, handler->handler_data));
+    int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
+        int result;
 
-//         int64_t initial_offset = child_offset();
-//         int64_t size = child_size();
-//         for (int64_t i = 0; i < size; i++) {
-//             HANDLE_OR_RETURN(child_.read_coord(handler, initial_offset + size, i));
-//         }
+        HANDLE_OR_RETURN(handler->geometry_start(&CoordContainerView::meta_, part_id, handler->handler_data));
 
-//         HANDLE_OR_RETURN(handler->geometry_end(&meta_, part_id, handler->handler_data));
-//         return WK_CONTINUE;
-//     }
+        int64_t initial_child_offset = CoordContainerView::child_offset(offset);
+        int64_t size = CoordContainerView::child_size(offset);
+        for (int64_t i = 0; i < size; i++) {
+            HANDLE_OR_RETURN(CoordContainerView::child_.read_coord(handler, initial_child_offset + size, i));
+        }
 
-// };
+        HANDLE_OR_RETURN(handler->geometry_end(&CoordContainerView::meta_, part_id, handler->handler_data));
+        return WK_CONTINUE;
+    }
+};
 
 
 template <class PointView = GeoArrowPointView,
