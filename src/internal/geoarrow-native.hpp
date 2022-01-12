@@ -305,12 +305,14 @@ template <class PointView = GeoArrowPointView,
           class CoordContainerView = ListView<PointView>,
           class RingContainerView = ListView<CoordContainerView>>
 class GeoArrowPolygonView: public RingContainerView {
+  public:
     GeoArrowPolygonView(struct ArrowSchema* schema): RingContainerView(schema) {}
 };
 
 
 template <class ChildView, class ChildContainerView = ListView<ChildView>>
 class GeoArrowMultiView: public ChildContainerView {
+  public:
     GeoArrowMultiView(struct ArrowSchema* schema): ChildContainerView(schema) {}
 };
 
