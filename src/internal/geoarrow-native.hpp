@@ -263,6 +263,16 @@ class GeoArrowLinestringView: public CoordContainerView {
     GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {
         this->meta_.geometry_type = WK_LINESTRING;
         this->vector_meta_.geometry_type = WK_LINESTRING;
+
+        if (this->child_.meta_.flags & WK_FLAG_HAS_Z) {
+            this->meta_.flags |= WK_FLAG_HAS_Z;
+            this->vector_meta_.flags |= WK_FLAG_HAS_Z;
+        }
+
+        if (this->child_.meta_.flags & WK_FLAG_HAS_M) {
+            this->meta_.flags |= WK_FLAG_HAS_M;
+            this->vector_meta_.flags |= WK_FLAG_HAS_M;
+        }
     }
 
     int read_features(wk_handler_t* handler) {

@@ -27,7 +27,7 @@ GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema, GeoArrowMe
             return new GeoArrowLinestringView<GeoArrowPointView, FixedWidthListView<GeoArrowPointView>>(schema);
 
         case GeoArrowMeta::StorageType::Struct:
-            return new GeoArrowLinestringView<GeoArrowPointStructView, FixedWidthListView<GeoArrowPointView>>(schema);
+            return new GeoArrowLinestringView<GeoArrowPointStructView, FixedWidthListView<GeoArrowPointStructView>>(schema);
 
         default:
             break;
@@ -40,7 +40,7 @@ GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema, GeoArrowMe
             return new GeoArrowLinestringView<GeoArrowPointView, ListView<GeoArrowPointView, int32_t>>(schema);
 
         case GeoArrowMeta::StorageType::Struct:
-            return new GeoArrowLinestringView<GeoArrowPointStructView, ListView<GeoArrowPointView, int32_t>>(schema);
+            return new GeoArrowLinestringView<GeoArrowPointStructView, ListView<GeoArrowPointStructView, int32_t>>(schema);
 
         default:
             break;
@@ -53,7 +53,7 @@ GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema, GeoArrowMe
             return new GeoArrowLinestringView<GeoArrowPointView, ListView<GeoArrowPointView, int64_t>>(schema);
 
         case GeoArrowMeta::StorageType::Struct:
-            return new GeoArrowLinestringView<GeoArrowPointStructView, ListView<GeoArrowPointView, int64_t>>(schema);
+            return new GeoArrowLinestringView<GeoArrowPointStructView, ListView<GeoArrowPointStructView, int64_t>>(schema);
 
         default:
             break;
