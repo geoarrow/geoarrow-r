@@ -28,8 +28,9 @@ wk_handle.carrow_array <- function(handleable, handler, ...) {
       wk::wk_handle(geos::geos_read_geojson(chr, crs = geo_metadata$crs), handler)
     },
     "geoarrow.point" = ,
-    "geoarrow.linestring" = handle_geoarrow_point(handleable, handler),
-    "geoarrow.multi" =,
+    "geoarrow.linestring" = ,
+    "geoarrow.multi" = ,
+    "geoarrow.polygon" = handle_geoarrow_point(handleable, handler),
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }
@@ -49,7 +50,8 @@ wk_handle.carrow_array_stream <- function(handleable, handler, ...,
     "geoarrow.wkb" = handle_geoarrow_wkb_stream(handleable, handler),
     "geoarrow.wkt" = handle_geoarrow_wkt_stream(handleable, handler),
     "geoarrow.point" = ,
-    "geoarrow.linestring" = handle_geoarrow_point_stream(handleable, handler),
+    "geoarrow.linestring" = ,
+    "geoarrow.polygon" = handle_geoarrow_point_stream(handleable, handler),
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }

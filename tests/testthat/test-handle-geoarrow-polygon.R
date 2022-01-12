@@ -1,20 +1,27 @@
 
-test_that("geoarrow point reader works for linestring", {
-  coords_base <- wk::xy(1:10, 11:20)
+test_that("geoarrow point reader works for polygon", {
+  poly_base <- wk::wkt(
+    c(
+      "POLYGON ZM ((0 0 2 3, 1 0 2 3, 1 1 2 3, 0 1 2 3, 0 0 2 3))",
+      "POLYGON ZM ((0 0 2 3, 0 -1 2 3, -1 -1 2 3, -1 0 2 3, 0 0 2 3))"
+    )
+  )
+  coords_base <- wk::wk_vertices(poly_base)
 
   for (coord_container_format in c("+l", "+L", "+w:5")) {
     for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
       for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
         dims_exploded <- strsplit(coord_dim, "")[[1]]
-        features <- wk::wk_linestring(
+        features <- wk::wk_polygon(
           wk::as_xy(coords_base, dims = dims_exploded),
-          feature_id = c(rep(1, 5), rep(2, 5))
+          feature_id = c(rep(1, 5), rep(2, 5)),
+          ring_id = c(rep(1, 5), rep(2, 5))
         )
 
         features_array <- geoarrow_create(
           features,
-          schema = geoarrow_schema_linestring(
-            format = coord_container_format,
+          schema = geoarrow_schema_polygon(
+            format = c(poly_container_format, coord_container_format),
             point = point_schema(dim = coord_dim, nullable = TRUE)
           )
         )
