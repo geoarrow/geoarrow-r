@@ -6,3 +6,4 @@
 ^codecov\.yml$
 ^\.vscode$
 ^\.covrignore$
+^data-raw$
