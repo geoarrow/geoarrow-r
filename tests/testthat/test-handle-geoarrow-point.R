@@ -1,122 +1,35 @@
 
-test_that("geoarrow point reader works for xy", {
-  points <- wk::xy(1:10, 11:20)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point())
+test_that("geoarrow point reader works for point", {
+  coords_base <- wk::xy(1:10, 11:20)
 
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
-})
+  # helpful for interactive debugging
+  point_schema <- geoarrow_schema_point
+  coord_dim <- "xy"
 
-test_that("geoarrow point reader works for xyz", {
-  points <- wk::xyz(1:10, 11:20, 21:30)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point(dim = "xyz"))
+  for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
+    for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
+      dims_exploded <- strsplit(coord_dim, "")[[1]]
+      features <- wk::as_wkb(wk::as_xy(coords_base, dims = dims_exploded))
 
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
-})
+      features_array <- geoarrow_create(
+        features,
+        schema = point_schema(dim = coord_dim, nullable = TRUE)
+      )
 
-test_that("geoarrow point reader works for xym", {
-  points <- wk::xym(1:10, 11:20, 31:40)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point(dim = "xym"))
-
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
-})
-
-test_that("geoarrow point reader works for xyzm", {
-  points <- wk::xyzm(1:10, 11:20, 21:30, 31:40)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point(dim = "xyzm"))
-
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
-})
-
-test_that("geoarrow point reader errors for invalid schemas", {
-  schema <- geoarrow_schema_point()
-  schema$format <- "n"
-  points_array <- carrow::carrow_array(schema, validate = FALSE)
-  expect_error(wk::wk_void(points_array), "struct or a fixed-width list")
-
-  schema <- geoarrow_schema_point()
-  schema$children <- list()
-  points_array <- carrow::carrow_array(schema, validate = FALSE)
-  expect_error(wk::wk_void(points_array), "one child but found 0")
-
-  schema <- geoarrow_schema_point()
-  schema$children[[1]] <- carrow::carrow_schema("n")
-  points_array <- carrow::carrow_array(schema, validate = FALSE)
-  expect_error(wk::wk_void(points_array), "type Float64")
-
-  schema <- geoarrow_schema_point()
-  schema$children[[1]] <- carrow::carrow_schema("+l")
-  points_array <- carrow::carrow_array(schema, validate = FALSE)
-  expect_error(wk::wk_void(points_array), "invalid child schema")
-
-  schema <- geoarrow_schema_point()
-  points_array <- carrow::carrow_array(
-    schema,
-    carrow::carrow_array_data(),
-    validate = FALSE
-  )
-  expect_error(wk::wk_void(points_array), "array with 1 buffer")
-
-  schema <- geoarrow_schema_point()
-  points_array <- carrow::carrow_array(
-    schema,
-    carrow::carrow_array_data(
-      buffers = list(NULL)
-    ),
-    validate = FALSE
-  )
-  expect_error(wk::wk_void(points_array), "one child but found 0")
-})
-
-test_that("geoarrow point struct reader works for xy", {
-  points <- wk::xy(1:10, 11:20)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point_struct())
-
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
-})
-
-test_that("geoarrow point struct reader works for xyz", {
-  points <- wk::xyz(1:10, 11:20, 21:30)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point_struct(dim = "xyz"))
-
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
-})
-
-test_that("geoarrow point struct reader works for xym", {
-  points <- wk::xym(1:10, 11:20, 31:40)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point_struct(dim = "xym"))
-
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
-})
-
-test_that("geoarrow point struct reader works for xyzm", {
-  points <- wk::xyzm(1:10, 11:20, 21:30, 31:40)
-  points_array <- geoarrow_create(points, schema = geoarrow_schema_point_struct(dim = "xyzm"))
-
-  expect_identical(wk_handle(points_array, wk::xy_writer()), points)
-  expect_identical(wk::as_wkt(points_array), wk::as_wkt(points))
-  expect_identical(wk::wk_vector_meta(points_array), wk::wk_vector_meta(points))
-  expect_identical(wk::wk_meta(points_array), wk::wk_meta(points))
+      expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
+      expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
+      expect_identical(
+        wk::wk_vector_meta(features_array),
+        data.frame(
+          geometry_type = 1L,
+          size = 10,
+          has_z = "z" %in% dims_exploded,
+          has_m = "m" %in% dims_exploded
+        )
+      )
+      expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
+    }
+  }
 })
 
 test_that("geoarrow point struct reader errors for invalid schemas", {
