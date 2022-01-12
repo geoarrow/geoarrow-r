@@ -260,7 +260,14 @@ class ListView: public GeoArrowArrayView {
 template <class PointView = GeoArrowPointView, class CoordContainerView = ListView<PointView>>
 class GeoArrowLinestringView: public CoordContainerView {
   public:
-    GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {}
+    GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {
+        this->meta_.geometry_type = WK_LINESTRING;
+        this->vector_meta_.geometry_type = WK_LINESTRING;
+    }
+
+    int read_features(wk_handler_t* handler) {
+        return read_features_templ<GeoArrowLinestringView>(*this, handler);
+    }
 
     int read_feature(wk_handler_t* handler, int64_t offset) {
         return read_feature_templ<GeoArrowLinestringView>(*this, offset, handler);
@@ -269,15 +276,16 @@ class GeoArrowLinestringView: public CoordContainerView {
     int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
         int result;
 
-        HANDLE_OR_RETURN(handler->geometry_start(&CoordContainerView::meta_, part_id, handler->handler_data));
+        int64_t initial_child_offset = this->child_offset(offset);
+        int64_t size = this->child_size(offset);
+        this->meta_.size = size;
 
-        int64_t initial_child_offset = CoordContainerView::child_offset(offset);
-        int64_t size = CoordContainerView::child_size(offset);
+        HANDLE_OR_RETURN(handler->geometry_start(&this->meta_, part_id, handler->handler_data));
         for (int64_t i = 0; i < size; i++) {
-            HANDLE_OR_RETURN(CoordContainerView::child_.read_coord(handler, initial_child_offset + size, i));
+            HANDLE_OR_RETURN(this->child_.read_coord(handler, initial_child_offset + i, i));
         }
 
-        HANDLE_OR_RETURN(handler->geometry_end(&CoordContainerView::meta_, part_id, handler->handler_data));
+        HANDLE_OR_RETURN(handler->geometry_end(&this->meta_, part_id, handler->handler_data));
         return WK_CONTINUE;
     }
 };
