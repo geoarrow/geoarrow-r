@@ -30,7 +30,8 @@ test_that("geoarrow point reader works for polygon", {
             schema = geoarrow_schema_polygon(
               format = c(poly_container_format, coord_container_format),
               point = point_schema(dim = coord_dim, nullable = TRUE)
-            )
+            ),
+            strict = TRUE
           )
 
           expect_identical(wk_handle(features_array, wk::wkb_writer()), features)

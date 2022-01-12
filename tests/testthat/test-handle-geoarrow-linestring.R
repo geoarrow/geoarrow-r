@@ -16,7 +16,8 @@ test_that("geoarrow point reader works for linestring", {
           schema = geoarrow_schema_linestring(
             format = coord_container_format,
             point = point_schema(dim = coord_dim, nullable = TRUE)
-          )
+          ),
+          strict = TRUE
         )
 
         expect_identical(wk_handle(features_array, wk::wkb_writer()), features)

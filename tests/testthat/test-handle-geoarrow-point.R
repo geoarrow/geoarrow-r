@@ -13,7 +13,8 @@ test_that("geoarrow point reader works for point", {
 
       features_array <- geoarrow_create(
         features,
-        schema = point_schema(dim = coord_dim, nullable = TRUE)
+        schema = point_schema(dim = coord_dim, nullable = TRUE),
+        strict = TRUE
       )
 
       expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
