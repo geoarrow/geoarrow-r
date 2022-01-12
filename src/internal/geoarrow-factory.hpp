@@ -260,20 +260,89 @@ GeoArrowArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta&
     }
 }
 
-GeoArrowArrayView* create_view_multi(struct ArrowSchema* schema, GeoArrowMeta& geoarrow_meta) {
-    switch (geoarrow_meta.storage_type_) {
-    // case GeoArrowMeta::StorageType::FixedWidthList:
-    //     break;
+GeoArrowArrayView* create_view_multipoint(struct ArrowSchema* schema,
+                                          GeoArrowMeta& multi_meta, GeoArrowMeta& point_meta) {
+    switch (multi_meta.storage_type_) {
+    case GeoArrowMeta::StorageType::FixedWidthList:
 
-    // case GeoArrowMeta::StorageType::List:
-    //     break;
+            switch (point_meta.storage_type_) {
+            case GeoArrowMeta::StorageType::FixedWidthList:
+                return new GeoArrowMultiView<GeoArrowPointView, FixedWidthListView<GeoArrowPointView>>(schema);
 
-    // case GeoArrowMeta::StorageType::LargeList:
-    //     break;
+            case GeoArrowMeta::StorageType::Struct:
+                return new GeoArrowMultiView<GeoArrowPointStructView, FixedWidthListView<GeoArrowPointStructView>>(schema);
+
+            default:
+                throw GeoArrowMeta::ValidationError(
+                    "Unsupported storage type for extension geoarrow.point");
+            }
+
+        break;
+
+    case GeoArrowMeta::StorageType::List:
+
+            switch (point_meta.storage_type_) {
+            case GeoArrowMeta::StorageType::FixedWidthList:
+                return new GeoArrowMultiView<GeoArrowPointView, ListView<GeoArrowPointView, int32_t>>(schema);
+
+            case GeoArrowMeta::StorageType::Struct:
+                return new GeoArrowMultiView<GeoArrowPointStructView, ListView<GeoArrowPointStructView, int32_t>>(schema);
+
+            default:
+                throw GeoArrowMeta::ValidationError(
+                    "Unsupported storage type for extension geoarrow.point");
+            }
+
+        break;
+
+    case GeoArrowMeta::StorageType::LargeList:
+
+            switch (point_meta.storage_type_) {
+            case GeoArrowMeta::StorageType::FixedWidthList:
+                return new GeoArrowMultiView<GeoArrowPointView, ListView<GeoArrowPointView, int64_t>>(schema);
+
+            case GeoArrowMeta::StorageType::Struct:
+                return new GeoArrowMultiView<GeoArrowPointStructView, ListView<GeoArrowPointStructView, int64_t>>(schema);
+
+            default:
+                throw GeoArrowMeta::ValidationError(
+                    "Unsupported storage type for extension geoarrow.point");
+            }
+
+        break;
 
     default:
         throw GeoArrowMeta::ValidationError(
             "Unsupported storage type for extension geoarrow.multi");
+    }
+}
+
+GeoArrowArrayView* create_view_multilinestring(struct ArrowSchema* schema,
+                                               GeoArrowMeta& multi_meta, GeoArrowMeta& linestring_meta) {
+    throw GeoArrowMeta::ValidationError("Multilinestring not implemented");
+}
+
+GeoArrowArrayView* create_view_multipolygon(struct ArrowSchema* schema,
+                                            GeoArrowMeta& multi_meta, GeoArrowMeta& polygon_meta) {
+    GeoArrowMeta linestring_meta(schema->children[0]);
+    GeoArrowMeta point_meta(schema->children[0]->children[0]);
+    throw GeoArrowMeta::ValidationError("Multipolygon not implemented");
+}
+
+GeoArrowArrayView* create_view_multi(struct ArrowSchema* schema, GeoArrowMeta& multi_meta) {
+    GeoArrowMeta child_meta(schema->children[0]);
+
+    switch (child_meta.extension_) {
+    case GeoArrowMeta::Extension::Point:
+        return create_view_multipoint(schema, multi_meta, child_meta);
+
+    case GeoArrowMeta::Extension::Linestring:
+        return create_view_multilinestring(schema, multi_meta, child_meta);
+
+    case GeoArrowMeta::Extension::Polygon:
+        return create_view_multipolygon(schema, multi_meta, child_meta);
+    default:
+        throw GeoArrowMeta::ValidationError("Unsupported extension type for child of geoarrow.multi");
     }
 }
 

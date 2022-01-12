@@ -78,8 +78,43 @@ polygon_switch <- function(indent = "    ", extension = "polygon") {
   glue(nest_switch_template, .indent = indent)
 }
 
+multipoint_switch <- function(indent = "    ",
+                              child_templ = function(type_format, point_type) sprintf(type_format, point_type),
+                              extension = "multi") {
+  switch_child <- function(type_format, indent) {
+    type <- function(point_type) {
+      glue("GeoArrowMultiView<${ point_type }, ${ child_templ(type_format, point_type) }>")
+    }
+
+    point_switch(type, indent = paste0(indent, "    "))
+  }
+
+  glue(nest_switch_template, .indent = indent)
+}
+
+multilinestring_switch <- function(indent = "    ", extension = "multi") {
+  switch_child <- function(type_format, indent) {
+    linestring_switch(
+      indent = paste0(indent, "    "),
+      child_templ = function(linestring_type_format, point_type) {
+        paste(
+          sprintf(linestring_type_format, point_type),
+          sprintf(type_format, sprintf(linestring_type_format, point_type)),
+          sep = ", "
+        )
+      },
+      name = "GeoArrowMultiView"
+    )
+  }
+
+  glue(nest_switch_template, .indent = indent)
+}
+
 
 clipr::write_clip(point_switch())
 clipr::write_clip(linestring_switch())
 clipr::write_clip(polygon_switch())
+
+clipr::write_clip(multipoint_switch())
+clipr::write_clip(multilinestring_switch())
 
