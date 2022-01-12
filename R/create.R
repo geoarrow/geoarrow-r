@@ -73,7 +73,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
     sub_extension <- scalar_chr(child_schema$metadata[["ARROW:extension:name"]])
 
     if (identical(sub_extension, "geoarrow.point")) {
-      return(geoarrow_create_multipoint_array(coords, counts$n_coord, schema))
+      return(geoarrow_create_multipoint_array(coords, counts$n_coord, schema, strict = strict))
     } else if (identical(sub_extension, "geoarrow.linestring")) {
       flat_counts <- wk::wk_handle(
         handleable,
