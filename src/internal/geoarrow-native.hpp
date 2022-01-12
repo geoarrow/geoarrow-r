@@ -306,7 +306,53 @@ template <class PointView = GeoArrowPointView,
           class RingContainerView = ListView<CoordContainerView>>
 class GeoArrowPolygonView: public RingContainerView {
   public:
-    GeoArrowPolygonView(struct ArrowSchema* schema): RingContainerView(schema) {}
+    GeoArrowPolygonView(struct ArrowSchema* schema): RingContainerView(schema) {
+        this->meta_.geometry_type = WK_POLYGON;
+        this->vector_meta_.geometry_type = WK_POLYGON;
+
+        if (this->child_.child_.meta_.flags & WK_FLAG_HAS_Z) {
+            this->meta_.flags |= WK_FLAG_HAS_Z;
+            this->vector_meta_.flags |= WK_FLAG_HAS_Z;
+        }
+
+        if (this->child_.child_.meta_.flags & WK_FLAG_HAS_M) {
+            this->meta_.flags |= WK_FLAG_HAS_M;
+            this->vector_meta_.flags |= WK_FLAG_HAS_M;
+        }
+    }
+
+    int read_features(wk_handler_t* handler) {
+        return read_features_templ<GeoArrowPolygonView>(*this, handler);
+    }
+
+    int read_feature(wk_handler_t* handler, int64_t offset) {
+        return read_feature_templ<GeoArrowPolygonView>(*this, offset, handler);
+    }
+
+    int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
+        int result;
+
+        int64_t initial_child_offset = this->child_offset(offset);
+        int64_t size = this->child_size(offset);
+        this->meta_.size = size;
+
+        HANDLE_OR_RETURN(handler->geometry_start(&this->meta_, part_id, handler->handler_data));
+        for (int64_t i = 0; i < size; i++) {
+
+            int64_t initial_coord_offset = this->child_.child_offset(initial_child_offset + i);
+            int64_t ring_size = this->child_.child_size(initial_child_offset + i);
+
+            HANDLE_OR_RETURN(handler->ring_start(&this->meta_, ring_size, i, handler->handler_data));
+            for (int64_t j = 0; j < ring_size; j++) {
+                HANDLE_OR_RETURN(this->child_.child_.read_coord(handler, initial_coord_offset + j, j));
+            }
+            HANDLE_OR_RETURN(handler->ring_end(&this->meta_, ring_size, i, handler->handler_data));
+        }
+
+        HANDLE_OR_RETURN(handler->geometry_end(&this->meta_, part_id, handler->handler_data));
+        return WK_CONTINUE;
+    }
+
 };
 
 
