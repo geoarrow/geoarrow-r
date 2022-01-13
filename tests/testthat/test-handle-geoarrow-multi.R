@@ -99,15 +99,14 @@ test_that("geoarrow point reader works for multilinestring", {
 })
 
 test_that("geoarrow point reader works for multipolygon", {
-  poly_base <- wk::wkt(
+  poly_base <- wk::as_wkb(
     c(
-      "POLYGON ZM ((0 0 2 3, 1 0 2 3, 1 1 2 3, 0 1 2 3, 0 0 2 3))",
-      "POLYGON ZM ((0 0 2 3, 0 -1 2 3, -1 -1 2 3, -1 0 2 3, 0 0 2 3))",
-      "POLYGON ZM ((1 1 2 3, 2 1 2 3, 2 2 2 3, 1 2 2 3, 1 1 2 3))",
-      "POLYGON ZM ((2 2 2 3, 3 2 2 3, 3 3 2 3, 2 3 2 3, 2 2 2 3))"
+      "POLYGON ((0 0, 1 0, 1 1, 0 1, 0 0))",
+      "POLYGON ((0 0, 0 -1, -1 -1, -1 0, 0 0))",
+      "POLYGON ((1 1, 2 1, 2 2, 1 2, 1 1))",
+      "POLYGON ((2 2, 3 2, 3 3, 2 3, 2 2))"
     )
   )
-  coords_base <- wk::wk_vertices(poly_base)
 
   # helpful for interactive debugging
   container_format <- "+l"
@@ -116,22 +115,27 @@ test_that("geoarrow point reader works for multipolygon", {
   point_schema <- geoarrow_schema_point
   coord_dim <- "xy"
 
-  for (container_format in c("+l", "+L", "+w:5")) {
+  for (container_format in c("+l", "+L", "+w:2")) {
     for (poly_container_format in c("+l", "+L", "+w:1")) {
       for (coord_container_format in c("+l", "+L", "+w:5")) {
         for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
           for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
+            # bug in wk_polygon() precludes previous approach
+            # https://github.com/paleolimbot/wk/issues/134
             dims_exploded <- strsplit(coord_dim, "")[[1]]
-            features_simple <- wk::wk_polygon(
-              wk::as_xy(coords_base, dims = dims_exploded),
-              feature_id = c(rep(1, 5), rep(2, 5)),
-              ring_id = c(rep(1, 5), rep(2, 5))
-            )
             features <- wk::wk_collection(
-              features_simple,
+              poly_base,
               feature_id = rep(1:2, each = 2),
               geometry_type = wk::wk_geometry_type("multipolygon")
             )
+
+            if ("z" %in% dims_exploded) {
+              features <- wk::wk_set_z(features, 2)
+            }
+
+            if ("m" %in% dims_exploded) {
+              features <- wk::wk_set_m(features, 3)
+            }
 
             features_array <- geoarrow_create(
               features,
