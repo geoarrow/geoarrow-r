@@ -43,14 +43,14 @@ library(geoarrow)
 
 nc <- sf::read_sf(system.file("shape/nc.shp", package = "sf"))
 write_geoarrow_parquet(nc, "nc.parquet")
-read_geoarrow_parquet("nc.parquet")
+sf::st_as_sf(read_geoarrow_parquet("nc.parquet"))
 ```
 
-You can use any of the schemas to experiment by passing the `schema` argument:
+You can use any of the schemas to experiment by passing the `schema` argument. These control how the geometry is stored in an Arrow data type (but shouldn't affect the round trip back to R).
 
 ```{r}
-write_geoarrow_parquet(nc, "nc.parquet", schema = geoarrow_schema_wkt())
-arrow::read_parquet("nc.parquet")[c("NAME", "geometry")]
+write_geoarrow_parquet(nc, "nc.parquet", schema = geoarrow_schema_wkb())
+sf::st_as_sf(read_geoarrow_parquet("nc.parquet"))
 ```
 
 ```{r, include = FALSE}

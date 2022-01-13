@@ -10,6 +10,44 @@ library(geoarrow)
 # dir.create("data-raw/denmark")
 # unzip("data-raw/denmark-latest-free.shp.zip", exdir = "data-raw/denmark")
 
+system.time(
+  buildings_sf <- sf::read_sf("data-raw/denmark/gis_osm_buildings_a_free_1.shp")
+)
+write_geoarrow_parquet(buildings_sf, "data-raw/buildings.parquet")
+
+library(geoarrow)
+
+# read_sf()
+system.time(
+  sf::read_sf(
+    "~/Desktop/rscratch/geoarrow/data-raw/denmark/gis_osm_buildings_a_free_1.shp"
+  )
+)
+
+# read + iterate over coords
+system.time(
+  read_geoarrow_parquet(
+    "~/Desktop/rscratch/geoarrow/data-raw/denmark-buildings.parquet",
+    handler = wk::wk_void_handler()
+  )
+)
+
+# read + convert to sf
+system.time(
+  read_geoarrow_parquet(
+    "~/Desktop/rscratch/geoarrow/data-raw/denmark-buildings.parquet",
+    handler = wk::sfc_writer()
+  )
+)
+
+# read + convert to geos::geos_geometry()
+system.time(
+  read_geoarrow_parquet(
+    "~/Desktop/rscratch/geoarrow/data-raw/denmark-buildings.parquet",
+    handler = geos::geos_geometry_writer()
+  )
+)
+
 buildings_geom <- vapour::vapour_read_geometry("data-raw/denmark/gis_osm_buildings_a_free_1.shp")
 buildings_attr <- vapour::vapour_read_attributes("data-raw/denmark/gis_osm_buildings_a_free_1.shp")
 

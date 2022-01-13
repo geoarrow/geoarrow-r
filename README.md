@@ -35,7 +35,7 @@ library(geoarrow)
 
 nc <- sf::read_sf(system.file("shape/nc.shp", package = "sf"))
 write_geoarrow_parquet(nc, "nc.parquet")
-read_geoarrow_parquet("nc.parquet")
+sf::st_as_sf(read_geoarrow_parquet("nc.parquet"))
 #> Simple feature collection with 100 features and 14 fields
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -59,25 +59,32 @@ read_geoarrow_parquet("nc.parquet")
 ```
 
 You can use any of the schemas to experiment by passing the `schema`
-argument:
+argument. These control how the geometry is stored in an Arrow data type
+(but shouldn’t affect the round trip back to R).
 
 ``` r
-write_geoarrow_parquet(nc, "nc.parquet", schema = geoarrow_schema_wkt())
-arrow::read_parquet("nc.parquet")[c("NAME", "geometry")]
-#> # A tibble: 100 × 2
-#>    NAME        geometry                                                         
-#>    <chr>       <chr>                                                            
-#>  1 Ashe        MULTIPOLYGON (((-81.47275543212891 36.23435592651367, -81.540840…
-#>  2 Alleghany   MULTIPOLYGON (((-81.23989105224609 36.36536407470703, -81.240692…
-#>  3 Surry       MULTIPOLYGON (((-80.45634460449219 36.24255752563477, -80.476387…
-#>  4 Currituck   MULTIPOLYGON (((-76.00897216796875 36.31959533691406, -76.017349…
-#>  5 Northampton MULTIPOLYGON (((-77.21766662597656 36.24098205566406, -77.234611…
-#>  6 Hertford    MULTIPOLYGON (((-76.74506378173828 36.23391723632812, -76.980690…
-#>  7 Camden      MULTIPOLYGON (((-76.00897216796875 36.31959533691406, -75.957183…
-#>  8 Gates       MULTIPOLYGON (((-76.56250762939453 36.34056854248047, -76.604240…
-#>  9 Warren      MULTIPOLYGON (((-78.30876159667969 36.26004028320312, -78.282928…
-#> 10 Stokes      MULTIPOLYGON (((-80.02567291259766 36.2502326965332, -80.4530105…
-#> # … with 90 more rows
+write_geoarrow_parquet(nc, "nc.parquet", schema = geoarrow_schema_wkb())
+sf::st_as_sf(read_geoarrow_parquet("nc.parquet"))
+#> Simple feature collection with 100 features and 14 fields
+#> Geometry type: MULTIPOLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965
+#> CRS:           NA
+#> # A tibble: 100 × 15
+#>     AREA PERIMETER CNTY_ CNTY_ID NAME  FIPS  FIPSNO CRESS_ID BIR74 SID74 NWBIR74
+#>    <dbl>     <dbl> <dbl>   <dbl> <chr> <chr>  <dbl>    <int> <dbl> <dbl>   <dbl>
+#>  1 0.114      1.44  1825    1825 Ashe  37009  37009        5  1091     1      10
+#>  2 0.061      1.23  1827    1827 Alle… 37005  37005        3   487     0      10
+#>  3 0.143      1.63  1828    1828 Surry 37171  37171       86  3188     5     208
+#>  4 0.07       2.97  1831    1831 Curr… 37053  37053       27   508     1     123
+#>  5 0.153      2.21  1832    1832 Nort… 37131  37131       66  1421     9    1066
+#>  6 0.097      1.67  1833    1833 Hert… 37091  37091       46  1452     7     954
+#>  7 0.062      1.55  1834    1834 Camd… 37029  37029       15   286     0     115
+#>  8 0.091      1.28  1835    1835 Gates 37073  37073       37   420     0     254
+#>  9 0.118      1.42  1836    1836 Warr… 37185  37185       93   968     4     748
+#> 10 0.124      1.43  1837    1837 Stok… 37169  37169       85  1612     1     160
+#> # … with 90 more rows, and 4 more variables: BIR79 <dbl>, SID79 <dbl>,
+#> #   NWBIR79 <dbl>, geometry <MULTIPOLYGON>
 ```
 
 ## Type examples
