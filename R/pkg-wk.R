@@ -2,8 +2,21 @@
 #' @importFrom wk wk_crs
 #' @export
 wk_crs.carrow_array <- function(x) {
-  metadata <- x$schema$metadata
-  extension <- scalar_chr(metadata[["ARROW:extension:name"]])
-  geo_metadata <- geoarrow_metadata(x$schema)
-  geo_metadata$crs
+  wk_crs_carrow_schema(x$schema)
+}
+
+wk_crs_carrow_schema <- function(schema) {
+  geo_metadata <- geoarrow_metadata(schema)
+  if (!is.null(geo_metadata$crs)) {
+    geo_metadata$crs
+  } else {
+    for (child in schema$children) {
+      geo_metadata <- geoarrow_metadata(child)
+      if (!is.null(geo_metadata$crs)) {
+        return(geo_metadata$crs)
+      } else {
+        return(wk_crs_carrow_schema(child))
+      }
+    }
+  }
 }

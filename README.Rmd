@@ -34,7 +34,7 @@ You can install the development version from [GitHub](https://github.com/) with:
 devtools::install_github("paleolimbot/geoarrow")
 ```
 
-## Write a geoarrow parquet file
+## Write and write to Parquet
 
 This exists for prototyping only, but should work with most things that you throw at it. Notably, sf objects should work out-of-the-box.
 
@@ -43,7 +43,7 @@ library(geoarrow)
 
 nc <- sf::read_sf(system.file("shape/nc.shp", package = "sf"))
 write_geoarrow_parquet(nc, "nc.parquet")
-arrow::read_parquet("nc.parquet")[c("NAME", "geometry")]
+read_geoarrow_parquet("nc.parquet")
 ```
 
 You can use any of the schemas to experiment by passing the `schema` argument:

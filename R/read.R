@@ -66,12 +66,14 @@ read_geoarrow_parquet <- function(file, ..., col_select = NULL,
           schema = carrow::as_carrow_schema(chunked$type)
         )
 
-        wk::wk_handle(
+        result <- wk::wk_handle(
           carrow::as_carrow_array_stream(chunked),
           wk::as_wk_handler(handler),
           geoarrow_schema = geoarrow_schema,
           geoarrow_n_features = chunked$length()
         )
+
+        wk::wk_set_crs(result, wk_crs_carrow_schema(geoarrow_schema))
       }
     )
 
@@ -84,5 +86,11 @@ read_geoarrow_parquet <- function(file, ..., col_select = NULL,
   }
 
   tbl <- dplyr::bind_cols(attrs_df, handleable_df)
-  tbl[intersect(col_select, names(tbl))]
+  result <- tbl[intersect(col_select, names(tbl))]
+
+  if (all(vapply(handleable_df, inherits, "sfc", FUN.VALUE = logical(1)))) {
+    sf::st_as_sf(result)
+  } else {
+    result
+  }
 }
