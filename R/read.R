@@ -1,11 +1,12 @@
 
-#' Write geometry as Apache Parquet files
+#' Read geometry from Apache Parquet files
 #'
+#' @param x An object to collect into a data.frame, converting geometry
+#'   columns according to `handler`.
 #' @param file A file or InputStream to read; passed to
 #'   [arrow::read_parquet()].
 #' @param as_data_frame Use `FALSE` to return an [arrow::Table]
 #'   instead of a data.frame.
-#' @param col_select A character vector of columns to include.
 #' @param handler A [wk handler][wk::wk_handle] to use when `as.data.frame`
 #'   is TRUE for all geometry columns.
 #' @param metadata Optional metadata to include to override metadata available
@@ -19,56 +20,19 @@
 #'
 #' @export
 #'
-read_geoarrow_parquet <- function(file, ..., col_select = NULL,
-                                  as_data_frame = TRUE,
-                                  handler = NULL,
+read_geoarrow_parquet <- function(file, ..., as_data_frame = TRUE, handler = NULL,
                                   metadata = NULL) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
     stop("Package 'arrow' required for read_geoarrow_parquet()", call. = FALSE) # nocov
   }
 
-  if (!as_data_frame) {
-    return(arrow::read_parquet(file, ..., col_select = {{ col_select }}, as_data_frame = FALSE))
-  }
+  table <- arrow::read_parquet(file, ..., as_data_frame = FALSE)
 
-  # use dataset to get column names and metadata
-  ds <- arrow::open_dataset(file, partitioning = NULL)
-  metadata <- metadata %||% jsonlite::fromJSON(ds$metadata$geo)
-
-  # we can't use fancy dplyr selections with col_select
-  stopifnot(is.null(col_select) || is.character(col_select))
-
-  col_names <- names(ds$schema)
-  col_select <- col_select %||% col_names
-  handleable_cols <- intersect(col_select, names(metadata$columns))
-  attr_cols <- intersect(col_select, setdiff(col_names, handleable_cols))
-
-  if (length(attr_cols) > 0) {
-    attrs_df <- arrow::read_parquet(file, ..., col_select = !! attr_cols)
+  if (as_data_frame) {
+    geoarrow_collect(table, handler = handler, metadata = metadata)
   } else {
-    attrs_df <- NULL
+    table
   }
-
-  if (length(handleable_cols) > 0) {
-    # currently read everything into memory once and then do the conversion
-    handleable_table <- arrow::read_parquet(
-      file,
-      ...,
-      col_select = !! handleable_cols,
-      as_data_frame = FALSE
-    )
-
-    handleable_df <- geoarrow_collect(
-      handleable_table,
-      handler = handler,
-      metadata = metadata
-    )
-  } else {
-    handleable_df <- NULL
-  }
-
-  tbl <- dplyr::bind_cols(attrs_df, handleable_df)
-  tbl[intersect(col_select, names(tbl))]
 }
 
 #' @rdname read_geoarrow_parquet
@@ -82,7 +46,7 @@ geoarrow_collect <- function(x, ..., handler = NULL, metadata = NULL) {
 geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
   metadata <- geoarrow_object_metadata(x, metadata)
 
-  handleable_cols <- intersect(x$ColumnNames(), names(metadata$columns))
+  handleable_cols <- intersect(names(x), names(metadata$columns))
 
   if (length(handleable_cols) == 0) {
     return(as.data.frame(x))
@@ -122,10 +86,10 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
   result_null <- vapply(handleable_results, is.null, logical(1))
   handleable_results <- handleable_results[!result_null]
 
-  attr_cols <- setdiff(x$ColumnNames(), handleable_cols)
+  attr_cols <- setdiff(names(x), handleable_cols)
 
   if (length(attr_cols) > 0) {
-    attr_results <- x[attr_cols]
+    attr_results <- as.data.frame(x[attr_cols])
     attr_results[names(handleable_results)] <- handleable_results
     attr_results
   } else if (length(handleable_results) > 0) {
@@ -150,7 +114,7 @@ geoarrow_collect.RecordBatchReader <- function(x, trans = identity, ..., handler
   i <- 0L
   while (!is.null(batch <- x$read_next_batch())) {
     i <- i + 1L
-    batch_df <- geoarrow_collect.Table(
+    batch_df <- geoarrow_collect.RecordBatch(
       batch, ...,
       handler = handler,
       metadata = metadata
@@ -164,6 +128,23 @@ geoarrow_collect.RecordBatchReader <- function(x, trans = identity, ..., handler
   }
 
   dplyr::bind_rows(!!! batches)
+}
+
+#' @rdname read_geoarrow_parquet
+#' @export
+geoarrow_collect.Dataset <- function(x, trans = identity, ..., handler = NULL,
+                                     metadata = NULL) {
+  metadata <- geoarrow_object_metadata(x, metadata)
+  reader <- arrow::Scanner$create(x, ...)$ToRecordBatchReader()
+  geoarrow_collect(reader, trans, handler = handler, metadata = metadata)
+}
+
+
+#' @rdname read_geoarrow_parquet
+#' @export
+geoarrow_collect.arrow_dplyr_query <- function(x, ..., handler = NULL, metadata = NULL) {
+  table <- dplyr::collect(x, as_data_frame = FALSE)
+  geoarrow_collect(table, ..., handler = handler, metadata = metadata)
 }
 
 collect_default_handler <- function() {

@@ -6,12 +6,13 @@
 \alias{geoarrow_collect.Table}
 \alias{geoarrow_collect.RecordBatch}
 \alias{geoarrow_collect.RecordBatchReader}
-\title{Write geometry as Apache Parquet files}
+\alias{geoarrow_collect.Dataset}
+\alias{geoarrow_collect.arrow_dplyr_query}
+\title{Read geometry from Apache Parquet files}
 \usage{
 read_geoarrow_parquet(
   file,
   ...,
-  col_select = NULL,
   as_data_frame = TRUE,
   handler = NULL,
   metadata = NULL
@@ -23,7 +24,11 @@ geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
 
 \method{geoarrow_collect}{RecordBatch}(x, ..., handler = NULL, metadata = NULL)
 
-\method{geoarrow_collect}{RecordBatchReader}(x, ..., handler = NULL, metadata = NULL)
+\method{geoarrow_collect}{RecordBatchReader}(x, trans = identity, ..., handler = NULL, metadata = NULL)
+
+\method{geoarrow_collect}{Dataset}(x, trans = identity, ..., handler = NULL, metadata = NULL)
+
+\method{geoarrow_collect}{arrow_dplyr_query}(x, ..., handler = NULL, metadata = NULL)
 }
 \arguments{
 \item{file}{A file or InputStream to read; passed to
@@ -32,7 +37,6 @@ geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
 \item{...}{
   Arguments passed on to \code{\link[arrow:write_parquet]{arrow::write_parquet}}
   \describe{
-    \item{\code{x}}{\code{data.frame}, \link[arrow]{RecordBatch}, or \link[arrow]{Table}}
     \item{\code{sink}}{A string file path, URI, or \link[arrow]{OutputStream}, or path in a file
 system (\code{SubTreeFileSystem})}
     \item{\code{chunk_size}}{how many rows of data to write to disk at once. This
@@ -62,8 +66,6 @@ of \code{write_parquet()}, use \code{ParquetFileWriter} instead.}
 \code{properties}, this argument is deprecated.}
   }}
 
-\item{col_select}{A character vector of columns to include.}
-
 \item{as_data_frame}{Use \code{FALSE} to return an \link[arrow:Table]{arrow::Table}
 instead of a data.frame.}
 
@@ -72,11 +74,17 @@ is TRUE for all geometry columns.}
 
 \item{metadata}{Optional metadata to include to override metadata available
 in the file.}
+
+\item{x}{An object to collect into a data.frame, converting geometry
+columns according to \code{handler}.}
+
+\item{trans}{A function to be applied to each chunk after it has been
+collected into a data frame.}
 }
 \value{
 The result of \code{\link[arrow:read_parquet]{arrow::read_parquet()}}, with geometry
 columns processed according to \code{handler}.
 }
 \description{
-Write geometry as Apache Parquet files
+Read geometry from Apache Parquet files
 }
