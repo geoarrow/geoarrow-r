@@ -1,7 +1,7 @@
 
 #' Extract Arrow extension type  metadata
 #'
-#' @param schema A [sparrow_schema()]
+#' @param schema A [narrow_schema()]
 #'
 #' @return A `list()`
 #' @export

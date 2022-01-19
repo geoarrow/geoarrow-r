@@ -99,13 +99,13 @@ bench::mark(
   check = FALSE
 )
 
-buildings_array <- sparrow::as_sparrow_array(buildings_tbl$geometry$chunk(0))
+buildings_array <- narrow::as_narrow_array(buildings_tbl$geometry$chunk(0))
 buildings_array$schema <- geoarrow_schema_linestring(
   point = geoarrow_schema_point(
     nullable = TRUE
   )
 )
-buildings_array_struct <- sparrow::as_sparrow_array(buildings_tbl_struct$geometry$chunk(0))
+buildings_array_struct <- narrow::as_narrow_array(buildings_tbl_struct$geometry$chunk(0))
 buildings_array_struct$schema <- geoarrow_schema_linestring(
   point = geoarrow_schema_point_struct(
     nullable = TRUE

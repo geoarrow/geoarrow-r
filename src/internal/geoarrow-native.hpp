@@ -1,6 +1,6 @@
 
 #include "geoarrow-meta.hpp"
-#include "sparrow.h"
+#include "narrow.h"
 #include "wk-v1.h"
 
 

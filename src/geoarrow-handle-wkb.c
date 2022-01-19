@@ -2,7 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "wk-v1.h"
-#include "sparrow.h"
+#include "narrow.h"
 #include <memory.h>
 #include <stdint.h>
 #include <stdarg.h>

@@ -12,7 +12,7 @@
 #' @export
 #' @importFrom wk wk_handle
 #'
-wk_handle.sparrow_array <- function(handleable, handler, ...) {
+wk_handle.narrow_array <- function(handleable, handler, ...) {
   handler <- wk::as_wk_handler(handler)
   metadata <- handleable$schema$metadata
   extension <- scalar_chr(metadata[["ARROW:extension:name"]])
@@ -24,7 +24,7 @@ wk_handle.sparrow_array <- function(handleable, handler, ...) {
     "geoarrow.wkt" = handle_geoarrow_wkt(handleable, handler),
     "geoarrow.geojson" = {
       assert_geos_with_geojson()
-      chr <- sparrow::from_sparrow_array(handleable, character())
+      chr <- narrow::from_narrow_array(handleable, character())
       wk::wk_handle(geos::geos_read_geojson(chr, crs = geo_metadata$crs), handler)
     },
     "geoarrow.point" = ,
@@ -36,9 +36,9 @@ wk_handle.sparrow_array <- function(handleable, handler, ...) {
 }
 
 #' @export
-#' @rdname wk_handle.sparrow_array
-wk_handle.sparrow_array_stream <- function(handleable, handler, ...,
-                                          geoarrow_schema = sparrow::sparrow_array_stream_get_schema(handleable),
+#' @rdname wk_handle.narrow_array
+wk_handle.narrow_array_stream <- function(handleable, handler, ...,
+                                          geoarrow_schema = narrow::narrow_array_stream_get_schema(handleable),
                                           geoarrow_n_features = NA_integer_) {
   handler <- wk::as_wk_handler(handler)
   metadata <- geoarrow_schema$metadata

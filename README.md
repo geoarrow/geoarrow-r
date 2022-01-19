@@ -95,7 +95,7 @@ support already:
 ``` r
 geom_linestring <- wk::wkt("LINESTRING (1 2, 2 3)")
 
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(geom_linestring, schema = geoarrow_schema_wkb()),
   arrow::Array
 )
@@ -105,7 +105,7 @@ sparrow::from_sparrow_array(
 #>   010200000002000000000000000000F03F000000000000004000000000000000400000000000000840
 #> ]
 
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(geom_linestring, schema = geoarrow_schema_wkt()),
   arrow::Array
 )
@@ -115,7 +115,7 @@ sparrow::from_sparrow_array(
 #>   "LINESTRING (1 2, 2 3)"
 #> ]
 
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(geom_linestring, schema = geoarrow_schema_geojson()),
   arrow::Array
 )
@@ -136,7 +136,7 @@ geom_multipoint <- wk::wkt("MULTIPOINT (1 2)")
 geom_multilinestring <- wk::wkt("MULTILINESTRING ((1 2, 2 3))")
 geom_multipoly <- wk::wkt("MULTIPOLYGON (((0 0, 1 1, 0 1, 0 0)))")
 
-sparrow::from_sparrow_array(geoarrow_create(geom_point), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_point), arrow::Array)
 #> FixedSizeListArray
 #> <fixed_size_list<: double not null>[2]>
 #> [
@@ -145,7 +145,7 @@ sparrow::from_sparrow_array(geoarrow_create(geom_point), arrow::Array)
 #>     2
 #>   ]
 #> ]
-sparrow::from_sparrow_array(geoarrow_create(geom_linestring), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_linestring), arrow::Array)
 #> FixedSizeListArray
 #> <fixed_size_list<: fixed_size_list<: double not null>[2] not null>[2]>
 #> [
@@ -160,7 +160,7 @@ sparrow::from_sparrow_array(geoarrow_create(geom_linestring), arrow::Array)
 #>     ]
 #>   ]
 #> ]
-sparrow::from_sparrow_array(geoarrow_create(geom_poly), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_poly), arrow::Array)
 #> FixedSizeListArray
 #> <fixed_size_list<: fixed_size_list<: fixed_size_list<: double not null>[2] not null>[4] not null>[1]>
 #> [
@@ -185,7 +185,7 @@ sparrow::from_sparrow_array(geoarrow_create(geom_poly), arrow::Array)
 #>     ]
 #>   ]
 #> ]
-sparrow::from_sparrow_array(geoarrow_create(geom_multipoint), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_multipoint), arrow::Array)
 #> FixedSizeListArray
 #> <fixed_size_list<: fixed_size_list<: double not null>[2] not null>[1]>
 #> [
@@ -196,7 +196,7 @@ sparrow::from_sparrow_array(geoarrow_create(geom_multipoint), arrow::Array)
 #>     ]
 #>   ]
 #> ]
-sparrow::from_sparrow_array(geoarrow_create(geom_multilinestring), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_multilinestring), arrow::Array)
 #> FixedSizeListArray
 #> <fixed_size_list<: fixed_size_list<: fixed_size_list<: double not null>[2] not null>[2]>[1]>
 #> [
@@ -213,7 +213,7 @@ sparrow::from_sparrow_array(geoarrow_create(geom_multilinestring), arrow::Array)
 #>     ]
 #>   ]
 #> ]
-sparrow::from_sparrow_array(geoarrow_create(geom_multipoly), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_multipoly), arrow::Array)
 #> FixedSizeListArray
 #> <fixed_size_list<: fixed_size_list<: fixed_size_list<: fixed_size_list<: double not null>[2] not null>[4] not null>[1]>[1]>
 #> [
@@ -247,7 +247,7 @@ supported using a union type:
 
 ``` r
 geom_collection <- wk::wkt("GEOMETRYCOLLECTION (POINT (0 1), LINESTRING (1 1, 2 2))")
-sparrow::from_sparrow_array(geoarrow_create(geom_collection), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_collection), arrow::Array)
 #> Array
 #> <fixed_size_binary[71]>
 #> [
@@ -265,7 +265,7 @@ can force either of these cases for any level of nesting by specifying a
 schema by hand:
 
 ``` r
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(
     geom_poly,
     schema = geoarrow_schema_polygon(format = c("+L", "+l")),

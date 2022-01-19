@@ -20,7 +20,7 @@ test_that("wk_handle() works for geoarrow.wkt stream", {
     geoarrow_create(src[stream_i], schema = schema, strict = TRUE)
   }
 
-  stream <- sparrow::sparrow_array_stream_function(schema, stream_fun)
+  stream <- narrow::narrow_array_stream_function(schema, stream_fun)
   expect_identical(
     wk::wk_handle(stream, wk::wkt_writer()),
     src
@@ -56,7 +56,7 @@ test_that("wk_handle() works for geoarrow.wkb stream", {
     geoarrow_create(src[stream_i], schema = schema, strict = TRUE)
   }
 
-  stream <- sparrow::sparrow_array_stream_function(schema, stream_fun)
+  stream <- narrow::narrow_array_stream_function(schema, stream_fun)
   expect_identical(
     wk::wk_handle(stream, wk::wkt_writer()),
     src

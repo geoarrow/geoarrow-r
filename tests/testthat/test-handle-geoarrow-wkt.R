@@ -234,16 +234,16 @@ test_that("Invalid WKT fails with reasonable error messages", {
 
 
 test_that("bad arrays error", {
-  arr_wkt <- sparrow::sparrow_array(
+  arr_wkt <- narrow::narrow_array(
     geoarrow_schema_wkt(format = "w:0"),
-    sparrow::sparrow_array_data(buffers = list(raw(1), raw(1))),
+    narrow::narrow_array_data(buffers = list(raw(1), raw(1))),
     validate = FALSE
   )
   expect_error(wk::wk_void(arr_wkt), "width must be >= 0")
 
-  arr_wkt <- sparrow::sparrow_array(
-    sparrow::sparrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkt")),
-    sparrow::sparrow_array_data(buffers = list(NULL, integer())),
+  arr_wkt <- narrow::narrow_array(
+    narrow::narrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkt")),
+    narrow::narrow_array_data(buffers = list(NULL, integer())),
     validate = FALSE
   )
   expect_error(wk::wk_void(arr_wkt), "Can't handle schema format 'i'")

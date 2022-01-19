@@ -64,17 +64,17 @@ First, extension types for the kind of encodings existing libraries support alre
 ```{r}
 geom_linestring <- wk::wkt("LINESTRING (1 2, 2 3)")
 
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(geom_linestring, schema = geoarrow_schema_wkb()),
   arrow::Array
 )
 
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(geom_linestring, schema = geoarrow_schema_wkt()),
   arrow::Array
 )
 
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(geom_linestring, schema = geoarrow_schema_geojson()),
   arrow::Array
 )
@@ -90,25 +90,25 @@ geom_multipoint <- wk::wkt("MULTIPOINT (1 2)")
 geom_multilinestring <- wk::wkt("MULTILINESTRING ((1 2, 2 3))")
 geom_multipoly <- wk::wkt("MULTIPOLYGON (((0 0, 1 1, 0 1, 0 0)))")
 
-sparrow::from_sparrow_array(geoarrow_create(geom_point), arrow::Array)
-sparrow::from_sparrow_array(geoarrow_create(geom_linestring), arrow::Array)
-sparrow::from_sparrow_array(geoarrow_create(geom_poly), arrow::Array)
-sparrow::from_sparrow_array(geoarrow_create(geom_multipoint), arrow::Array)
-sparrow::from_sparrow_array(geoarrow_create(geom_multilinestring), arrow::Array)
-sparrow::from_sparrow_array(geoarrow_create(geom_multipoly), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_point), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_linestring), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_poly), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_multipoint), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_multilinestring), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_multipoly), arrow::Array)
 ```
 
 Collections currently fall back on WKB but could theoretically be supported using a union type:
 
 ```{r}
 geom_collection <- wk::wkt("GEOMETRYCOLLECTION (POINT (0 1), LINESTRING (1 1, 2 2))")
-sparrow::from_sparrow_array(geoarrow_create(geom_collection), arrow::Array)
+narrow::from_narrow_array(geoarrow_create(geom_collection), arrow::Array)
 ```
 
 The above examples all have a single feature/ring/linestring, so they fall back to using a fixed-width list. The ability to use a fixed-width list might be important if you have, say, 10 million rectangles that all have 5 points where there's no need to store a 64-bit offset to each coordinate. For cases where there's than `2 ^ 31` or more coordinates, the offsets will need to be 64-bit integers (i.e., large_list type). You can force either of these cases for any level of nesting by specifying a schema by hand:
 
 ```{r}
-sparrow::from_sparrow_array(
+narrow::from_narrow_array(
   geoarrow_create(
     geom_poly,
     schema = geoarrow_schema_polygon(format = c("+L", "+l")),

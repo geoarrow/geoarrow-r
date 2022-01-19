@@ -20,9 +20,9 @@
 #'   for the list of rings and the second for the list of points.
 #' @param format_coord A format for floating point coordinate storage. This
 #'   can be "f" (float/float32) or "g" (double/float64).
-#' @inheritParams sparrow::sparrow_schema
+#' @inheritParams narrow::narrow_schema
 #'
-#' @return A [sparrow_schema()].
+#' @return A [narrow_schema()].
 #' @export
 #'
 #' @examples
@@ -41,16 +41,16 @@ geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
   )
   n_dim <- nchar(dim)
 
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = sprintf("+w:%d", n_dim),
-    flags = sparrow::sparrow_schema_flags(nullable = nullable),
+    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.point",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
     ),
     children = list(
-      sparrow::sparrow_schema(format = format_coord, name = "")
+      narrow::narrow_schema(format = format_coord, name = "")
     )
   )
 }
@@ -65,13 +65,13 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
   )
 
   children <- lapply(strsplit(dim, "")[[1]], function(name) {
-    sparrow::sparrow_schema(format_coord, name = scalar_chr(name))
+    narrow::narrow_schema(format_coord, name = scalar_chr(name))
   })
 
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+s",
-    flags = sparrow::sparrow_schema_flags(nullable = nullable),
+    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.point",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
@@ -86,10 +86,10 @@ geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE
                                         point = geoarrow_schema_point(nullable = FALSE)) {
   stopifnot(format_is_nested_list(format))
 
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = format,
-    flags = sparrow::sparrow_schema_flags(nullable = nullable),
+    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.linestring",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
@@ -107,16 +107,16 @@ geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable 
     format_is_nested_list(format[2])
   )
 
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = format[1],
-    flags = sparrow::sparrow_schema_flags(nullable = nullable),
+    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.polygon",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
     ),
     children = list(
-      sparrow::sparrow_schema(format = format[2], name = "", children = list(point))
+      narrow::narrow_schema(format = format[2], name = "", children = list(point))
     )
   )
 }
@@ -126,10 +126,10 @@ geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable 
 geoarrow_schema_multi <- function(child, name = "", format = "+l", nullable = TRUE) {
   stopifnot(format_is_nested_list(format))
 
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = format,
-    flags = sparrow::sparrow_schema_flags(nullable = nullable),
+    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.multi",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize()
@@ -142,7 +142,7 @@ geoarrow_schema_multi <- function(child, name = "", format = "+l", nullable = TR
 #' @export
 geoarrow_schema_sparse_geometrycollection <- function(children = list(), name = "") {
   type_ids <- paste(names(children), collapse = ",")
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = sprintf("+us:%s", type_ids),
     metadata = list(
@@ -168,10 +168,10 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = 
                                  nullable = TRUE) {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z")))
 
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = format,
-    flags = sparrow::sparrow_schema_flags(nullable = nullable),
+    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.wkb",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)
@@ -184,10 +184,10 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = 
 geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = FALSE, nullable = TRUE) {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z", "u", "U")))
 
-  sparrow::sparrow_schema(
+  narrow::narrow_schema(
     name = scalar_chr(name),
     format = format,
-    flags = sparrow::sparrow_schema_flags(nullable = nullable),
+    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.wkt",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)

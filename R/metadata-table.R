@@ -145,7 +145,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
     dim <- meta$dim
   }
 
-  nullable <- bitwAnd(schema$flags, sparrow::sparrow_schema_flags(nullable = TRUE)) != 0
+  nullable <- bitwAnd(schema$flags, narrow::narrow_schema_flags(nullable = TRUE)) != 0
 
   switch(
     encoding,

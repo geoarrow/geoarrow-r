@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <memory>
 #include <algorithm>
-#include <sparrow.h>
+#include <narrow.h>
 
 
 class GeoArrowMeta {

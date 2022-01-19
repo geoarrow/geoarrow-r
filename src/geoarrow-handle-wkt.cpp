@@ -3,7 +3,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "wk-v1.h"
-#include "sparrow.h"
+#include "narrow.h"
 #include "util.h"
 
 #define FASTFLOAT_ASSERT(x) { if (!(x)) Rf_error("fastfloat assert failed"); }
