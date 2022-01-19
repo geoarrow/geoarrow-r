@@ -3,13 +3,13 @@
 #'
 #' @param handleable An object with a [wk::wk_handle()] method
 #' @param ... Passed to [wk::wk_handle()]
-#' @param schema A [carrow::carrow_schema()] to use as a storage method.
+#' @param schema A [sparrow::sparrow_schema()] to use as a storage method.
 #' @param strict Use `TRUE` to respect choices of storage type, dimensions,
 #'   and CRS provided by `schema`. The default, `FALSE`, updates these values
 #'   to match the data.
 #' @inheritParams geoarrow_schema_point
 #'
-#' @return A [carrow::carrow_array()]
+#' @return A [sparrow::sparrow_array()]
 #' @export
 #'
 #' @examples
@@ -145,11 +145,11 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkb")
   )
 
-  nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  nullable <- bitwAnd(schema$flags, sparrow::sparrow_schema_flags(nullable = TRUE)) != 0
   is_na <- vapply(x, is.null, logical(1))
   if (nullable) {
     null_count <- sum(is_na)
-    validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
+    validity_buffer <- if (null_count > 0) sparrow::as_sparrow_bitmask(!is_na) else NULL
   } else {
     stopifnot(all(!is_na))
     validity_buffer <- NULL
@@ -170,7 +170,7 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
   }
 
   if (identical(schema$format, "z")) {
-    array_data <- carrow::carrow_array_data(
+    array_data <- sparrow::sparrow_array_data(
       length = length(x),
       buffers = list(
         validity_buffer,
@@ -180,24 +180,24 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
       null_count = null_count
     )
 
-    carrow::carrow_array(schema, array_data)
+    sparrow::sparrow_array(schema, array_data)
   } else if (identical(schema$format, "Z")) {
-    array_data <- carrow::carrow_array_data(
+    array_data <- sparrow::sparrow_array_data(
       length = length(x),
       buffers = list(
         validity_buffer,
-        carrow::as_carrow_int64(c(0L, cumsum(item_lengths))),
+        sparrow::as_sparrow_int64(c(0L, cumsum(item_lengths))),
         flat
       ),
       null_count = null_count
     )
 
-    carrow::carrow_array(schema, array_data)
+    sparrow::sparrow_array(schema, array_data)
   } else if (startsWith(schema$format, "w:")) {
-    width <- carrow::parse_format(schema$format)$args$n_bytes
+    width <- sparrow::parse_format(schema$format)$args$n_bytes
     stopifnot(all(item_lengths == width))
 
-    array_data <- carrow::carrow_array_data(
+    array_data <- sparrow::sparrow_array_data(
       length = length(x),
       buffers = list(
         validity_buffer,
@@ -206,7 +206,7 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
       null_count = null_count
     )
 
-    carrow::carrow_array(schema, array_data, validate = FALSE)
+    sparrow::sparrow_array(schema, array_data, validate = FALSE)
   } else {
     stop(
       sprintf("Unsupported binary encoding format: '%s'", schema$format),
@@ -316,11 +316,11 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema, n = length
 }
 
 geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, args, strict = FALSE) {
-  nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  nullable <- bitwAnd(schema$flags, sparrow::sparrow_schema_flags(nullable = TRUE)) != 0
   if (nullable) {
     is_na <- is.na(lengths)
     null_count <- sum(is_na)
-    validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
+    validity_buffer <- if (null_count > 0) sparrow::as_sparrow_bitmask(!is_na) else NULL
   } else {
     validity_buffer <- NULL
     null_count <- 0
@@ -352,9 +352,9 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
     stopifnot(as.numeric(child_array$array_data$length) >= total_length)
     offsets <- c(0L, cumsum(lengths_finite))
 
-    carrow::carrow_array(
+    sparrow::sparrow_array(
       schema,
-      carrow::carrow_array_data(
+      sparrow::sparrow_array_data(
         buffers = list(
           validity_buffer,
           as.integer(offsets)
@@ -372,12 +372,12 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
     stopifnot(as.numeric(child_array$array_data$length) >= total_length)
     offsets <- c(0L, cumsum(lengths_finite))
 
-    carrow::carrow_array(
+    sparrow::sparrow_array(
       schema,
-      carrow::carrow_array_data(
+      sparrow::sparrow_array_data(
         buffers = list(
           validity_buffer,
-          carrow::as_carrow_int64(offsets)
+          sparrow::as_sparrow_int64(offsets)
         ),
         length = n,
         null_count = null_count,
@@ -387,7 +387,7 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
       )
     )
   } else if (startsWith(schema$format, "+w:")) {
-    width <- carrow::parse_format(schema$format)$args$n_items
+    width <- sparrow::parse_format(schema$format)$args$n_items
     stopifnot(
       all(lengths == width, na.rm = TRUE),
       is.null(validity_buffer) || (length(lengths) == n),
@@ -400,9 +400,9 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
       as.numeric(child_array$array_data$length) >= (width * n)
     )
 
-    carrow::carrow_array(
+    sparrow::sparrow_array(
       schema,
-      carrow::carrow_array_data(
+      sparrow::sparrow_array_data(
         buffers = list(
           validity_buffer
         ),
@@ -451,11 +451,11 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
   n_dim <- length(coords_dim)
   n_coord <- length(coords_dim[[1]])
 
-  nullable <- bitwAnd(schema$flags, carrow::carrow_schema_flags(nullable = TRUE)) != 0
+  nullable <- bitwAnd(schema$flags, sparrow::sparrow_schema_flags(nullable = TRUE)) != 0
   if (nullable) {
     is_na <- Reduce("&", lapply(coords_dim, is.na))
     null_count <- sum(is_na)
-    validity_buffer <- if (null_count > 0) carrow::as_carrow_bitmask(!is_na) else NULL
+    validity_buffer <- if (null_count > 0) sparrow::as_sparrow_bitmask(!is_na) else NULL
   } else {
     # here NAs are OK because they're considered NaN in double math
     validity_buffer <- NULL
@@ -471,13 +471,13 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
       all(struct_formats == "g")
     )
 
-    carrow::carrow_array(
+    sparrow::sparrow_array(
       schema,
-      carrow::carrow_array_data(
+      sparrow::sparrow_array_data(
         buffers = list(validity_buffer),
         length = n_coord,
         children = lapply(coords_dim, function(x) {
-          carrow::carrow_array_data(
+          sparrow::sparrow_array_data(
             buffers = list(NULL, x),
             length = n_coord,
             null_count = 0
@@ -487,7 +487,7 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
       )
     )
   } else if (startsWith(schema$format, "+w")) {
-    width <- carrow::parse_format(schema$format)$args$n_items
+    width <- sparrow::parse_format(schema$format)$args$n_items
     stopifnot(
       identical(as.integer(width), as.integer(n_dim))
     )
@@ -495,13 +495,13 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
     # probably doesn't support more than 2 ^ 31 - 1 coordinates
     interleaved <- do.call(rbind, unname(coords_dim))
 
-    carrow::carrow_array(
+    sparrow::sparrow_array(
       schema,
-      carrow::carrow_array_data(
+      sparrow::sparrow_array_data(
         length = ncol(interleaved),
         buffers = list(validity_buffer),
         children = list(
-          carrow::carrow_array_data(
+          sparrow::sparrow_array_data(
             buffers = list(NULL, interleaved),
             length = length(interleaved),
             null_count = 0
@@ -517,7 +517,7 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
 }
 
 geoarrow_create_string_array <- function(x, schema, strict = FALSE) {
-  array <- carrow::as_carrow_array(x)
+  array <- sparrow::as_sparrow_array(x)
 
   if (!strict || identical(array$schema$format, schema$format)) {
     schema$format <- array$schema$format
@@ -530,18 +530,18 @@ geoarrow_create_string_array <- function(x, schema, strict = FALSE) {
     array <- unclass(array)
     array$schema <- schema
 
-    # carrow makes it hard to mess with the buffers (on purpose)
-    array$array_data <- carrow::carrow_array_data_info(array$array_data)
+    # sparrow makes it hard to mess with the buffers (on purpose)
+    array$array_data <- sparrow::sparrow_array_data_info(array$array_data)
     array$array_data$buffers <- list(
       array$array_data$buffers[[1]],
-      carrow::as_carrow_int64(array$array_data$buffers[[2]]),
+      sparrow::as_sparrow_int64(array$array_data$buffers[[2]]),
       array$array_data$buffers[[3]]
     )
     array$array_data$n_buffers <- NULL
     array$array_data$n_children <- NULL
-    array$array_data <- do.call(carrow::carrow_array_data, array$array_data)
+    array$array_data <- do.call(sparrow::sparrow_array_data, array$array_data)
 
-    return(do.call(carrow::carrow_array, array))
+    return(do.call(sparrow::sparrow_array, array))
   }
 
   stop(
@@ -608,7 +608,7 @@ geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, poin
   switch(
     geometry_type,
     {
-      point$flags <- bitwOr(point$flags, carrow::carrow_schema_flags(nullable = TRUE))
+      point$flags <- bitwOr(point$flags, sparrow::sparrow_schema_flags(nullable = TRUE))
       point
     },
     geoarrow_schema_linestring(point = point),

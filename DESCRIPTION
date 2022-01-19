@@ -1,7 +1,7 @@
 Package: geoarrow
 Title: Extension types for geospatial data for use with 'Arrow'
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R:
     person(given = "Dewey",
            family = "Dunnington",
            role = c("aut", "cre"),
@@ -13,15 +13,15 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
-Imports: 
-    carrow,
+Imports:
+    sparrow,
     wk (>= 0.6.0)
-LinkingTo: 
-    carrow,
+LinkingTo:
+    sparrow,
     wk
-Remotes: 
-    paleolimbot/carrow
-Suggests: 
+Remotes:
+    paleolimbot/sparrow
+Suggests:
     arrow,
     covr,
     testthat (>= 3.0.0),

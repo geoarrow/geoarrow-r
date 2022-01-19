@@ -1,11 +1,11 @@
 
 #' @importFrom wk wk_crs
 #' @export
-wk_crs.carrow_array <- function(x) {
-  wk_crs_carrow_schema(x$schema)
+wk_crs.sparrow_array <- function(x) {
+  wk_crs_sparrow_schema(x$schema)
 }
 
-wk_crs_carrow_schema <- function(schema) {
+wk_crs_sparrow_schema <- function(schema) {
   geo_metadata <- geoarrow_metadata(schema)
   if (!is.null(geo_metadata$crs)) {
     geo_metadata$crs
@@ -15,7 +15,7 @@ wk_crs_carrow_schema <- function(schema) {
       if (!is.null(geo_metadata$crs)) {
         return(geo_metadata$crs)
       } else {
-        return(wk_crs_carrow_schema(child))
+        return(wk_crs_sparrow_schema(child))
       }
     }
   }

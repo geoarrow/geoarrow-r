@@ -2,7 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "wk-v1.h"
-#include "carrow.h"
+#include "sparrow.h"
 #include <memory.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -177,7 +177,7 @@ int wkb_read_coordinates(wkb_reader_t* reader, const wk_meta_t* meta, uint32_t n
     if (reader->swap_endian) {
         uint64_t swappable, swapped;
         for (uint32_t i = 0; i < n_coords; i++) {
-            
+
 
             for (int j = 0; j < n_dim; j++) {
                 memcpy(&swappable, reader->buffer + reader->offset, sizeof(uint64_t));

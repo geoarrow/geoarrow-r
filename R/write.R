@@ -34,7 +34,7 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
   }
 
   # create file metadata
-  handleable_schema <- carrow::carrow_schema(
+  handleable_schema <- sparrow::sparrow_schema(
     format = "+s",
     children = lapply(arrays_handleable, "[[", "schema")
   )
@@ -45,7 +45,7 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
 
   # create arrow Arrays
   arrays_attr <- lapply(df_attr, arrow::Array$create)
-  arrays_handleable_arrow <- lapply(arrays_handleable, carrow::from_carrow_array, arrow::Array)
+  arrays_handleable_arrow <- lapply(arrays_handleable, sparrow::from_sparrow_array, arrow::Array)
   arrays <- c(arrays_attr, arrays_handleable_arrow)[names(handleable)]
   batch <- arrow::record_batch(!!! arrays)
 

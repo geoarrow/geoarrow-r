@@ -42,7 +42,7 @@ of \code{write_parquet()}, use \code{ParquetFileWriter} instead.}
 \code{properties}, this argument is deprecated.}
   }}
 
-\item{schema}{A \code{\link[carrow:carrow_schema]{carrow::carrow_schema()}} to use as a storage method.}
+\item{schema}{A \code{\link[sparrow:sparrow_schema]{sparrow::sparrow_schema()}} to use as a storage method.}
 
 \item{strict}{Use \code{TRUE} to respect choices of storage type, dimensions,
 and CRS provided by \code{schema}. The default, \code{FALSE}, updates these values

@@ -64,18 +64,18 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
 
       geoarrow_schema <- schema_from_column_metadata(
         meta = metadata$columns[[col_name]],
-        schema = carrow::as_carrow_schema(arrow_type)
+        schema = sparrow::as_sparrow_schema(arrow_type)
       )
 
       result <- wk::wk_handle(
-        carrow::as_carrow_array_stream(array_or_chunked_array),
+        sparrow::as_sparrow_array_stream(array_or_chunked_array),
         wk::as_wk_handler(handler),
         geoarrow_schema = geoarrow_schema,
         geoarrow_n_features = array_or_chunked_array$length()
       )
 
       if (!is.null(result)) {
-        wk::wk_set_crs(result, wk_crs_carrow_schema(geoarrow_schema))
+        wk::wk_set_crs(result, wk_crs_sparrow_schema(geoarrow_schema))
       } else {
         result
       }

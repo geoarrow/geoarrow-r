@@ -36,31 +36,31 @@ test_that("geoarrow point reader works for point", {
 test_that("geoarrow point struct reader errors for invalid schemas", {
   schema <- geoarrow_schema_point_struct()
   schema$children <- list()
-  points_array <- carrow::carrow_array(schema, validate = FALSE)
+  points_array <- sparrow::sparrow_array(schema, validate = FALSE)
   expect_error(wk::wk_void(points_array), "dimensions 'xy' to have 2 or more children")
 
   schema <- geoarrow_schema_point_struct()
-  schema$children[[1]] <- carrow::carrow_schema("n")
-  points_array <- carrow::carrow_array(schema, validate = FALSE)
+  schema$children[[1]] <- sparrow::sparrow_schema("n")
+  points_array <- sparrow::sparrow_array(schema, validate = FALSE)
   expect_error(wk::wk_void(points_array), "had an unsupported storage type 'n'")
 
   schema <- geoarrow_schema_point_struct()
-  schema$children[[1]] <- carrow::carrow_schema("+l")
-  points_array <- carrow::carrow_array(schema, validate = FALSE)
+  schema$children[[1]] <- sparrow::sparrow_schema("+l")
+  points_array <- sparrow::sparrow_array(schema, validate = FALSE)
   expect_error(wk::wk_void(points_array), "child 0 has an invalid schema")
 
   schema <- geoarrow_schema_point()
-  points_array <- carrow::carrow_array(
+  points_array <- sparrow::sparrow_array(
     schema,
-    carrow::carrow_array_data(),
+    sparrow::sparrow_array_data(),
     validate = FALSE
   )
   expect_error(wk::wk_void(points_array), "array with 1 buffer")
 
   schema <- geoarrow_schema_point()
-  points_array <- carrow::carrow_array(
+  points_array <- sparrow::sparrow_array(
     schema,
-    carrow::carrow_array_data(
+    sparrow::sparrow_array_data(
       buffers = list(NULL)
     ),
     validate = FALSE

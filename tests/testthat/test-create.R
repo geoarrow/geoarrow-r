@@ -6,7 +6,7 @@ test_that("geoarrow_create() works for geoarrow::geojson", {
   )
 
   expect_identical(
-    carrow::from_carrow_array(array),
+    sparrow::from_sparrow_array(array),
     c(
       "{\"type\":\"Point\",\"coordinates\":[1.0,1.0]}",
       "{\"type\":\"Point\",\"coordinates\":[2.0,2.0]}"
@@ -21,7 +21,7 @@ test_that("geoarrow_create() works for geoarrow::wkt", {
   )
 
   expect_identical(
-    carrow::from_carrow_array(array),
+    sparrow::from_sparrow_array(array),
     c("POINT (1 1)", "POINT (2 2)")
   )
 })
@@ -46,7 +46,7 @@ test_that("geoarrow_create() works for geoarrow::point", {
   )
 
   expect_identical(
-    carrow::from_carrow_array(array),
+    sparrow::from_sparrow_array(array),
     data.frame(x = as.double(1:5), y = as.double(1:5))
   )
 })
@@ -151,13 +151,13 @@ test_that("geoarrow_create() works for goearrow::multi / geoarrow::polygon", {
 
 test_that("geoarrow_create() errors for invalid schemas", {
   expect_error(
-    geoarrow_create(wk::xy(), schema = carrow::carrow_schema("i")),
+    geoarrow_create(wk::xy(), schema = sparrow::sparrow_schema("i")),
     "is not TRUE"
   )
   expect_error(
     geoarrow_create(
       wk::xy(),
-      schema = carrow::carrow_schema(
+      schema = sparrow::sparrow_schema(
         "i",
         metadata = list("ARROW:extension:name" = "not an extension")
       )
@@ -168,7 +168,7 @@ test_that("geoarrow_create() errors for invalid schemas", {
     geoarrow_create(
       wk::xy(),
       schema = geoarrow_schema_multi(
-        carrow::carrow_schema(
+        sparrow::sparrow_schema(
           "i",
           metadata = list("ARROW:extension:name" = "not an extension")
         )
@@ -184,7 +184,7 @@ test_that("wkt arrays can be created", {
     schema = geoarrow_schema_wkt()
   )
   expect_identical(
-    carrow::from_carrow_array(array),
+    sparrow::from_sparrow_array(array),
     c("POINT (1 2)", "LINESTRING (1 2, 3 4)")
   )
 })
@@ -199,7 +199,7 @@ test_that("geojson arrays can be created", {
     schema = geoarrow_schema_geojson()
   )
   expect_identical(
-    carrow::from_carrow_array(array),
+    sparrow::from_sparrow_array(array),
     geojson_text
   )
 })
@@ -223,7 +223,7 @@ test_that("WKB arrays auto-set format based on data", {
   expect_identical(array_huge$schema$format, "Z")
 
   skip_if_not_installed("arrow")
-  array_huge_arrow <- carrow::from_carrow_array(array_huge, arrow::Array)
+  array_huge_arrow <- sparrow::from_sparrow_array(array_huge, arrow::Array)
   expect_true(array_huge_arrow$type == arrow::large_binary())
 })
 
@@ -250,13 +250,13 @@ test_that("WKB arrays can be created", {
 
   skip_if_not_installed("arrow")
 
-  array_arrow <- carrow::from_carrow_array(array, arrow::Array)
+  array_arrow <- sparrow::from_sparrow_array(array, arrow::Array)
   expect_identical(
     lapply(as.vector(array_arrow), as.raw),
     lapply(wkb_list, as.raw)
   )
 
-  array_not_null_arrow <- carrow::from_carrow_array(array_not_null, arrow::Array)
+  array_not_null_arrow <- sparrow::from_sparrow_array(array_not_null, arrow::Array)
   expect_identical(
     lapply(as.vector(array_not_null_arrow), as.raw),
     wkb_list_not_null
@@ -276,7 +276,7 @@ test_that("large WKB arrays can be created", {
 
   skip_if_not_installed("arrow")
 
-  array_arrow <- carrow::from_carrow_array(array, arrow::Array)
+  array_arrow <- sparrow::from_sparrow_array(array, arrow::Array)
   expect_identical(
     lapply(as.vector(array_arrow), as.raw),
     lapply(wkb_list, as.raw)
@@ -294,7 +294,7 @@ test_that("fixed-width WKB arrays can be created", {
 
   skip_if_not_installed("arrow")
 
-  array_arrow <- carrow::from_carrow_array(array, arrow::Array)
+  array_arrow <- sparrow::from_sparrow_array(array, arrow::Array)
   expect_identical(
     lapply(as.vector(array_arrow), as.raw),
     wkb_list
@@ -305,7 +305,7 @@ test_that("WKB creation errors with invalid schema", {
   expect_error(
     geoarrow_create_wkb_array(
       list(raw()),
-      schema = carrow::carrow_schema(
+      schema = sparrow::sparrow_schema(
         "i",
         metadata = list(
           "ARROW:extension:name" = "geoarrow.wkb"
@@ -325,7 +325,7 @@ test_that("geoarrow_create_string_array() respects strict = TRUE", {
     strict = TRUE
   )
   expect_identical(
-    carrow::from_carrow_array(not_big_array),
+    sparrow::from_sparrow_array(not_big_array),
     "a totally normal size of string"
   )
 
@@ -342,7 +342,7 @@ test_that("geoarrow_create_string_array() respects strict = TRUE", {
   )
 
   skip_if_not_installed("arrow")
-  not_big_array_arrow <- carrow::from_carrow_array(not_big_array, arrow::Array)
+  not_big_array_arrow <- sparrow::from_sparrow_array(not_big_array, arrow::Array)
   expect_identical(as.vector(not_big_array_arrow), "a totally normal size of string")
 })
 
@@ -376,7 +376,7 @@ test_that("multipolygons can be created", {
 
   skip_if_not_installed("arrow")
 
-  poly_arrow <- carrow::from_carrow_array(poly, arrow::Array)
+  poly_arrow <- sparrow::from_sparrow_array(poly, arrow::Array)
   expect_equal(
     lapply(as.vector(poly_arrow), lapply, lapply, as.data.frame),
     list(
@@ -414,7 +414,7 @@ test_that("multilinestrings can be created", {
 
   skip_if_not_installed("arrow")
 
-  multi_arrow <- carrow::from_carrow_array(multi, arrow::Array)
+  multi_arrow <- sparrow::from_sparrow_array(multi, arrow::Array)
   expect_identical(
     lapply(as.vector(multi_arrow), lapply, as.data.frame),
     list(
@@ -441,7 +441,7 @@ test_that("multipoints can be created", {
 
   skip_if_not_installed("arrow")
 
-  multi_arrow <- carrow::from_carrow_array(multi, arrow::Array)
+  multi_arrow <- sparrow::from_sparrow_array(multi, arrow::Array)
   expect_identical(
     lapply(as.vector(multi_arrow), as.data.frame),
     list(
@@ -471,7 +471,7 @@ test_that("polygons can be created", {
 
   skip_if_not_installed("arrow")
 
-  poly_arrow <- carrow::from_carrow_array(poly, arrow::Array)
+  poly_arrow <- sparrow::from_sparrow_array(poly, arrow::Array)
   expect_equal(
     lapply(as.vector(poly_arrow), lapply, as.data.frame),
     list(
@@ -515,7 +515,7 @@ test_that("nullable and non-nullable linestring arrays can be created", {
 
   skip_if_not_installed("arrow")
 
-  ls_not_null_arrow <- carrow::from_carrow_array(ls_not_null, arrow::Array)
+  ls_not_null_arrow <- sparrow::from_sparrow_array(ls_not_null, arrow::Array)
   expect_identical(
     lapply(as.vector(ls_not_null_arrow), as.data.frame),
     list(
@@ -525,7 +525,7 @@ test_that("nullable and non-nullable linestring arrays can be created", {
     )
   )
 
-  ls_null_arrow <- carrow::from_carrow_array(ls_null, arrow::Array)
+  ls_null_arrow <- sparrow::from_sparrow_array(ls_null, arrow::Array)
   expect_identical(
     lapply(as.vector(ls_null_arrow), as.data.frame),
     list(
@@ -566,7 +566,7 @@ test_that("nullable and non-nullable large linestring arrays can be created", {
 
   skip_if_not_installed("arrow")
 
-  ls_not_null_arrow <- carrow::from_carrow_array(ls_not_null, arrow::Array)
+  ls_not_null_arrow <- sparrow::from_sparrow_array(ls_not_null, arrow::Array)
   expect_identical(
     lapply(as.vector(ls_not_null_arrow), as.data.frame),
     list(
@@ -576,7 +576,7 @@ test_that("nullable and non-nullable large linestring arrays can be created", {
     )
   )
 
-  ls_null_arrow <- carrow::from_carrow_array(ls_null, arrow::Array)
+  ls_null_arrow <- sparrow::from_sparrow_array(ls_null, arrow::Array)
   expect_identical(
     lapply(as.vector(ls_null_arrow), as.data.frame),
     list(
@@ -629,7 +629,7 @@ test_that("nullable and non-nullable fixed-width linestring arrays can be create
 
   skip_if_not_installed("arrow")
 
-  ls_not_null_arrow <- carrow::from_carrow_array(ls_not_null, arrow::Array)
+  ls_not_null_arrow <- sparrow::from_sparrow_array(ls_not_null, arrow::Array)
   expect_identical(
     lapply(as.vector(ls_not_null_arrow), as.data.frame),
     list(
@@ -639,7 +639,7 @@ test_that("nullable and non-nullable fixed-width linestring arrays can be create
     )
   )
 
-  ls_null_arrow <- carrow::from_carrow_array(ls_null, arrow::Array)
+  ls_null_arrow <- sparrow::from_sparrow_array(ls_null, arrow::Array)
   expect_identical(
     lapply(as.vector(ls_null_arrow), as.data.frame),
     list(
@@ -652,7 +652,7 @@ test_that("nullable and non-nullable fixed-width linestring arrays can be create
 
 test_that("linestring arrays error for invalid schemas", {
   expect_error(
-    geoarrow_create_linestring_array(wk::xy(), integer(), carrow::carrow_schema("i")),
+    geoarrow_create_linestring_array(wk::xy(), integer(), sparrow::sparrow_schema("i")),
     "geoarrow.linestring"
   )
 
@@ -660,7 +660,7 @@ test_that("linestring arrays error for invalid schemas", {
     geoarrow_create_linestring_array(
       wk::xy(),
       integer(),
-      carrow::carrow_schema(
+      sparrow::sparrow_schema(
         "i",
         metadata = list(
           "ARROW:extension:name" = "geoarrow.linestring",
@@ -692,13 +692,13 @@ test_that("point arrays can be created with and without null points", {
 
   skip_if_not_installed("arrow")
 
-  array_not_null_arrow <- carrow::from_carrow_array(array_not_null, arrow::Array)
+  array_not_null_arrow <- sparrow::from_sparrow_array(array_not_null, arrow::Array)
   expect_identical(
     lapply(as.vector(array_not_null_arrow), as.numeric),
     list(c(1, 3), c(2, 4), c(NA_real_, NA_real_))
   )
 
-  array_null_arrow <- carrow::from_carrow_array(array_null, arrow::Array)
+  array_null_arrow <- sparrow::from_sparrow_array(array_null, arrow::Array)
   expect_identical(
     lapply(as.vector(array_null_arrow), as.numeric),
     list(c(1, 3), c(2, 4), double())
@@ -729,28 +729,28 @@ test_that("point struct arrays can be created for all dimensions", {
   coords_xy <- wk::xy(1:100, 101:200)
   array_xy <- geoarrow_create_point_array(coords_xy, geoarrow_schema_point_struct(dim = "xy"))
   expect_identical(
-    carrow::from_carrow_array(array_xy),
+    sparrow::from_sparrow_array(array_xy),
     data.frame(x = as.double(1:100), y = as.double(101:200))
   )
 
   coords_xyz <- wk::xyz(1:100, 101:200, 201:300)
   array_xyz <- geoarrow_create_point_array(coords_xyz, geoarrow_schema_point_struct(dim = "xyz"))
   expect_identical(
-    carrow::from_carrow_array(array_xyz),
+    sparrow::from_sparrow_array(array_xyz),
     data.frame(x = as.double(1:100), y = as.double(101:200), z = as.double(201:300))
   )
 
   coords_xym <- wk::xym(1:100, 101:200, 301:400)
   array_xym <- geoarrow_create_point_array(coords_xym, geoarrow_schema_point_struct(dim = "xym"))
   expect_identical(
-    carrow::from_carrow_array(array_xym),
+    sparrow::from_sparrow_array(array_xym),
     data.frame(x = as.double(1:100), y = as.double(101:200), m = as.double(301:400))
   )
 
   coords_xyzm <- wk::xyzm(1:100, 101:200, 201:300, 301:400)
   array_xyzm <- geoarrow_create_point_array(coords_xyzm, geoarrow_schema_point_struct(dim = "xyzm"))
   expect_identical(
-    carrow::from_carrow_array(array_xyzm),
+    sparrow::from_sparrow_array(array_xyzm),
     data.frame(
       x = as.double(1:100), y = as.double(101:200),
       z = as.double(201:300), m = as.double(301:400)
@@ -760,7 +760,7 @@ test_that("point struct arrays can be created for all dimensions", {
   # check that these round trip to Arrow
   skip_if_not_installed("arrow")
 
-  array_xy_arrow <- carrow::from_carrow_array(array_xy, arrow::Array)
+  array_xy_arrow <- sparrow::from_sparrow_array(array_xy, arrow::Array)
   expect_identical(
     as.vector(array_xy_arrow),
     as.vector(
@@ -773,7 +773,7 @@ test_that("point struct arrays can be created for all dimensions", {
     )
   )
 
-  array_xyz_arrow <- carrow::from_carrow_array(array_xyz, arrow::Array)
+  array_xyz_arrow <- sparrow::from_sparrow_array(array_xyz, arrow::Array)
   expect_identical(
     as.vector(array_xyz_arrow),
     as.vector(
@@ -787,7 +787,7 @@ test_that("point struct arrays can be created for all dimensions", {
     )
   )
 
-  array_xym_arrow <- carrow::from_carrow_array(array_xym, arrow::Array)
+  array_xym_arrow <- sparrow::from_sparrow_array(array_xym, arrow::Array)
   expect_identical(
     as.vector(array_xym_arrow),
     as.vector(
@@ -801,7 +801,7 @@ test_that("point struct arrays can be created for all dimensions", {
     )
   )
 
-  array_xyzm_arrow <- carrow::from_carrow_array(array_xyzm, arrow::Array)
+  array_xyzm_arrow <- sparrow::from_sparrow_array(array_xyzm, arrow::Array)
   expect_identical(
     as.vector(array_xyzm_arrow),
     as.vector(
@@ -819,14 +819,14 @@ test_that("point struct arrays can be created for all dimensions", {
 
 test_that("point arrays can't be created from invalid schemas", {
   expect_error(
-    geoarrow_create_point_array(wk::xy(), carrow::carrow_schema("i")),
+    geoarrow_create_point_array(wk::xy(), sparrow::sparrow_schema("i")),
     "geoarrow.point"
   )
 
   expect_error(
     geoarrow_create_point_array(
       wk::xy(),
-      carrow::carrow_schema(
+      sparrow::sparrow_schema(
         "i",
         metadata = list(
           "ARROW:extension:name" = "geoarrow.point",
@@ -839,7 +839,7 @@ test_that("point arrays can't be created from invalid schemas", {
   expect_error(
     geoarrow_create_point_array(
       wk::xy(),
-      carrow::carrow_schema(
+      sparrow::sparrow_schema(
         "i",
         metadata = list(
           "ARROW:extension:name" = "geoarrow.point",
@@ -852,7 +852,7 @@ test_that("point arrays can't be created from invalid schemas", {
   expect_error(
     geoarrow_create_point_array(
       wk::xy(),
-      carrow::carrow_schema(
+      sparrow::sparrow_schema(
         "i",
         metadata = list(
           "ARROW:extension:name" = "geoarrow.point",

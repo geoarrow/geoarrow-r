@@ -2,7 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include "wk-v1.h"
-#include "carrow.h"
+#include "sparrow.h"
 #include "internal/geoarrow-factory.hpp"
 #include "util.h"
 
@@ -20,7 +20,7 @@
 
 
 void delete_array_view_xptr(SEXP array_view_xptr) {
-    geoarrow::GeoArrowArrayView* array_view = 
+    geoarrow::GeoArrowArrayView* array_view =
         reinterpret_cast<geoarrow::GeoArrowArrayView*>(R_ExternalPtrAddr(array_view_xptr));
 
     if (array_view != nullptr) {
@@ -93,7 +93,7 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     SEXP result_sexp = PROTECT(handler->vector_end(&view->vector_meta_, handler->handler_data));
     UNPROTECT(2);
     return result_sexp;
-    
+
     CPP_END
 }
 

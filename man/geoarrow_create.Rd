@@ -30,7 +30,7 @@ geoarrow_schema_default(
 
 \item{...}{Passed to \code{\link[wk:wk_handle]{wk::wk_handle()}}}
 
-\item{schema}{A \code{\link[carrow:carrow_schema]{carrow::carrow_schema()}} to use as a storage method.}
+\item{schema}{A \code{\link[sparrow:sparrow_schema]{sparrow::sparrow_schema()}} to use as a storage method.}
 
 \item{strict}{Use \code{TRUE} to respect choices of storage type, dimensions,
 and CRS provided by \code{schema}. The default, \code{FALSE}, updates these values
@@ -39,7 +39,7 @@ to match the data.}
 \item{point}{The point schema to use for coordinates}
 }
 \value{
-A \code{\link[carrow:carrow_array]{carrow::carrow_array()}}
+A \code{\link[sparrow:sparrow_array]{sparrow::sparrow_array()}}
 }
 \description{
 Create GeoArrow Arrays

@@ -100,7 +100,7 @@ using the shortest geodesic path (great circle on a sphere).}
 \item{children}{The child schemas for children in the union}
 }
 \value{
-A \code{\link[=carrow_schema]{carrow_schema()}}.
+A \code{\link[=sparrow_schema]{sparrow_schema()}}.
 }
 \description{
 These schemas are used as the basis for column types in Apache Arrow

@@ -288,16 +288,16 @@ test_that("truncated buffer errors", {
 })
 
 test_that("bad arrays error", {
-  arr_wkb <- carrow::carrow_array(
+  arr_wkb <- sparrow::sparrow_array(
     geoarrow_schema_wkb(format = "w:0"),
-    carrow::carrow_array_data(buffers = list(raw(1), raw(1))),
+    sparrow::sparrow_array_data(buffers = list(raw(1), raw(1))),
     validate = FALSE
   )
   expect_error(wk::wk_void(arr_wkb), "width must be >= 0")
 
-  arr_wkb <- carrow::carrow_array(
-    carrow::carrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkb")),
-    carrow::carrow_array_data(buffers = list(NULL, integer())),
+  arr_wkb <- sparrow::sparrow_array(
+    sparrow::sparrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkb")),
+    sparrow::sparrow_array_data(buffers = list(NULL, integer())),
     validate = FALSE
   )
   expect_error(wk::wk_void(arr_wkb), "Can't handle schema format 'i'")

@@ -7,7 +7,7 @@
 geoarrow_metadata(schema)
 }
 \arguments{
-\item{schema}{A \code{\link[=carrow_schema]{carrow_schema()}}}
+\item{schema}{A \code{\link[=sparrow_schema]{sparrow_schema()}}}
 }
 \value{
 A \code{list()}

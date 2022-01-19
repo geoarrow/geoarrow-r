@@ -9,7 +9,7 @@ test_that("geoarrow_write_parquet() works", {
   expect_identical(nrow(df), 10L)
 
   table <- arrow::read_parquet(f, as_data_frame = FALSE)
-  schema <- carrow::as_carrow_schema(table$schema)
+  schema <- sparrow::as_sparrow_schema(table$schema)
   expect_identical(schema$children[[1]]$format, "+w:2")
 
   unlink(f)
@@ -36,7 +36,7 @@ test_that("geoarrow_write_parquet() works with explicit schema", {
   expect_identical(nrow(df), 10L)
 
   table <- arrow::read_parquet(f, as_data_frame = FALSE)
-  schema <- carrow::as_carrow_schema(table$schema)
+  schema <- sparrow::as_sparrow_schema(table$schema)
   expect_identical(schema$children[[1]]$format, "w:21")
 
   unlink(f)

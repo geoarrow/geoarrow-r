@@ -234,16 +234,16 @@ test_that("Invalid WKT fails with reasonable error messages", {
 
 
 test_that("bad arrays error", {
-  arr_wkt <- carrow::carrow_array(
+  arr_wkt <- sparrow::sparrow_array(
     geoarrow_schema_wkt(format = "w:0"),
-    carrow::carrow_array_data(buffers = list(raw(1), raw(1))),
+    sparrow::sparrow_array_data(buffers = list(raw(1), raw(1))),
     validate = FALSE
   )
   expect_error(wk::wk_void(arr_wkt), "width must be >= 0")
 
-  arr_wkt <- carrow::carrow_array(
-    carrow::carrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkt")),
-    carrow::carrow_array_data(buffers = list(NULL, integer())),
+  arr_wkt <- sparrow::sparrow_array(
+    sparrow::sparrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkt")),
+    sparrow::sparrow_array_data(buffers = list(NULL, integer())),
     validate = FALSE
   )
   expect_error(wk::wk_void(arr_wkt), "Can't handle schema format 'i'")
