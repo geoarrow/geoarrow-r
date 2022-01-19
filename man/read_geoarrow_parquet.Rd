@@ -2,6 +2,10 @@
 % Please edit documentation in R/read.R
 \name{read_geoarrow_parquet}
 \alias{read_geoarrow_parquet}
+\alias{geoarrow_collect}
+\alias{geoarrow_collect.Table}
+\alias{geoarrow_collect.RecordBatch}
+\alias{geoarrow_collect.RecordBatchReader}
 \title{Write geometry as Apache Parquet files}
 \usage{
 read_geoarrow_parquet(
@@ -9,9 +13,17 @@ read_geoarrow_parquet(
   ...,
   col_select = NULL,
   as_data_frame = TRUE,
-  handler = wk::sfc_writer,
+  handler = NULL,
   metadata = NULL
 )
+
+geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
+
+\method{geoarrow_collect}{Table}(x, ..., handler = NULL, metadata = NULL)
+
+\method{geoarrow_collect}{RecordBatch}(x, ..., handler = NULL, metadata = NULL)
+
+\method{geoarrow_collect}{RecordBatchReader}(x, ..., handler = NULL, metadata = NULL)
 }
 \arguments{
 \item{file}{A file or InputStream to read; passed to
