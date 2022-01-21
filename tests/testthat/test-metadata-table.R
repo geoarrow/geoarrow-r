@@ -487,23 +487,6 @@ test_that("schema_from_column_metadata() works for linestring", {
       recursive = TRUE
     )
   )
-
-  # non-default storage type
-  bare$format <- "+L"
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = "linestring"
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_linestring(nullable = TRUE, format = "+L"),
-      recursive = TRUE
-    )
-  )
 })
 
 test_that("schema_from_column_metadata() works for polygon", {
@@ -579,23 +562,6 @@ test_that("schema_from_column_metadata() works for polygon", {
       recursive = TRUE
     )
   )
-
-  # non-default storage type
-  bare$format <- "+L"
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = "polygon"
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_polygon(nullable = TRUE, format = c("+L", "+l")),
-      recursive = TRUE
-    )
-  )
 })
 
 test_that("schema_from_column_metadata() works for multipoint", {
@@ -652,26 +618,6 @@ test_that("schema_from_column_metadata() works for multipoint", {
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
         geoarrow_schema_point(dim = "xyzm")
-      ),
-      recursive = TRUE
-    )
-  )
-
-  # non-default storage type
-  bare$format <- "+L"
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = "multipoint"
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        format = "+L",
-        geoarrow_schema_point()
       ),
       recursive = TRUE
     )
@@ -758,26 +704,6 @@ test_that("schema_from_column_metadata() works for multilinestring", {
       recursive = TRUE
     )
   )
-
-  # non-default storage type
-  bare$format <- "+L"
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = "multilinestring"
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        format = "+L",
-        geoarrow_schema_linestring()
-      ),
-      recursive = TRUE
-    )
-  )
 })
 
 test_that("schema_from_column_metadata() works for multipolygon", {
@@ -856,26 +782,6 @@ test_that("schema_from_column_metadata() works for multipolygon", {
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
         geoarrow_schema_polygon(geodesic = TRUE)
-      ),
-      recursive = TRUE
-    )
-  )
-
-  # non-default storage type
-  bare$format <- "+L"
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = "multipolygon"
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        format = "+L",
-        geoarrow_schema_polygon()
       ),
       recursive = TRUE
     )

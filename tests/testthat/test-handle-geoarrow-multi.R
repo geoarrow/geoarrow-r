@@ -3,43 +3,39 @@ test_that("geoarrow point reader works for multipoint", {
   coords_base <- wk::xy(1:20, 21:40)
 
   # helpful for interactive debugging
-  container_format <- "+l"
   point_schema <- geoarrow_schema_point
   coord_dim <- "xy"
 
-  for (container_format in c("+l", "+L", "+w:5")) {
-    for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
-      for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
-        dims_exploded <- strsplit(coord_dim, "")[[1]]
-        features_simple <- wk::as_wkb(wk::as_xy(coords_base, dims = dims_exploded))
-        features <- wk::wk_collection(
-          features_simple,
-          feature_id = rep(1:4, each = 5),
-          geometry_type = wk::wk_geometry_type("multipoint")
-        )
+  for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
+    for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
+      dims_exploded <- strsplit(coord_dim, "")[[1]]
+      features_simple <- wk::as_wkb(wk::as_xy(coords_base, dims = dims_exploded))
+      features <- wk::wk_collection(
+        features_simple,
+        feature_id = rep(1:4, each = 5),
+        geometry_type = wk::wk_geometry_type("multipoint")
+      )
 
-        features_array <- geoarrow_create(
-          features,
-          schema = geoarrow_schema_multi(
-            point_schema(dim = coord_dim, nullable = TRUE),
-            format = container_format
-          ),
-          strict = TRUE
-        )
+      features_array <- geoarrow_create(
+        features,
+        schema = geoarrow_schema_multi(
+          point_schema(dim = coord_dim),
+        ),
+        strict = TRUE
+      )
 
-        expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
-        expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
-        expect_identical(
-          wk::wk_vector_meta(features_array),
-          data.frame(
-            geometry_type = 4L,
-            size = 4,
-            has_z = "z" %in% dims_exploded,
-            has_m = "m" %in% dims_exploded
-          )
+      expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
+      expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
+      expect_identical(
+        wk::wk_vector_meta(features_array),
+        data.frame(
+          geometry_type = 4L,
+          size = 4,
+          has_z = "z" %in% dims_exploded,
+          has_m = "m" %in% dims_exploded
         )
-        expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
-      }
+      )
+      expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
     }
   }
 })
@@ -48,52 +44,44 @@ test_that("geoarrow point reader works for multilinestring", {
   coords_base <- wk::xy(1:20, 21:40)
 
   # helpful for interactive debugging
-  container_format <- "+l"
-  coord_container_format <- "+l"
   point_schema <- geoarrow_schema_point
   coord_dim <- "xy"
 
-  for (container_format in c("+l", "+L", "+w:2")) {
-    for (coord_container_format in c("+l", "+L", "+w:5")) {
-      for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
-        for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
-          dims_exploded <- strsplit(coord_dim, "")[[1]]
-          features_simple <- wk::wk_linestring(
-            wk::as_xy(coords_base, dims = dims_exploded),
-            feature_id = rep(1:4, each = 5)
-          )
-          features <- wk::wk_collection(
-            features_simple,
-            feature_id = rep(1:2, each = 2),
-            geometry_type = wk::wk_geometry_type("multilinestring")
-          )
+  for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
+    for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
+      dims_exploded <- strsplit(coord_dim, "")[[1]]
+      features_simple <- wk::wk_linestring(
+        wk::as_xy(coords_base, dims = dims_exploded),
+        feature_id = rep(1:4, each = 5)
+      )
+      features <- wk::wk_collection(
+        features_simple,
+        feature_id = rep(1:2, each = 2),
+        geometry_type = wk::wk_geometry_type("multilinestring")
+      )
 
-          features_array <- geoarrow_create(
-            features,
-            schema = geoarrow_schema_multi(
-              geoarrow_schema_linestring(
-                format = coord_container_format,
-                point = point_schema(dim = coord_dim, nullable = TRUE)
-              ),
-              format = container_format
-            ),
-            strict = TRUE
+      features_array <- geoarrow_create(
+        features,
+        schema = geoarrow_schema_multi(
+          geoarrow_schema_linestring(
+            point = point_schema(dim = coord_dim)
           )
+        ),
+        strict = TRUE
+      )
 
-          expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
-          expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
-          expect_identical(
-            wk::wk_vector_meta(features_array),
-            data.frame(
-              geometry_type = 5L,
-              size = 2,
-              has_z = "z" %in% dims_exploded,
-              has_m = "m" %in% dims_exploded
-            )
-          )
-          expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
-        }
-      }
+      expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
+      expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
+      expect_identical(
+        wk::wk_vector_meta(features_array),
+        data.frame(
+          geometry_type = 5L,
+          size = 2,
+          has_z = "z" %in% dims_exploded,
+          has_m = "m" %in% dims_exploded
+        )
+      )
+      expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
     }
   }
 })
@@ -109,61 +97,50 @@ test_that("geoarrow point reader works for multipolygon", {
   )
 
   # helpful for interactive debugging
-  container_format <- "+l"
-  poly_container_format <- "+l"
-  coord_container_format <- "+l"
   point_schema <- geoarrow_schema_point
   coord_dim <- "xy"
 
-  for (container_format in c("+l", "+L", "+w:2")) {
-    for (poly_container_format in c("+l", "+L", "+w:1")) {
-      for (coord_container_format in c("+l", "+L", "+w:5")) {
-        for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
-          for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
-            # bug in wk_polygon() precludes previous approach
-            # https://github.com/paleolimbot/wk/issues/134
-            dims_exploded <- strsplit(coord_dim, "")[[1]]
-            features <- wk::wk_collection(
-              poly_base,
-              feature_id = rep(1:2, each = 2),
-              geometry_type = wk::wk_geometry_type("multipolygon")
-            )
+  for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
+    for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
+      # bug in wk_polygon() precludes previous approach
+      # https://github.com/paleolimbot/wk/issues/134
+      dims_exploded <- strsplit(coord_dim, "")[[1]]
+      features <- wk::wk_collection(
+        poly_base,
+        feature_id = rep(1:2, each = 2),
+        geometry_type = wk::wk_geometry_type("multipolygon")
+      )
 
-            if ("z" %in% dims_exploded) {
-              features <- wk::wk_set_z(features, 2)
-            }
-
-            if ("m" %in% dims_exploded) {
-              features <- wk::wk_set_m(features, 3)
-            }
-
-            features_array <- geoarrow_create(
-              features,
-              schema = geoarrow_schema_multi(
-                geoarrow_schema_polygon(
-                  format = c(poly_container_format, coord_container_format),
-                  point = point_schema(dim = coord_dim, nullable = TRUE)
-                ),
-                format = container_format
-              ),
-              strict = TRUE
-            )
-
-            expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
-            expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
-            expect_identical(
-              wk::wk_vector_meta(features_array),
-              data.frame(
-                geometry_type = 6L,
-                size = 2,
-                has_z = "z" %in% dims_exploded,
-                has_m = "m" %in% dims_exploded
-              )
-            )
-            expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
-          }
-        }
+      if ("z" %in% dims_exploded) {
+        features <- wk::wk_set_z(features, 2)
       }
+
+      if ("m" %in% dims_exploded) {
+        features <- wk::wk_set_m(features, 3)
+      }
+
+      features_array <- geoarrow_create(
+        features,
+        schema = geoarrow_schema_multi(
+          geoarrow_schema_polygon(
+            point = point_schema(dim = coord_dim)
+          )
+        ),
+        strict = TRUE
+      )
+
+      expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
+      expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
+      expect_identical(
+        wk::wk_vector_meta(features_array),
+        data.frame(
+          geometry_type = 6L,
+          size = 2,
+          has_z = "z" %in% dims_exploded,
+          has_m = "m" %in% dims_exploded
+        )
+      )
+      expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
     }
   }
 })

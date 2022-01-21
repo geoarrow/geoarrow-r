@@ -335,15 +335,6 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
     lengths_finite <- as.double(lengths_finite)
   }
 
-  if (!strict) {
-    unique_lengths <- unique(lengths_finite)
-    if (length(unique_lengths) == 1L) {
-      schema$format <- sprintf("+w:%d", unique_lengths)
-    } else if (total_length > ((2 ^ 31) - 1)) {
-      schema$format <- "+L"
-    }
-  }
-
   if (identical(schema$format, "+l")) {
     stopifnot(total_length < (2 ^ 31))
 
@@ -365,54 +356,6 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
           child_array$array_data
         )
       )
-    )
-  } else if (identical(schema$format, "+L")) {
-    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]], strict = strict)))
-    schema$children[[1]] <- child_array$schema
-    stopifnot(as.numeric(child_array$array_data$length) >= total_length)
-    offsets <- c(0L, cumsum(lengths_finite))
-
-    narrow::narrow_array(
-      schema,
-      narrow::narrow_array_data(
-        buffers = list(
-          validity_buffer,
-          narrow::as_narrow_int64(offsets)
-        ),
-        length = n,
-        null_count = null_count,
-        children = list(
-          child_array$array_data
-        )
-      )
-    )
-  } else if (startsWith(schema$format, "+w:")) {
-    width <- narrow::parse_format(schema$format)$args$n_items
-    stopifnot(
-      all(lengths == width, na.rm = TRUE),
-      is.null(validity_buffer) || (length(lengths) == n),
-      !is.null(validity_buffer) || all(is.finite(lengths))
-    )
-
-    child_array <- do.call(make_child_array, c(args, list(schema = schema$children[[1]], strict = strict)))
-    schema$children[[1]] <- child_array$schema
-    stopifnot(
-      as.numeric(child_array$array_data$length) >= (width * n)
-    )
-
-    narrow::narrow_array(
-      schema,
-      narrow::narrow_array_data(
-        buffers = list(
-          validity_buffer
-        ),
-        length = n,
-        null_count = null_count,
-        children = list(
-          child_array$array_data
-        )
-      ),
-      validate = FALSE
     )
   } else {
     stop(
