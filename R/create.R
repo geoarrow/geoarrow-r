@@ -145,16 +145,9 @@ geoarrow_create_wkb_array <- function(x, schema, strict = FALSE) {
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkb")
   )
 
-  nullable <- bitwAnd(schema$flags, narrow::narrow_schema_flags(nullable = TRUE)) != 0
   is_na <- vapply(x, is.null, logical(1))
-  if (nullable) {
-    null_count <- sum(is_na)
-    validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
-  } else {
-    stopifnot(all(!is_na))
-    validity_buffer <- NULL
-    null_count <- 0
-  }
+  null_count <- sum(is_na)
+  validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
 
   item_lengths <- as.numeric(lengths(x, use.names = FALSE))
   flat <- as.raw(unlist(x, use.names = FALSE))
@@ -316,15 +309,9 @@ geoarrow_create_linestring_array <- function(coords, lengths, schema, n = length
 }
 
 geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, args, strict = FALSE) {
-  nullable <- bitwAnd(schema$flags, narrow::narrow_schema_flags(nullable = TRUE)) != 0
-  if (nullable) {
-    is_na <- is.na(lengths)
-    null_count <- sum(is_na)
-    validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
-  } else {
-    validity_buffer <- NULL
-    null_count <- 0
-  }
+  is_na <- is.na(lengths)
+  null_count <- sum(is_na)
+  validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
 
   lengths_finite <- lengths
   lengths_finite[is.na(lengths_finite)] <- 0L
@@ -394,16 +381,9 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
   n_dim <- length(coords_dim)
   n_coord <- length(coords_dim[[1]])
 
-  nullable <- bitwAnd(schema$flags, narrow::narrow_schema_flags(nullable = TRUE)) != 0
-  if (nullable) {
-    is_na <- Reduce("&", lapply(coords_dim, is.na))
-    null_count <- sum(is_na)
-    validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
-  } else {
-    # here NAs are OK because they're considered NaN in double math
-    validity_buffer <- NULL
-    null_count <- 0
-  }
+  is_na <- Reduce("&", lapply(coords_dim, is.na))
+  null_count <- sum(is_na)
+  validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
 
   if (identical(schema$format, "+s")) {
     struct_names <- vapply(schema$children, function(x) x$name, character(1))
@@ -550,25 +530,14 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point())
 geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, point) {
   switch(
     geometry_type,
-    {
-      point$flags <- bitwOr(point$flags, narrow::narrow_schema_flags(nullable = TRUE))
-      point
-    },
+    point,
     geoarrow_schema_linestring(point = point),
     geoarrow_schema_polygon(),
     geoarrow_schema_multi(point),
     geoarrow_schema_multi(geoarrow_schema_linestring(point = point)),
     geoarrow_schema_multi(geoarrow_schema_polygon(point = point)),
-    # for now, fall back to WKB for collections or mixed types
+    # fall back to WKB for collections or mixed types
     geoarrow_schema_wkb(),
-    # geoarrow_schema_sparse_geometrycollection(
-    #   children = lapply(
-    #     all_geometry_types,
-    #     geoarrow_schema_default_base,
-    #     all_geometry_types = NULL,
-    #     point = point
-    #   )
-    # ),
     stop(sprintf("Unsupported geometry type ID '%d'", geometry_type), call. = FALSE) # nocov
   )
 }

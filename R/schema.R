@@ -120,8 +120,7 @@ geoarrow_schema_multi <- function(child, name = "") {
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = FALSE,
-                                 nullable = TRUE) {
+geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = FALSE) {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z")))
 
   narrow::narrow_schema(

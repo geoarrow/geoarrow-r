@@ -34,13 +34,7 @@ geoarrow_schema_polygon(
 
 geoarrow_schema_multi(child, name = "")
 
-geoarrow_schema_wkb(
-  name = "",
-  format = "z",
-  crs = NULL,
-  geodesic = FALSE,
-  nullable = TRUE
-)
+geoarrow_schema_wkb(name = "", format = "z", crs = NULL, geodesic = FALSE)
 
 geoarrow_schema_wkt(name = "", format = "u", crs = NULL, geodesic = FALSE)
 
@@ -68,8 +62,6 @@ using the shortest geodesic path (great circle on a sphere).}
 \item{child}{The child schema to use in a single-type (multi) collection}
 
 \item{format}{A custom storage format}
-
-\item{nullable}{\code{TRUE} if the type is semantically nullable}
 }
 \value{
 A \code{\link[=narrow_schema]{narrow_schema()}}.
