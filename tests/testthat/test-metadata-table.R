@@ -202,22 +202,6 @@ test_that("schema_from_column_metadata() works for WKT", {
     )
   )
 
-  # nullable
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "WKT"),
-    narrow::narrow_schema(
-      format = "u",
-      name = "",
-      flags = narrow::narrow_schema_flags(nullable = TRUE)
-    )
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed),
-    narrow::narrow_schema_info(
-      geoarrow_schema_wkt(format = "u", nullable = TRUE)
-    )
-  )
-
   # non-default storage type
   schema_reconstructed <- schema_from_column_metadata(
     list(crs = NULL, encoding = "WKT"),

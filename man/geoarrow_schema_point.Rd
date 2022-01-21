@@ -6,8 +6,6 @@
 \alias{geoarrow_schema_linestring}
 \alias{geoarrow_schema_polygon}
 \alias{geoarrow_schema_multi}
-\alias{geoarrow_schema_sparse_geometrycollection}
-\alias{geoarrow_schema_dense_geometrycollection}
 \alias{geoarrow_schema_wkb}
 \alias{geoarrow_schema_wkt}
 \alias{geoarrow_schema_geojson}
@@ -31,7 +29,6 @@ geoarrow_schema_point_struct(
 
 geoarrow_schema_linestring(
   name = "",
-  format = "+l",
   nullable = TRUE,
   geodesic = FALSE,
   point = geoarrow_schema_point()
@@ -39,17 +36,12 @@ geoarrow_schema_linestring(
 
 geoarrow_schema_polygon(
   name = "",
-  format = c("+l", "+l"),
   nullable = TRUE,
   geodesic = FALSE,
   point = geoarrow_schema_point()
 )
 
-geoarrow_schema_multi(child, name = "", format = "+l", nullable = TRUE)
-
-geoarrow_schema_sparse_geometrycollection(children = list(), name = "")
-
-geoarrow_schema_dense_geometrycollection(children = list(), name = "")
+geoarrow_schema_multi(child, name = "", nullable = TRUE)
 
 geoarrow_schema_wkb(
   name = "",
@@ -85,17 +77,14 @@ can be "f" (float/float32) or "g" (double/float64).}
 
 \item{nullable}{\code{TRUE} if the type is semantically nullable}
 
-\item{format}{For list-of types, the storage format. This can be +l
-(32-bit integer offsets), +L (64-bit integer offsets), or +w:(fixed_size).
-For \code{\link[=geoarrow_schema_polygon]{geoarrow_schema_polygon()}}, \code{format} has two elements: the first
-for the list of rings and the second for the list of points.}
-
 \item{geodesic}{Use \code{TRUE} to assert that edges should be interpolated
 using the shortest geodesic path (great circle on a sphere).}
 
 \item{point}{The point schema to use for coordinates}
 
 \item{child}{The child schema to use in a single-type (multi) collection}
+
+\item{format}{A custom storage format}
 
 \item{children}{The child schemas for children in the union}
 }
@@ -110,7 +99,5 @@ geoarrow_schema_point()
 geoarrow_schema_linestring()
 geoarrow_schema_polygon()
 geoarrow_schema_multi(geoarrow_schema_point())
-geoarrow_schema_sparse_geometrycollection()
-geoarrow_schema_dense_geometrycollection()
 
 }

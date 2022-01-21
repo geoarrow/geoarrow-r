@@ -128,31 +128,26 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
     dim <- meta$dim
   }
 
-  nullable <- bitwAnd(schema$flags, narrow::narrow_schema_flags(nullable = TRUE)) != 0
-
   switch(
     encoding,
     "WKB" = geoarrow_schema_wkb(
       name = schema$name,
       format = schema$format,
       crs = crs,
-      geodesic = geodesic,
-      nullable = nullable
+      geodesic = geodesic
     ),
     "WKT" = geoarrow_schema_wkt(
       name = schema$name,
       format = schema$format,
       crs = crs,
-      geodesic = geodesic,
-      nullable = nullable
+      geodesic = geodesic
     ),
     "GeoJSON" = {
       stopifnot(identical(geodesic, FALSE))
       geoarrow_schema_geojson(
         name = schema$name,
         format = schema$format,
-        crs = crs,
-        nullable = nullable
+        crs = crs
       )
     },
     "point" = {
@@ -171,79 +166,85 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
           name = schema$name,
           crs = crs,
           dim = dim,
-          format_coord = format_coord,
-          nullable = nullable
+          format_coord = format_coord
         )
       } else {
         geoarrow_schema_point(
           name = schema$name,
           dim = dim,
           crs = crs,
-          format_coord = schema$children[[1]]$format,
-          nullable = nullable
+          format_coord = schema$children[[1]]$format
         )
       }
     },
-    "linestring" = geoarrow_schema_linestring(
-      name = schema$name,
-      format = schema$format,
-      geodesic = geodesic,
-      nullable = nullable,
-      point = schema_from_column_metadata(
-        list(encoding = "point"),
-        schema$children[[1]],
-        crs = crs,
-        dim = dim
+    "linestring" = {
+      stopifnot(identical(schema$format, "+l"))
+      geoarrow_schema_linestring(
+        name = schema$name,
+        geodesic = geodesic,
+        point = schema_from_column_metadata(
+          list(encoding = "point"),
+          schema$children[[1]],
+          crs = crs,
+          dim = dim
+        )
       )
-    ),
-    "polygon" = geoarrow_schema_polygon(
-      name = schema$name,
-      format = c(schema$format, schema$children[[1]]$format),
-      geodesic = geodesic,
-      nullable = nullable,
-      point = schema_from_column_metadata(
-        list(encoding = "point"),
-        schema$children[[1]]$children[[1]],
-        crs = crs,
-        dim = dim
+    },
+    "polygon" = {
+      stopifnot(
+        identical(schema$format, "+l"),
+        identical(schema$children[[1]]$format, "+l")
       )
-    ),
-    "multipoint" = geoarrow_schema_multi(
-      name = schema$name,
-      format = schema$format,
-      nullable = nullable,
-      child = schema_from_column_metadata(
-        list(encoding = "point"),
-        schema$children[[1]],
-        crs = crs,
-        dim = dim,
-        geodesic = geodesic
+      geoarrow_schema_polygon(
+        name = schema$name,
+        geodesic = geodesic,
+        point = schema_from_column_metadata(
+          list(encoding = "point"),
+          schema$children[[1]]$children[[1]],
+          crs = crs,
+          dim = dim
+        )
       )
-    ),
-    "multilinestring" = geoarrow_schema_multi(
-      name = schema$name,
-      format = schema$format,
-      nullable = nullable,
-      child = schema_from_column_metadata(
-        list(encoding = "linestring"),
-        schema$children[[1]],
-        crs = crs,
-        dim = dim,
-        geodesic = geodesic
+    },
+    "multipoint" = {
+      stopifnot(identical(schema$format, "+l"))
+      geoarrow_schema_multi(
+        name = schema$name,
+        child = schema_from_column_metadata(
+          list(encoding = "point"),
+          schema$children[[1]],
+          crs = crs,
+          dim = dim,
+          geodesic = geodesic
+        )
       )
-    ),
-    "multipolygon" = geoarrow_schema_multi(
-      name = schema$name,
-      format = schema$format,
-      nullable = nullable,
-      child = schema_from_column_metadata(
-        list(encoding = "polygon"),
-        schema$children[[1]],
-        crs = crs,
-        dim = dim,
-        geodesic = geodesic
+    },
+    "multilinestring" = {
+      stopifnot(identical(schema$format, "+l"))
+      geoarrow_schema_multi(
+        name = schema$name,
+        child = schema_from_column_metadata(
+          list(encoding = "linestring"),
+          schema$children[[1]],
+          crs = crs,
+          dim = dim,
+          geodesic = geodesic
+        )
       )
-    ),
+    },
+    "multipolygon" = {
+      stopifnot(identical(schema$format, "+l"))
+      geoarrow_schema_multi(
+        name = schema$name,
+        child = schema_from_column_metadata(
+          list(encoding = "polygon"),
+          schema$children[[1]],
+          crs = crs,
+          dim = dim,
+          geodesic = geodesic
+        )
+      )
+    },
     stop(sprintf("Unsupported encoding field: '%s'", encoding))
   )
 }

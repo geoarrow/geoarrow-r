@@ -14,10 +14,7 @@
 #' @param point The point schema to use for coordinates
 #' @param child The child schema to use in a single-type (multi) collection
 #' @param children The child schemas for children in the union
-#' @param format For list-of types, the storage format. This can be +l
-#'   (32-bit integer offsets), +L (64-bit integer offsets), or +w:(fixed_size).
-#'   For [geoarrow_schema_polygon()], `format` has two elements: the first
-#'   for the list of rings and the second for the list of points.
+#' @param format A custom storage format
 #' @param format_coord A format for floating point coordinate storage. This
 #'   can be "f" (float/float32) or "g" (double/float64).
 #' @inheritParams narrow::narrow_schema
@@ -30,8 +27,6 @@
 #' geoarrow_schema_linestring()
 #' geoarrow_schema_polygon()
 #' geoarrow_schema_multi(geoarrow_schema_point())
-#' geoarrow_schema_sparse_geometrycollection()
-#' geoarrow_schema_dense_geometrycollection()
 #'
 geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
                                   format_coord = "g", nullable = TRUE) {
@@ -82,13 +77,11 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE, geodesic = FALSE,
+geoarrow_schema_linestring <- function(name = "", nullable = TRUE, geodesic = FALSE,
                                        point = geoarrow_schema_point()) {
-  stopifnot(format_is_nested_list(format))
-
   narrow::narrow_schema(
     name = scalar_chr(name),
-    format = format,
+    format = "+l",
     flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.linestring",
@@ -100,35 +93,28 @@ geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable = TRUE, geodesic = FALSE,
-                                     point = geoarrow_schema_point()) {
-  stopifnot(
-    format_is_nested_list(format[1]),
-    format_is_nested_list(format[2])
-  )
-
+geoarrow_schema_polygon <- function(name = "", nullable = TRUE, geodesic = FALSE,
+                                    point = geoarrow_schema_point()) {
   narrow::narrow_schema(
     name = scalar_chr(name),
-    format = format[1],
+    format = "+l",
     flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.polygon",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
     ),
     children = list(
-      narrow::narrow_schema(format = format[2], name = "", children = list(point))
+      narrow::narrow_schema(format = "+l", name = "", children = list(point))
     )
   )
 }
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multi <- function(child, name = "", format = "+l", nullable = TRUE) {
-  stopifnot(format_is_nested_list(format))
-
+geoarrow_schema_multi <- function(child, name = "", nullable = TRUE) {
   narrow::narrow_schema(
     name = scalar_chr(name),
-    format = format,
+    format = "+l",
     flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.multi",
@@ -136,30 +122,6 @@ geoarrow_schema_multi <- function(child, name = "", format = "+l", nullable = TR
     ),
     children = list(child)
   )
-}
-
-#' @rdname geoarrow_schema_point
-#' @export
-geoarrow_schema_sparse_geometrycollection <- function(children = list(), name = "") {
-  type_ids <- paste(names(children), collapse = ",")
-  narrow::narrow_schema(
-    name = scalar_chr(name),
-    format = sprintf("+us:%s", type_ids),
-    metadata = list(
-      "ARROW:extension:name" = "geoarrow.collection",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize()
-    ),
-    children = children
-  )
-}
-
-#' @rdname geoarrow_schema_point
-#' @export
-geoarrow_schema_dense_geometrycollection <- function(children = list(), name = "") {
-  type_ids <- paste(names(children), collapse = ",")
-  schema <- geoarrow_schema_sparse_geometrycollection(children, name)
-  schema$format <- sprintf("+us:%s", type_ids)
-  schema
 }
 
 #' @rdname geoarrow_schema_point
@@ -201,10 +163,6 @@ geoarrow_schema_geojson <- function(name = "", format = "u", crs = NULL, nullabl
   schema <- geoarrow_schema_wkt(name, format, crs, NULL, nullable)
   schema$metadata[["ARROW:extension:name"]] <- "geoarrow.geojson"
   schema
-}
-
-format_is_nested_list <- function(format) {
-  grepl("^\\+[wlL]", scalar_chr(format))
 }
 
 format_is_id <- function(format_id) {
