@@ -62,12 +62,7 @@ test_that("geoarrow_metadata_column() works for linestring", {
     list(
       crs = NULL,
       dim = "xy",
-      encoding = list(
-        name = "linestring",
-        point = list(
-          encoding = "point"
-        )
-      )
+      encoding = "linestring"
     )
   )
 
@@ -77,12 +72,7 @@ test_that("geoarrow_metadata_column() works for linestring", {
       crs = NULL,
       dim = "xy",
       geodesic = TRUE,
-      encoding = list(
-        name = "linestring",
-        point = list(
-          encoding = "point"
-        )
-      )
+      encoding = "linestring"
     )
   )
 
@@ -95,12 +85,7 @@ test_that("geoarrow_metadata_column() works for linestring", {
     list(
       crs = "EPSG:1234",
       dim = "xy",
-      encoding = list(
-        name = "linestring",
-        point = list(
-          encoding = "point"
-        )
-      )
+      encoding = "linestring"
     )
   )
 })
@@ -111,12 +96,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
     list(
       crs = NULL,
       dim = "xy",
-      encoding = list(
-        name = "polygon",
-        point = list(
-          encoding = "point"
-        )
-      )
+      encoding = "polygon"
     )
   )
 
@@ -126,12 +106,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
       crs = NULL,
       dim = "xy",
       geodesic = TRUE,
-      encoding = list(
-        name = "polygon",
-        point = list(
-          encoding = "point"
-        )
-      )
+      encoding = "polygon"
     )
   )
 
@@ -144,12 +119,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
     list(
       crs = "EPSG:1234",
       dim = "xy",
-      encoding = list(
-        name = "polygon",
-        point = list(
-          encoding = "point"
-        )
-      )
+      encoding = "polygon"
     )
   )
 })
@@ -164,12 +134,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
     list(
       crs = NULL,
       dim = "xy",
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = "point"
-        )
-      )
+      encoding = "multipoint"
     )
   )
 
@@ -183,17 +148,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
       crs = NULL,
       dim = "xy",
       geodesic = TRUE,
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = list(
-            name = "linestring",
-            point = list(
-              encoding = "point"
-            )
-          )
-        )
-      )
+      encoding = "multilinestring"
     )
   )
 
@@ -206,12 +161,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
     list(
       crs = "EPSG:1234",
       dim = "xy",
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = "point"
-        )
-      )
+      encoding = "multipoint"
     )
   )
 })
@@ -320,22 +270,6 @@ test_that("schema_from_column_metadata() works for WKB", {
     )
   )
 
-  # nullable
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "WKB"),
-    narrow::narrow_schema(
-      format = "z",
-      name = "",
-      flags = narrow::narrow_schema_flags(nullable = TRUE)
-    )
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed),
-    narrow::narrow_schema_info(
-      geoarrow_schema_wkb(format = "z", nullable = TRUE)
-    )
-  )
-
   # non-default storage type
   schema_reconstructed <- schema_from_column_metadata(
     list(crs = NULL, encoding = "WKB"),
@@ -373,22 +307,6 @@ test_that("schema_from_column_metadata() works for GeoJSON", {
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
       geoarrow_schema_geojson(crs = "EPSG:1234")
-    )
-  )
-
-  # nullable
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "GeoJSON"),
-    narrow::narrow_schema(
-      format = "u",
-      name = "",
-      flags = narrow::narrow_schema_flags(nullable = TRUE)
-    )
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed),
-    narrow::narrow_schema_info(
-      geoarrow_schema_geojson(format = "u", nullable = TRUE)
     )
   )
 
@@ -503,7 +421,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xy",
-      encoding = list(name = "linestring", point = list(encoding = "point"))
+      encoding = "linestring"
     ),
     bare
   )
@@ -519,7 +437,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = "EPSG:1234", dim = "xy",
-      encoding = list(name = "linestring", point = list(encoding = "point"))
+      encoding = "linestring"
     ),
     bare
   )
@@ -537,7 +455,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xyzm",
-      encoding = list(name = "linestring", point = list(encoding = "point"))
+      encoding = "linestring"
     ),
     bare
   )
@@ -555,7 +473,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, geodesic = TRUE, dim = "xy",
-      encoding = list(name = "linestring", point = list(encoding = "point"))
+      encoding = "linestring"
     ),
     bare
   )
@@ -575,7 +493,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xy",
-      encoding = list(name = "linestring", point = list(encoding = "point"))
+      encoding = "linestring"
     ),
     bare
   )
@@ -595,7 +513,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xy",
-      encoding = list(name = "polygon", point = list(encoding = "point"))
+      encoding = "polygon"
     ),
     bare
   )
@@ -611,7 +529,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = "EPSG:1234", dim = "xy",
-      encoding = list(name = "polygon", point = list(encoding = "point"))
+      encoding = "polygon"
     ),
     bare
   )
@@ -629,7 +547,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xyzm",
-      encoding = list(name = "polygon", point = list(encoding = "point"))
+      encoding = "polygon"
     ),
     bare
   )
@@ -647,7 +565,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, geodesic = TRUE, dim = "xy",
-      encoding = list(name = "polygon", point = list(encoding = "point"))
+      encoding = "polygon"
     ),
     bare
   )
@@ -667,7 +585,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xy",
-      encoding = list(name = "polygon", point = list(encoding = "point"))
+      encoding = "polygon"
     ),
     bare
   )
@@ -680,7 +598,87 @@ test_that("schema_from_column_metadata() works for polygon", {
   )
 })
 
-test_that("schema_from_column_metadata() works for multi", {
+test_that("schema_from_column_metadata() works for multipoint", {
+  bare <- geoarrow_schema_multi(geoarrow_schema_point())
+  bare$metadata <- NULL
+  bare$children[[1]]$metadata <- NULL
+  bare$children[[1]]$children[[1]]$metadata <- NULL
+
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy",
+      encoding = "multipoint"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        geoarrow_schema_point()
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = "EPSG:1234", dim = "xy",
+      encoding = "multipoint"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        geoarrow_schema_point(crs = "EPSG:1234")
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # with dim
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xyzm",
+      encoding = "multipoint"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        geoarrow_schema_point(dim = "xyzm")
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # non-default storage type
+  bare$format <- "+L"
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy",
+      encoding = "multipoint"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        format = "+L",
+        geoarrow_schema_point()
+      ),
+      recursive = TRUE
+    )
+  )
+})
+
+test_that("schema_from_column_metadata() works for multilinestring", {
   bare <- geoarrow_schema_multi(geoarrow_schema_linestring())
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
@@ -689,17 +687,7 @@ test_that("schema_from_column_metadata() works for multi", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xy",
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = list(
-              name = "linestring",
-              point = list(
-                encoding = "point"
-            )
-          )
-        )
-      )
+      encoding = "multilinestring"
     ),
     bare
   )
@@ -717,17 +705,7 @@ test_that("schema_from_column_metadata() works for multi", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = "EPSG:1234", dim = "xy",
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = list(
-            name = "linestring",
-            point = list(
-              encoding = "point"
-            )
-          )
-        )
-      )
+      encoding = "multilinestring"
     ),
     bare
   )
@@ -747,17 +725,7 @@ test_that("schema_from_column_metadata() works for multi", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xyzm",
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = list(
-            name = "linestring",
-            point = list(
-              encoding = "point"
-            )
-          )
-        )
-      )
+      encoding = "multilinestring"
     ),
     bare
   )
@@ -777,17 +745,7 @@ test_that("schema_from_column_metadata() works for multi", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xy", geodesic = TRUE,
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = list(
-            name = "linestring",
-            point = list(
-              encoding = "point"
-            )
-          )
-        )
-      )
+      encoding = "multilinestring"
     ),
     bare
   )
@@ -806,17 +764,7 @@ test_that("schema_from_column_metadata() works for multi", {
   schema_reconstructed <- schema_from_column_metadata(
     list(
       crs = NULL, dim = "xy",
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = list(
-            name = "linestring",
-            point = list(
-              encoding = "point"
-            )
-          )
-        )
-      )
+      encoding = "multilinestring"
     ),
     bare
   )
@@ -831,3 +779,106 @@ test_that("schema_from_column_metadata() works for multi", {
     )
   )
 })
+
+test_that("schema_from_column_metadata() works for multipolygon", {
+  bare <- geoarrow_schema_multi(geoarrow_schema_polygon())
+  bare$metadata <- NULL
+  bare$children[[1]]$metadata <- NULL
+  bare$children[[1]]$children[[1]]$metadata <- NULL
+
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy",
+      encoding = "multipolygon"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        geoarrow_schema_polygon()
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # with crs
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = "EPSG:1234", dim = "xy",
+      encoding = "multipolygon"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        geoarrow_schema_polygon(
+          point = geoarrow_schema_point(crs = "EPSG:1234")
+        )
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # with dim
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xyzm",
+      encoding = "multipolygon"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        geoarrow_schema_polygon(
+          point = geoarrow_schema_point(dim = "xyzm")
+        )
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # with geodesic
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy", geodesic = TRUE,
+      encoding = "multipolygon"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        geoarrow_schema_polygon(geodesic = TRUE)
+      ),
+      recursive = TRUE
+    )
+  )
+
+  # non-default storage type
+  bare$format <- "+L"
+  schema_reconstructed <- schema_from_column_metadata(
+    list(
+      crs = NULL, dim = "xy",
+      encoding = "multipolygon"
+    ),
+    bare
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
+    narrow::narrow_schema_info(
+      geoarrow_schema_multi(
+        format = "+L",
+        geoarrow_schema_polygon()
+      ),
+      recursive = TRUE
+    )
+  )
+})
+

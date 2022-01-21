@@ -49,22 +49,13 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
       crs = geoarrow_metadata(schema$children[[1]])$crs,
       dim = geoarrow_metadata(schema$children[[1]])$dim,
       geodesic = identical(ext_meta$geodesic, "true"),
-      encoding = list(
-        name = "linestring",
-        point = geoarrow_metadata_column(schema$children[[1]], include_crs = FALSE)
-      )
+      encoding = "linestring"
     ),
     "geoarrow.polygon" = list(
       crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs,
       dim = geoarrow_metadata(schema$children[[1]]$children[[1]])$dim,
       geodesic = identical(ext_meta$geodesic, "true"),
-      encoding = list(
-        name = "polygon",
-        point = geoarrow_metadata_column(
-          schema$children[[1]]$children[[1]],
-          include_crs = FALSE
-        )
-      )
+      encoding = "polygon"
     ),
     "geoarrow.multi" = {
       child <- geoarrow_metadata_column(schema$children[[1]], include_crs = TRUE)
@@ -79,10 +70,7 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
         crs = crs,
         dim = dim,
         geodesic = geodesic,
-        encoding = list(
-          name = "multi",
-          child = child
-        )
+        encoding = paste0("multi", child$encoding)
       )
     },
     return(NULL)
@@ -122,12 +110,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
     return(schema)
   }
 
-  encoding <- meta$encoding
-  if (is.list(meta$encoding)) {
-    encoding <- encoding$name
-  }
-
-  encoding <- scalar_chr(encoding)
+  encoding <- scalar_chr(meta$encoding)
 
   if (is.null(crs)) {
     crs <- meta$crs
@@ -207,7 +190,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       geodesic = geodesic,
       nullable = nullable,
       point = schema_from_column_metadata(
-        meta$encoding$point,
+        list(encoding = "point"),
         schema$children[[1]],
         crs = crs,
         dim = dim
@@ -219,24 +202,48 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       geodesic = geodesic,
       nullable = nullable,
       point = schema_from_column_metadata(
-        meta$encoding$point,
+        list(encoding = "point"),
         schema$children[[1]]$children[[1]],
         crs = crs,
         dim = dim
       )
     ),
-    "multi" = geoarrow_schema_multi(
+    "multipoint" = geoarrow_schema_multi(
       name = schema$name,
       format = schema$format,
       nullable = nullable,
       child = schema_from_column_metadata(
-        meta$encoding$child,
+        list(encoding = "point"),
         schema$children[[1]],
         crs = crs,
         dim = dim,
         geodesic = geodesic
       )
     ),
-    stop(sprintf("Unsupported encoding: '%s'", encoding))
+    "multilinestring" = geoarrow_schema_multi(
+      name = schema$name,
+      format = schema$format,
+      nullable = nullable,
+      child = schema_from_column_metadata(
+        list(encoding = "linestring"),
+        schema$children[[1]],
+        crs = crs,
+        dim = dim,
+        geodesic = geodesic
+      )
+    ),
+    "multipolygon" = geoarrow_schema_multi(
+      name = schema$name,
+      format = schema$format,
+      nullable = nullable,
+      child = schema_from_column_metadata(
+        list(encoding = "polygon"),
+        schema$children[[1]],
+        crs = crs,
+        dim = dim,
+        geodesic = geodesic
+      )
+    ),
+    stop(sprintf("Unsupported encoding field: '%s'", encoding))
   )
 }
