@@ -75,10 +75,14 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
       )
 
       if (!is.null(result)) {
-        wk::wk_set_crs(result, wk_crs_narrow_schema(geoarrow_schema))
-      } else {
-        result
+        wk::wk_crs(result) <- recursive_extract_narrow_schema(geoarrow_schema, "crs")
+        geodesic <- recursive_extract_narrow_schema(geoarrow_schema, "crs")
+        if (identical(geodesic, "true")) {
+          wk::wk_is_geodesic(result) <- TRUE
+        }
       }
+
+      result
     }
   )
 

@@ -26,6 +26,27 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
                                     strict = FALSE) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
+  # set CRS and geodesic attributes from handleable
+  if (!strict) {
+    crs <- wk::wk_crs(handleable)
+    if (inherits(crs, "wk_crs_inherit")) {
+      crs <- NULL
+    }
+
+    schema <- geoarrow_set_metadata(
+      schema,
+      crs = wk::wk_crs_proj_definition(
+        crs,
+        verbose = TRUE
+      )
+    )
+
+    schema <- geoarrow_set_metadata(
+      schema,
+      geodesic = wk::wk_is_geodesic(handleable)
+    )
+  }
+
   if (identical(extension, "geoarrow.wkt")) {
     return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema, strict = strict))
   } else if (identical(extension, "geoarrow.geojson")) {
@@ -369,15 +390,25 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
   dims_in_schema <- strsplit(geoarrow_meta$dim, "")[[1]]
   dims_in_coords <- intersect(names(coords), c("x", "y", "z", "m"))
 
-  # fills dimensions that aren't specified with NA
-  coords_dim <- unclass(
-    wk::as_xy(
-      wk::new_wk_xy(coords[dims_in_coords]),
-      dims = dims_in_schema
+  if (strict) {
+    # fills dimensions that aren't specified with NA
+    coords_dim <- unclass(
+      wk::as_xy(
+        wk::new_wk_xy(coords[dims_in_coords]),
+        dims = dims_in_schema
+      )
     )
-  )
+  } else if (!identical(dims_in_coords, dims_in_schema)) {
+    # updates the schema to reflect the dimensions in the data
+    schema <- geoarrow_set_metadata(
+      schema,
+      dim = paste0(dims_in_coords, collapse = "")
+    )
+    coords_dim <- coords[dims_in_coords]
+  } else {
+    coords_dim <- coords[dims_in_coords]
+  }
 
-  stopifnot(identical(names(coords_dim), dims_in_schema))
   n_dim <- length(coords_dim)
   n_coord <- length(coords_dim[[1]])
 

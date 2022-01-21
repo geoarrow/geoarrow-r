@@ -14,10 +14,33 @@ geoarrow_metadata <- function(schema) {
   if (is.null(serialized)) list() else geoarrow_metadata_deserialize(serialized)
 }
 
+geoarrow_set_metadata <- function(schema, crs, geodesic, dim) {
+  meta <- geoarrow_metadata(schema)
+  if (!missing(crs)) {
+    meta$crs <- crs
+  }
+
+  if (!missing(geodesic)) {
+    meta$geodesic <- geodesic
+  }
+
+  if (!missing(dim)) {
+    meta$dim <- dim
+  }
+
+  serialized <- do.call(geoarrow_metadata_serialize, meta)
+  schema$metadata[["ARROW:extension:metadata"]] <- serialized
+  schema
+}
+
 geoarrow_metadata_serialize <- function(crs = NULL, geodesic = NULL, dim = NULL) {
   if (!is.null(geodesic)) {
     geodesic <- scalar_lgl(geodesic)
     geodesic <- if (geodesic) "true" else NULL
+  }
+
+  if (length(crs) == 1 && is.na(crs)) {
+    crs <- NULL
   }
 
   vals <- list(crs = crs, geodesic = geodesic, dim = dim)
