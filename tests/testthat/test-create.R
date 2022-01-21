@@ -238,28 +238,12 @@ test_that("WKB arrays can be created", {
   expect_identical(diff(array$array_data$buffers[[2]]), as.integer(lengths(wkb_list)))
   expect_identical(array$array_data$buffers[[3]], unlist(wkb_list))
 
-  wkb_list_not_null <- unclass(wk::as_wkb(c("POINT (1 2)", "LINESTRING (1 2, 3 4)")))
-  array_not_null <- geoarrow_create_wkb_array(
-    wkb_list_not_null,
-    schema = geoarrow_schema_wkb(format = "z", nullable = FALSE)
-  )
-
-  expect_null(array_not_null$array_data$buffers[[1]])
-  expect_identical(diff(array_not_null$array_data$buffers[[2]]), as.integer(lengths(wkb_list_not_null)))
-  expect_identical(array_not_null$array_data$buffers[[3]], unlist(wkb_list))
-
   skip_if_not_installed("arrow")
 
   array_arrow <- narrow::from_narrow_array(array, arrow::Array)
   expect_identical(
     lapply(as.vector(array_arrow), as.raw),
     lapply(wkb_list, as.raw)
-  )
-
-  array_not_null_arrow <- narrow::from_narrow_array(array_not_null, arrow::Array)
-  expect_identical(
-    lapply(as.vector(array_not_null_arrow), as.raw),
-    wkb_list_not_null
   )
 })
 
@@ -487,12 +471,11 @@ test_that("polygons can be created", {
   )
 })
 
-test_that("nullable and non-nullable linestring arrays can be created", {
+test_that("linestring arrays can be created", {
   ls_not_null <- geoarrow_create_linestring_array(
     wk::xy(1:10, 11:20),
-    c(5, NA, 5),
+    c(5, 0, 5),
     geoarrow_schema_linestring(
-      nullable = FALSE,
       point = geoarrow_schema_point_struct()
     )
   )
@@ -503,7 +486,6 @@ test_that("nullable and non-nullable linestring arrays can be created", {
     wk::xy(1:10, 11:20),
     c(5, NA, 5),
     geoarrow_schema_linestring(
-      nullable = TRUE,
       point = geoarrow_schema_point_struct()
     )
   )
@@ -557,18 +539,18 @@ test_that("linestring arrays error for invalid schemas", {
   )
 })
 
-test_that("point arrays can be created with and without null points", {
+test_that("point arrays can be created", {
   coords <- wk::xy(c(1:2, NA), c(3:4, NA))
 
   array_not_null <- geoarrow_create_point_array(
-    coords,
-    geoarrow_schema_point(nullable = FALSE)
+    coords[1:2],
+    geoarrow_schema_point()
   )
   expect_null(array_not_null$array_data$buffers[[1]])
 
   array_null <- geoarrow_create_point_array(
     coords,
-    geoarrow_schema_point(nullable = TRUE)
+    geoarrow_schema_point()
   )
 
   expect_identical(
@@ -581,7 +563,7 @@ test_that("point arrays can be created with and without null points", {
   array_not_null_arrow <- narrow::from_narrow_array(array_not_null, arrow::Array)
   expect_identical(
     lapply(as.vector(array_not_null_arrow), as.numeric),
-    list(c(1, 3), c(2, 4), c(NA_real_, NA_real_))
+    list(c(1, 3), c(2, 4))
   )
 
   array_null_arrow <- narrow::from_narrow_array(array_null, arrow::Array)
@@ -591,18 +573,18 @@ test_that("point arrays can be created with and without null points", {
   )
 })
 
-test_that("point struct arrays can be created with and without null points", {
+test_that("point struct arrays can be created", {
   coords <- wk::xy(c(1:2, NA), c(3:4, NA))
 
   array_not_null <- geoarrow_create_point_array(
-    coords,
-    geoarrow_schema_point_struct(nullable = FALSE)
+    coords[1:2],
+    geoarrow_schema_point_struct()
   )
   expect_null(array_not_null$array_data$buffers[[1]])
 
   array_null <- geoarrow_create_point_array(
     coords,
-    geoarrow_schema_point_struct(nullable = TRUE)
+    geoarrow_schema_point_struct()
   )
 
   expect_identical(

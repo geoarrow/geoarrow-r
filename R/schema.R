@@ -13,7 +13,6 @@
 #'   of xy, xyz, xym, or xyzm.
 #' @param point The point schema to use for coordinates
 #' @param child The child schema to use in a single-type (multi) collection
-#' @param children The child schemas for children in the union
 #' @param format A custom storage format
 #' @param format_coord A format for floating point coordinate storage. This
 #'   can be "f" (float/float32) or "g" (double/float64).
@@ -29,7 +28,7 @@
 #' geoarrow_schema_multi(geoarrow_schema_point())
 #'
 geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
-                                  format_coord = "g", nullable = TRUE) {
+                                  format_coord = "g") {
   stopifnot(
     dim_is_xy_xyz_xym_or_xzm(dim),
     format_is_float_or_double(format_coord)
@@ -39,7 +38,6 @@ geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = sprintf("+w:%d", n_dim),
-    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.point",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
@@ -53,7 +51,7 @@ geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
-                                         format_coord = "g", nullable = TRUE) {
+                                         format_coord = "g") {
   stopifnot(
     dim_is_xy_xyz_xym_or_xzm(dim),
     format_is_float_or_double(format_coord)
@@ -66,7 +64,6 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+s",
-    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.point",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
@@ -77,12 +74,11 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_linestring <- function(name = "", nullable = TRUE, geodesic = FALSE,
+geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
                                        point = geoarrow_schema_point()) {
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+l",
-    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.linestring",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
@@ -93,12 +89,11 @@ geoarrow_schema_linestring <- function(name = "", nullable = TRUE, geodesic = FA
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_polygon <- function(name = "", nullable = TRUE, geodesic = FALSE,
+geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
                                     point = geoarrow_schema_point()) {
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+l",
-    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.polygon",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
@@ -111,11 +106,10 @@ geoarrow_schema_polygon <- function(name = "", nullable = TRUE, geodesic = FALSE
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multi <- function(child, name = "", nullable = TRUE) {
+geoarrow_schema_multi <- function(child, name = "") {
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+l",
-    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.multi",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize()
@@ -133,7 +127,6 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = 
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = format,
-    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.wkb",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)
@@ -143,13 +136,12 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = 
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = FALSE, nullable = TRUE) {
+geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = FALSE) {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z", "u", "U")))
 
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = format,
-    flags = narrow::narrow_schema_flags(nullable = nullable),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.wkt",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)
@@ -159,8 +151,8 @@ geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = 
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_geojson <- function(name = "", format = "u", crs = NULL, nullable = TRUE) {
-  schema <- geoarrow_schema_wkt(name, format, crs, NULL, nullable)
+geoarrow_schema_geojson <- function(name = "", format = "u", crs = NULL) {
+  schema <- geoarrow_schema_wkt(name, format, crs, NULL)
   schema$metadata[["ARROW:extension:name"]] <- "geoarrow.geojson"
   schema
 }

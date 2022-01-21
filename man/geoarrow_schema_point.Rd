@@ -11,37 +11,28 @@
 \alias{geoarrow_schema_geojson}
 \title{Create low-level Arrow schemas}
 \usage{
-geoarrow_schema_point(
-  name = "",
-  dim = "xy",
-  crs = NULL,
-  format_coord = "g",
-  nullable = TRUE
-)
+geoarrow_schema_point(name = "", dim = "xy", crs = NULL, format_coord = "g")
 
 geoarrow_schema_point_struct(
   name = "",
   dim = "xy",
   crs = NULL,
-  format_coord = "g",
-  nullable = TRUE
+  format_coord = "g"
 )
 
 geoarrow_schema_linestring(
   name = "",
-  nullable = TRUE,
   geodesic = FALSE,
   point = geoarrow_schema_point()
 )
 
 geoarrow_schema_polygon(
   name = "",
-  nullable = TRUE,
   geodesic = FALSE,
   point = geoarrow_schema_point()
 )
 
-geoarrow_schema_multi(child, name = "", nullable = TRUE)
+geoarrow_schema_multi(child, name = "")
 
 geoarrow_schema_wkb(
   name = "",
@@ -51,15 +42,9 @@ geoarrow_schema_wkb(
   nullable = TRUE
 )
 
-geoarrow_schema_wkt(
-  name = "",
-  format = "u",
-  crs = NULL,
-  geodesic = FALSE,
-  nullable = TRUE
-)
+geoarrow_schema_wkt(name = "", format = "u", crs = NULL, geodesic = FALSE)
 
-geoarrow_schema_geojson(name = "", format = "u", crs = NULL, nullable = TRUE)
+geoarrow_schema_geojson(name = "", format = "u", crs = NULL)
 }
 \arguments{
 \item{name}{An optional name}
@@ -75,8 +60,6 @@ command-line utility (e.g., "OGC:CRS84").}
 \item{format_coord}{A format for floating point coordinate storage. This
 can be "f" (float/float32) or "g" (double/float64).}
 
-\item{nullable}{\code{TRUE} if the type is semantically nullable}
-
 \item{geodesic}{Use \code{TRUE} to assert that edges should be interpolated
 using the shortest geodesic path (great circle on a sphere).}
 
@@ -86,7 +69,7 @@ using the shortest geodesic path (great circle on a sphere).}
 
 \item{format}{A custom storage format}
 
-\item{children}{The child schemas for children in the union}
+\item{nullable}{\code{TRUE} if the type is semantically nullable}
 }
 \value{
 A \code{\link[=narrow_schema]{narrow_schema()}}.
