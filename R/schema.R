@@ -83,7 +83,7 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE, geodesic = FALSE,
-                                        point = geoarrow_schema_point(nullable = FALSE)) {
+                                       point = geoarrow_schema_point()) {
   stopifnot(format_is_nested_list(format))
 
   narrow::narrow_schema(
@@ -101,7 +101,7 @@ geoarrow_schema_linestring <- function(name = "", format = "+l", nullable = TRUE
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_polygon <- function(name = "", format = c("+l", "+l"), nullable = TRUE, geodesic = FALSE,
-                                     point = geoarrow_schema_point(nullable = FALSE)) {
+                                     point = geoarrow_schema_point()) {
   stopifnot(
     format_is_nested_list(format[1]),
     format_is_nested_list(format[2])

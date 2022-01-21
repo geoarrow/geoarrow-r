@@ -34,7 +34,7 @@ geoarrow_schema_linestring(
   format = "+l",
   nullable = TRUE,
   geodesic = FALSE,
-  point = geoarrow_schema_point(nullable = FALSE)
+  point = geoarrow_schema_point()
 )
 
 geoarrow_schema_polygon(
@@ -42,7 +42,7 @@ geoarrow_schema_polygon(
   format = c("+l", "+l"),
   nullable = TRUE,
   geodesic = FALSE,
-  point = geoarrow_schema_point(nullable = FALSE)
+  point = geoarrow_schema_point()
 )
 
 geoarrow_schema_multi(child, name = "", format = "+l", nullable = TRUE)

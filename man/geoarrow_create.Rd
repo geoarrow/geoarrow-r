@@ -20,10 +20,7 @@ geoarrow_create(
   strict = FALSE
 )
 
-geoarrow_schema_default(
-  handleable,
-  point = geoarrow_schema_point(nullable = FALSE)
-)
+geoarrow_schema_default(handleable, point = geoarrow_schema_point())
 }
 \arguments{
 \item{handleable}{An object with a \code{\link[wk:wk_handle]{wk::wk_handle()}} method}

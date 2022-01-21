@@ -552,7 +552,7 @@ geoarrow_create_string_array <- function(x, schema, strict = FALSE) {
 
 #' @rdname geoarrow_create
 #' @export
-geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point(nullable = FALSE)) {
+geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point()) {
   # try vector_meta (doesn't iterate along features)
   vector_meta <- wk::wk_vector_meta(handleable)
   all_types <- vector_meta$geometry_type

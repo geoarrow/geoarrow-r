@@ -224,7 +224,7 @@ test_that("schema_from_column_metadata() works for WKT", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkt(nullable = FALSE)
+      geoarrow_schema_wkt()
     )
   )
 
@@ -236,7 +236,7 @@ test_that("schema_from_column_metadata() works for WKT", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkt(crs = "EPSG:1234", nullable = FALSE)
+      geoarrow_schema_wkt(crs = "EPSG:1234", )
     )
   )
 
@@ -248,7 +248,7 @@ test_that("schema_from_column_metadata() works for WKT", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkt(geodesic = TRUE, nullable = FALSE)
+      geoarrow_schema_wkt(geodesic = TRUE)
     )
   )
 
@@ -279,7 +279,7 @@ test_that("schema_from_column_metadata() works for WKT", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkt(format = "w:12", nullable = FALSE)
+      geoarrow_schema_wkt(format = "w:12")
     )
   )
 })
@@ -292,7 +292,7 @@ test_that("schema_from_column_metadata() works for WKB", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkb(nullable = FALSE)
+      geoarrow_schema_wkb()
     )
   )
 
@@ -304,7 +304,7 @@ test_that("schema_from_column_metadata() works for WKB", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkb(crs = "EPSG:1234", nullable = FALSE)
+      geoarrow_schema_wkb(crs = "EPSG:1234")
     )
   )
 
@@ -316,7 +316,7 @@ test_that("schema_from_column_metadata() works for WKB", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkb(geodesic = TRUE, nullable = FALSE)
+      geoarrow_schema_wkb(geodesic = TRUE)
     )
   )
 
@@ -347,7 +347,7 @@ test_that("schema_from_column_metadata() works for WKB", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkb(format = "w:12", nullable = FALSE)
+      geoarrow_schema_wkb(format = "w:12")
     )
   )
 })
@@ -360,7 +360,7 @@ test_that("schema_from_column_metadata() works for GeoJSON", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_geojson(nullable = FALSE)
+      geoarrow_schema_geojson()
     )
   )
 
@@ -372,7 +372,7 @@ test_that("schema_from_column_metadata() works for GeoJSON", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_geojson(crs = "EPSG:1234", nullable = FALSE)
+      geoarrow_schema_geojson(crs = "EPSG:1234")
     )
   )
 
@@ -403,7 +403,7 @@ test_that("schema_from_column_metadata() works for GeoJSON", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_geojson(format = "w:12", nullable = FALSE)
+      geoarrow_schema_geojson(format = "w:12")
     )
   )
 })
@@ -411,7 +411,6 @@ test_that("schema_from_column_metadata() works for GeoJSON", {
 test_that("schema_from_column_metadata() works for point", {
   bare_point <- geoarrow_schema_point(dim = "xy")
   bare_point$metadata <- NULL
-  bare_point$flags <- 0L
 
   schema_reconstructed <- schema_from_column_metadata(
     list(crs = NULL, encoding = "point", dim = "xy"),
@@ -420,7 +419,7 @@ test_that("schema_from_column_metadata() works for point", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_point(nullable = FALSE),
+      geoarrow_schema_point(),
       recursive = TRUE
     )
   )
@@ -433,7 +432,7 @@ test_that("schema_from_column_metadata() works for point", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_point(nullable = FALSE, crs = "EPSG:1234"),
+      geoarrow_schema_point(crs = "EPSG:1234"),
       recursive = TRUE
     )
   )
@@ -447,21 +446,7 @@ test_that("schema_from_column_metadata() works for point", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_point(nullable = FALSE, dim = "xyzm", crs = "EPSG:1234"),
-      recursive = TRUE
-    )
-  )
-
-  # nullable
-  bare_point$flags <- narrow::narrow_schema_flags(nullable = TRUE)
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "point", dim = "xy"),
-    bare_point
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_point(nullable = TRUE),
+      geoarrow_schema_point(dim = "xyzm", crs = "EPSG:1234"),
       recursive = TRUE
     )
   )
@@ -470,7 +455,6 @@ test_that("schema_from_column_metadata() works for point", {
 test_that("schema_from_column_metadata() works for point struct", {
   bare_point <- geoarrow_schema_point_struct(dim = "xy")
   bare_point$metadata <- NULL
-  bare_point$flags <- 0L
 
   schema_reconstructed <- schema_from_column_metadata(
     list(crs = NULL, encoding = "point", dim = "xy"),
@@ -479,7 +463,7 @@ test_that("schema_from_column_metadata() works for point struct", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_point_struct(nullable = FALSE),
+      geoarrow_schema_point_struct(),
       recursive = TRUE
     )
   )
@@ -492,21 +476,7 @@ test_that("schema_from_column_metadata() works for point struct", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_point_struct(nullable = FALSE, crs = "EPSG:1234"),
-      recursive = TRUE
-    )
-  )
-
-  # nullable
-  bare_point$flags <- narrow::narrow_schema_flags(nullable = TRUE)
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "point", dim = "xy"),
-    bare_point
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_point_struct(nullable = TRUE),
+      geoarrow_schema_point_struct(crs = "EPSG:1234"),
       recursive = TRUE
     )
   )
@@ -529,7 +499,6 @@ test_that("schema_from_column_metadata() works for point struct", {
 test_that("schema_from_column_metadata() works for linestring", {
   bare <- geoarrow_schema_linestring()
   bare$metadata <- NULL
-  bare$flags <- 0L
 
   schema_reconstructed <- schema_from_column_metadata(
     list(
@@ -541,7 +510,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_linestring(nullable = FALSE),
+      geoarrow_schema_linestring(),
       recursive = TRUE
     )
   )
@@ -558,8 +527,7 @@ test_that("schema_from_column_metadata() works for linestring", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_linestring(
-        point = geoarrow_schema_point(crs = "EPSG:1234", nullable = FALSE),
-        nullable = FALSE
+        point = geoarrow_schema_point(crs = "EPSG:1234")
       ),
       recursive = TRUE
     )
@@ -577,8 +545,7 @@ test_that("schema_from_column_metadata() works for linestring", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_linestring(
-        point = geoarrow_schema_point(dim = "xyzm", nullable = FALSE),
-        nullable = FALSE
+        point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
     )
@@ -597,26 +564,8 @@ test_that("schema_from_column_metadata() works for linestring", {
     narrow::narrow_schema_info(
       geoarrow_schema_linestring(
         geodesic = TRUE,
-        point = geoarrow_schema_point(nullable = FALSE),
-        nullable = FALSE
+        point = geoarrow_schema_point()
       ),
-      recursive = TRUE
-    )
-  )
-
-  # nullable
-  bare$flags <- narrow::narrow_schema_flags(nullable = TRUE)
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = list(name = "linestring", point = list(encoding = "point"))
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_linestring(nullable = TRUE),
       recursive = TRUE
     )
   )
@@ -642,7 +591,6 @@ test_that("schema_from_column_metadata() works for linestring", {
 test_that("schema_from_column_metadata() works for polygon", {
   bare <- geoarrow_schema_polygon()
   bare$metadata <- NULL
-  bare$flags <- 0L
 
   schema_reconstructed <- schema_from_column_metadata(
     list(
@@ -654,7 +602,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_polygon(nullable = FALSE),
+      geoarrow_schema_polygon(),
       recursive = TRUE
     )
   )
@@ -671,8 +619,7 @@ test_that("schema_from_column_metadata() works for polygon", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_polygon(
-        point = geoarrow_schema_point(crs = "EPSG:1234", nullable = FALSE),
-        nullable = FALSE
+        point = geoarrow_schema_point(crs = "EPSG:1234")
       ),
       recursive = TRUE
     )
@@ -690,8 +637,7 @@ test_that("schema_from_column_metadata() works for polygon", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_polygon(
-        point = geoarrow_schema_point(dim = "xyzm", nullable = FALSE),
-        nullable = FALSE
+        point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
     )
@@ -710,26 +656,8 @@ test_that("schema_from_column_metadata() works for polygon", {
     narrow::narrow_schema_info(
       geoarrow_schema_polygon(
         geodesic = TRUE,
-        point = geoarrow_schema_point(nullable = FALSE),
-        nullable = FALSE
+        point = geoarrow_schema_point()
       ),
-      recursive = TRUE
-    )
-  )
-
-  # nullable
-  bare$flags <- narrow::narrow_schema_flags(nullable = TRUE)
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = list(name = "polygon", point = list(encoding = "point"))
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_polygon(nullable = TRUE),
       recursive = TRUE
     )
   )
@@ -756,9 +684,7 @@ test_that("schema_from_column_metadata() works for multi", {
   bare <- geoarrow_schema_multi(geoarrow_schema_linestring())
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
-  bare$children[[1]]$flags <- 0L
   bare$children[[1]]$children[[1]]$metadata <- NULL
-  bare$flags <- 0L
 
   schema_reconstructed <- schema_from_column_metadata(
     list(
@@ -781,8 +707,7 @@ test_that("schema_from_column_metadata() works for multi", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
-        geoarrow_schema_linestring(nullable = FALSE),
-        nullable = FALSE
+        geoarrow_schema_linestring()
       ),
       recursive = TRUE
     )
@@ -811,10 +736,8 @@ test_that("schema_from_column_metadata() works for multi", {
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
         geoarrow_schema_linestring(
-          nullable = FALSE,
-          point = geoarrow_schema_point(crs = "EPSG:1234", nullable = FALSE)
-        ),
-        nullable = FALSE
+          point = geoarrow_schema_point(crs = "EPSG:1234")
+        )
       ),
       recursive = TRUE
     )
@@ -843,10 +766,8 @@ test_that("schema_from_column_metadata() works for multi", {
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
         geoarrow_schema_linestring(
-          nullable = FALSE,
-          point = geoarrow_schema_point(dim = "xyzm", nullable = FALSE)
-        ),
-        nullable = FALSE
+          point = geoarrow_schema_point(dim = "xyzm")
+        )
       ),
       recursive = TRUE
     )
@@ -874,40 +795,7 @@ test_that("schema_from_column_metadata() works for multi", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
-        geoarrow_schema_linestring(
-          nullable = FALSE,
-          geodesic = TRUE
-        ),
-        nullable = FALSE
-      ),
-      recursive = TRUE
-    )
-  )
-
-  # nullable
-  bare$flags <- narrow::narrow_schema_flags(nullable = TRUE)
-  schema_reconstructed <- schema_from_column_metadata(
-    list(
-      crs = NULL, dim = "xy",
-      encoding = list(
-        name = "multi",
-        child = list(
-          encoding = list(
-            name = "linestring",
-            point = list(
-              encoding = "point"
-            )
-          )
-        )
-      )
-    ),
-    bare
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_linestring(nullable = FALSE)
+        geoarrow_schema_linestring(geodesic = TRUE)
       ),
       recursive = TRUE
     )
@@ -937,7 +825,7 @@ test_that("schema_from_column_metadata() works for multi", {
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
         format = "+L",
-        geoarrow_schema_linestring(nullable = FALSE)
+        geoarrow_schema_linestring()
       ),
       recursive = TRUE
     )
