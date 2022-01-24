@@ -61,17 +61,16 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   }
 
   # Eventually this will be done with dedicated wk handlers at the C level with
-  # minimal allocs. For now, this is going to generate a lot of copying.
-
-  # all types need the coordinates in flat form
-  coords <- wk::wk_coords(handleable)
+  # minimal allocs. For now, this is going to generate some copying.
 
   if (identical(extension, "geoarrow.point")) {
-    return(geoarrow_create_point_array(coords, schema))
+    return(geoarrow_create_point_array(wk::as_xy(handleable), schema))
   }
 
+  # the rest of the types need the coordinates in flat form
   # everything except point needs counts
   counts <- wk::wk_count(handleable)
+  coords <- wk::wk_coords(handleable)
 
   if (identical(extension, "geoarrow.linestring")) {
     return(geoarrow_create_linestring_array(coords, counts$n_coord, schema, strict = strict))
@@ -98,10 +97,16 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
     } else if (identical(sub_extension, "geoarrow.linestring")) {
       flat_counts <- wk::wk_handle(
         handleable,
-        wk::wk_flatten_filter(
-          wk::wk_count_handler()
-        )
+        wk::wk_flatten_filter(wk::wk_count_handler())
       )
+
+      # because of a bug in the count handler, we have to special-case all empty
+      # https://github.com/paleolimbot/wk/issues/139
+      if (isTRUE(all(counts$n_coord == 0))) {
+        flat_counts <- new_data_frame(
+          list(n_geom = integer(), n_ring = integer(), n_coord = double())
+        )
+      }
 
       array <- geoarrow_create_multilinestring_array(
         coords,
@@ -114,12 +119,18 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
     } else if (identical(sub_extension, "geoarrow.polygon")) {
       flat_counts <- wk::wk_handle(
         handleable,
-        wk::wk_flatten_filter(
-          wk::wk_count_handler(),
-          add_details = TRUE
-        )
+        wk::wk_flatten_filter(wk::wk_count_handler())
       )
-      geom_counts <- rle(attr(flat_counts, "wk_details")$feature_id)$lengths
+
+      # because of a bug in the count handler, we have to special-case all empty
+      # https://github.com/paleolimbot/wk/issues/139
+      if (isTRUE(all(counts$n_coord == 0))) {
+        flat_counts <- new_data_frame(
+          list(n_geom = integer(), n_ring = integer(), n_coord = double())
+        )
+      }
+
+      geom_counts <- counts$n_geom - 1L
       ring_coord_counts <- rle(coords$ring_id)$lengths
 
       array <- geoarrow_create_multipolygon_array(

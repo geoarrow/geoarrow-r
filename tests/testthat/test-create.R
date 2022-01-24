@@ -149,6 +149,28 @@ test_that("geoarrow_create() works for goearrow::multi / geoarrow::polygon", {
   )
 })
 
+
+test_that("geoarrow_create() works for empty geometries", {
+  array_point <- geoarrow_create(wk::wkt("POINT EMPTY"))
+  expect_identical(wk::as_wkt(array_point), wk::wkt("POINT (nan nan)"))
+
+
+  empties <- wk::wkt(
+    c(
+      "LINESTRING EMPTY", "POLYGON EMPTY",
+      "MULTIPOINT EMPTY", "MULTILINESTRING EMPTY",
+      "MULTIPOLYGON EMPTY"
+    )
+  )
+
+  for (i in seq_along(empties)) {
+    expect_identical(
+      wk::as_wkt(geoarrow_create(!! empties[i])),
+      !! empties[i]
+    )
+  }
+})
+
 test_that("geoarrow_create() errors for invalid schemas", {
   expect_error(
     geoarrow_create(wk::xy(), schema = narrow::narrow_schema("i")),
