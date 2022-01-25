@@ -20,7 +20,7 @@ vctr_proxy <- function(x, ...) {
 }
 
 vctr_restore <- function(x, to, ...) {
-  narrow::new_narrow_vctr(x, attr(to, "array", exact = TRUE))
+  narrow::new_narrow_vctr(x, attr(to, "array", exact = TRUE))[]
 }
 
 # maybe a better way to do this using an abstract class
