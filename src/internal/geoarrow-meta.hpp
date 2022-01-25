@@ -167,14 +167,135 @@ class GeoArrowMeta {
             default:
                 snprintf(
                     error_, 1024,
-                    "Expected geoarrow.point schema to be a struct or a fixed-width list but found '%s'",
+                    "Expected geoarrow.point to be a struct or a fixed-width list but found '%s'",
                     schema->format);
                 return false;
             }
             break;
         case Extension::Linestring:
+            switch (storage_type_) {
+            case StorageType::List:
+                if (!child.set_schema(schema->children[0])) {
+                    // see above note about snprintf(..., child.error_)
+                    char child_error[800];
+                    memset(child_error, 0, sizeof(child_error));
+                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
+                    snprintf(
+                        error_, 1024,
+                        "geoarrow.linestring child has an invalid schema: %s",
+                        child_error);
+                    return false;
+                }
+
+                if (child.extension_ != Extension::Point) {
+                    snprintf(
+                        error_, 1024,
+                        "Child of geoarrow.linestring must be a geoarrow.point");
+                    return false;
+                }
+
+                break;
+
+            default:
+                snprintf(
+                    error_, 1024,
+                    "Expected geoarrow.linestring to be a list but found '%s'",
+                    schema->format);
+                return false;
+            }
+
+            break;
+
         case Extension::Polygon:
+            switch (storage_type_) {
+            case StorageType::List:
+                if (!child.set_schema(schema->children[0])) {
+                    // see above note about snprintf(..., child.error_)
+                    char child_error[800];
+                    memset(child_error, 0, sizeof(child_error));
+                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
+                    snprintf(
+                        error_, 1024,
+                        "geoarrow.polygon child has an invalid schema: %s",
+                        child_error);
+                    return false;
+                }
+
+                if (child.storage_type_ != StorageType::List) {
+                    snprintf(
+                        error_, 1024,
+                        "Expected child of a geoarrow.polygon to be a list but found '%s'",
+                        schema->children[0]->format);
+                    return false;
+                }
+
+                if (!child.set_schema(schema->children[0]->children[0])) {
+                    // see above note about snprintf(..., child.error_)
+                    char child_error[800];
+                    memset(child_error, 0, sizeof(child_error));
+                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
+                    snprintf(
+                        error_, 1024,
+                        "geoarrow.polygon grandchild has an invalid schema: %s",
+                        child_error);
+                    return false;
+                }
+
+                if (child.extension_ != Extension::Point) {
+                    snprintf(
+                        error_, 1024,
+                        "Grandchild of geoarrow.polygon must be a geoarrow.point");
+                    return false;
+                }
+
+                break;
+
+            default:
+                snprintf(
+                    error_, 1024,
+                    "Expected geoarrow.polygon to be a list but found '%s'",
+                    schema->format);
+                return false;
+            }
+
+            break;
+
         case Extension::Multi:
+        switch (storage_type_) {
+            case StorageType::List:
+                if (!child.set_schema(schema->children[0])) {
+                    // see above note about snprintf(..., child.error_)
+                    char child_error[800];
+                    memset(child_error, 0, sizeof(child_error));
+                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
+                    snprintf(
+                        error_, 1024,
+                        "geoarrow.multi child has an invalid schema: %s",
+                        child_error);
+                    return false;
+                }
+
+                if (child.extension_ != Extension::Point &&
+                    child.extension_ != Extension::Linestring &&
+                    child.extension_ != Extension::Polygon) {
+                    snprintf(
+                        error_, 1024,
+                        "Child of geoarrow.multi must be a geoarrow.point, geoarrow.linestring, or geoarrow.polygon");
+                    return false;
+                }
+
+                break;
+
+            default:
+                snprintf(
+                    error_, 1024,
+                    "Expected geoarrow.multi to be a list but found '%s'",
+                    schema->format);
+                return false;
+            }
+
+            break;
+
         default:
             break;
         }
