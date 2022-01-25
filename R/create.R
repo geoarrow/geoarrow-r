@@ -409,15 +409,22 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
         dims = dims_in_schema
       )
     )
-  } else if (!identical(dims_in_coords, dims_in_schema)) {
+  } else {
     # updates the schema to reflect the dimensions in the data
     schema <- geoarrow_set_metadata(
       schema,
       dim = paste0(dims_in_coords, collapse = "")
     )
     coords_dim <- coords[dims_in_coords]
-  } else {
-    coords_dim <- coords[dims_in_coords]
+
+    if (identical(schema$format, "+s")) {
+      coord_format <- schema$children[[1]]$format
+      schema$children <- lapply(dims_in_coords, function(d) {
+        narrow::narrow_schema(coord_format, name = d)
+      })
+    } else if (startsWith(schema$format, "+w")) {
+      schema$format <- sprintf("+w:%d", length(dims_in_coords))
+    }
   }
 
   n_dim <- length(coords_dim)
