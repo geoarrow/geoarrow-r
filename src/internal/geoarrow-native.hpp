@@ -97,8 +97,9 @@ class GeoArrowArrayView {
         vector_meta_.size = size;
     }
 
-    bool is_null(int64_t delta = 0) {
-        return false;
+    bool is_null(int64_t offset) {
+        return validity_buffer_ &&
+            (validity_buffer_[offset / 8] << (offset % 8)) == 0;
     }
 
     wk_meta_t meta_;

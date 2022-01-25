@@ -1,6 +1,6 @@
 
 test_that("geoarrow_create() works for geoarrow::geojson", {
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::xy(1:2, 1:2),
     schema = geoarrow_schema_geojson()
   )
@@ -15,7 +15,7 @@ test_that("geoarrow_create() works for geoarrow::geojson", {
 })
 
 test_that("geoarrow_create() works for geoarrow::wkt", {
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::xy(1:2, 1:2),
     schema = geoarrow_schema_wkt()
   )
@@ -27,7 +27,7 @@ test_that("geoarrow_create() works for geoarrow::wkt", {
 })
 
 test_that("geoarrow_create() works for geoarrow::wkb", {
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::xy(1:2, 1:2),
     schema = geoarrow_schema_wkb(format = "z"),
     strict = TRUE
@@ -40,7 +40,7 @@ test_that("geoarrow_create() works for geoarrow::wkb", {
 })
 
 test_that("geoarrow_create() works for geoarrow::point", {
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::xy(1:5, 1:5),
     schema = geoarrow_schema_point_struct()
   )
@@ -52,7 +52,7 @@ test_that("geoarrow_create() works for geoarrow::point", {
 })
 
 test_that("geoarrow_create() works for geoarrow::linestring", {
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::wkt(c("LINESTRING (0 1, 2 3)", "LINESTRING (4 5, 6 7, 8 9)")),
     schema = geoarrow_schema_linestring(
       point = geoarrow_schema_point_struct()
@@ -71,7 +71,7 @@ test_that("geoarrow_create() works for geoarrow::polygon", {
     "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10))"
   )
 
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::wkt(poly),
     schema = geoarrow_schema_polygon(
       point = geoarrow_schema_point_struct()
@@ -84,7 +84,7 @@ test_that("geoarrow_create() works for geoarrow::polygon", {
 })
 
 test_that("geoarrow_create() works for geoarrow::multi / geoarrow::point", {
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (4 5, 6 7, 8 9)")),
     schema = geoarrow_schema_multi(
       geoarrow_schema_point_struct()
@@ -99,7 +99,7 @@ test_that("geoarrow_create() works for geoarrow::multi / geoarrow::point", {
 
 
 test_that("geoarrow_create() works for geoarrow::multi / geoarrow::linestring", {
-  array <- geoarrow::geoarrow_create(
+  array <- geoarrow_create(
     wk::wkt(
       c("MULTILINESTRING ((0 1, 2 3))",
         "MULTILINESTRING ((4 5, 6 7, 8 9), (10 11, 12 13))")
@@ -128,7 +128,7 @@ test_that("geoarrow_create() works for goearrow::multi / geoarrow::polygon", {
     "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)))"
   )
 
-  poly <- geoarrow::geoarrow_create(
+  poly <- geoarrow_create(
     wk::wkt(poly_text),
     schema = geoarrow_schema_multi(
       geoarrow_schema_polygon(
@@ -153,7 +153,6 @@ test_that("geoarrow_create() works for goearrow::multi / geoarrow::polygon", {
 test_that("geoarrow_create() works for empty geometries", {
   array_point <- geoarrow_create(wk::wkt("POINT EMPTY"))
   expect_identical(wk::as_wkt(array_point), wk::wkt("POINT (nan nan)"))
-
 
   empties <- wk::wkt(
     c(
@@ -572,7 +571,8 @@ test_that("point arrays can be created", {
 
   array_null <- geoarrow_create_point_array(
     coords,
-    geoarrow_schema_point()
+    geoarrow_schema_point(),
+    can_be_null = TRUE
   )
 
   expect_identical(
@@ -606,7 +606,8 @@ test_that("point struct arrays can be created", {
 
   array_null <- geoarrow_create_point_array(
     coords,
-    geoarrow_schema_point_struct()
+    geoarrow_schema_point_struct(),
+    can_be_null = TRUE
   )
 
   expect_identical(

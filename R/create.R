@@ -384,7 +384,8 @@ geoarrow_create_nested_list <- function(lengths, schema, n, make_child_array, ar
   }
 }
 
-geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
+geoarrow_create_point_array <- function(coords, schema, strict = FALSE,
+                                        can_be_null = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.point")
   )
@@ -430,9 +431,14 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE) {
   n_dim <- length(coords_dim)
   n_coord <- length(coords_dim[[1]])
 
-  is_na <- Reduce("&", lapply(coords_dim, is.na))
-  null_count <- sum(is_na)
-  validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
+  if (can_be_null) {
+    is_na <- Reduce("&", lapply(coords_dim, is.na))
+    null_count <- sum(is_na)
+    validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
+  } else {
+    null_count <- 0
+    validity_buffer <- NULL
+  }
 
   if (identical(schema$format, "+s")) {
     struct_names <- vapply(schema$children, function(x) x$name, character(1))
