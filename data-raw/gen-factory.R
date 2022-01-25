@@ -24,7 +24,7 @@ nest_switch_template <- '
 
 switch (${ extension }_meta.storage_type_) {
 case GeoArrowMeta::StorageType::List:
-    ${ switch_child("ListView<%s, int32_t>", indent) }
+    ${ switch_child("ListView<%s>", indent) }
     break;
 
 default:
@@ -39,11 +39,10 @@ point_switch <- function(type = identity, indent = "    ") {
 }
 
 linestring_switch <- function(indent = "    ", extension = "linestring",
-                              name = "GeoArrowLinestringView",
-                              child_templ = function(type_format, point_type) sprintf(type_format, point_type)) {
+                              name = "GeoArrowLinestringView") {
   switch_child <- function(type_format, indent) {
     type <- function(point_type) {
-      glue("${ name }<${ point_type }, ${ child_templ(type_format, point_type) }>")
+      glue("${ name }<${ point_type }>")
     }
 
     point_switch(type, indent = paste0(indent, "    "))
@@ -56,27 +55,8 @@ polygon_switch <- function(indent = "    ", extension = "polygon") {
   switch_child <- function(type_format, indent) {
     linestring_switch(
       indent = paste0(indent, "    "),
-      child_templ = function(linestring_type_format, point_type) {
-        paste(
-          sprintf(linestring_type_format, point_type),
-          sprintf(type_format, sprintf(linestring_type_format, point_type)),
-          sep = ", "
-        )
-      },
       name = "GeoArrowPolygonView"
     )
-  }
-
-  glue(nest_switch_template, .indent = indent)
-}
-
-multi_switch <- function(type, indent = "    ", extension = "multi") {
-  switch_child <- function(type_format, indent) {
-    type <- function(child_type) {
-      glue("GeoArrowMultiView<${ child_type }, ${ sprintf(type_format, child_type) }>")
-    }
-
-    point_switch(type, indent = paste0(indent, "    "))
   }
 
   glue(nest_switch_template, .indent = indent)
@@ -87,7 +67,7 @@ multi_switch <- function(switcher, indent = "    ", extension = "multi") {
     child <- switcher(indent = "")
     format <- gsub(
       "new (.*?)\\(",
-      "new GeoArrowMultiView<\\1, ${ sprintf(type_format, '\\1') }>(",
+      "new GeoArrowMultiView<\\1>(",
       child
     )
     glue(format, indent = paste0(indent, "    "))
@@ -153,12 +133,3 @@ new <- stringr::str_replace(
   factory
 )
 readr::write_file(new, "src/internal/geoarrow-factory.hpp")
-
-
-clipr::write_clip(point_switch())
-clipr::write_clip(linestring_switch())
-clipr::write_clip(polygon_switch())
-
-clipr::write_clip(multi_switch(point_switch))
-clipr::write_clip(multi_switch(linestring_switch))
-clipr::write_clip(multi_switch(polygon_switch))

@@ -210,29 +210,6 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
 
 
 template <class ChildView>
-class FixedWidthListView: public GeoArrowArrayView {
-  public:
-    FixedWidthListView(const struct ArrowSchema* schema):
-      GeoArrowArrayView(schema), child_(schema->children[0]) {}
-
-    void set_array(const struct ArrowArray* array) {
-        GeoArrowArrayView::set_array(array);
-        child_.set_array(array->children[0]);
-    }
-
-    int64_t child_offset(int32_t offset) {
-        return (array_->offset + offset) * geoarrow_meta_.fixed_width_;
-    }
-
-    int64_t child_size(int32_t offset) {
-        return child_offset(offset + 1) - child_offset(offset);
-    }
-
-    ChildView child_;
-};
-
-
-template <class ChildView, class offset_buffer_t = int32_t>
 class ListView: public GeoArrowArrayView {
   public:
     ListView(const struct ArrowSchema* schema):
@@ -241,7 +218,7 @@ class ListView: public GeoArrowArrayView {
     void set_array(const struct ArrowArray* array) {
         GeoArrowArrayView::set_array(array);
         child_.set_array(array->children[0]);
-        offset_buffer_ = reinterpret_cast<const offset_buffer_t*>(array->buffers[1]);
+        offset_buffer_ = reinterpret_cast<const int32_t*>(array->buffers[1]);
     }
 
     int64_t child_offset(int32_t offset) {
@@ -253,14 +230,14 @@ class ListView: public GeoArrowArrayView {
     }
 
     ChildView child_;
-    const offset_buffer_t* offset_buffer_;
+    const int32_t* offset_buffer_;
 };
 
 
-template <class PointView = GeoArrowPointView, class CoordContainerView = ListView<PointView>>
-class GeoArrowLinestringView: public CoordContainerView {
+template <class PointView = GeoArrowPointView>
+class GeoArrowLinestringView: public ListView<PointView> {
   public:
-    GeoArrowLinestringView(struct ArrowSchema* schema): CoordContainerView(schema) {
+    GeoArrowLinestringView(struct ArrowSchema* schema): ListView<PointView>(schema) {
         this->meta_.geometry_type = WK_LINESTRING;
         this->vector_meta_.geometry_type = WK_LINESTRING;
 
@@ -301,12 +278,10 @@ class GeoArrowLinestringView: public CoordContainerView {
 };
 
 
-template <class PointView = GeoArrowPointView,
-          class CoordContainerView = ListView<PointView>,
-          class RingContainerView = ListView<CoordContainerView>>
-class GeoArrowPolygonView: public RingContainerView {
+template <class PointView = GeoArrowPointView>
+class GeoArrowPolygonView: public ListView<ListView<PointView>> {
   public:
-    GeoArrowPolygonView(struct ArrowSchema* schema): RingContainerView(schema) {
+    GeoArrowPolygonView(struct ArrowSchema* schema): ListView<ListView<PointView>>(schema) {
         this->meta_.geometry_type = WK_POLYGON;
         this->vector_meta_.geometry_type = WK_POLYGON;
 
@@ -356,10 +331,10 @@ class GeoArrowPolygonView: public RingContainerView {
 };
 
 
-template <class ChildView, class ChildContainerView = ListView<ChildView>>
-class GeoArrowMultiView: public ChildContainerView {
+template <class ChildView>
+class GeoArrowMultiView: public ListView<ChildView> {
   public:
-    GeoArrowMultiView(struct ArrowSchema* schema): ChildContainerView(schema) {
+    GeoArrowMultiView(struct ArrowSchema* schema): ListView<ChildView>(schema) {
         switch (this->child_.meta_.geometry_type) {
         case WK_POINT:
             this->meta_.geometry_type = WK_MULTIPOINT;
