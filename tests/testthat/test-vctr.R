@@ -116,6 +116,8 @@ test_that("vctrs support works for all extensions", {
 })
 
 test_that("format and as.character() work for geojson extension", {
+  skip_if_not_installed("geos")
+
   expect_identical(
     format(as_geoarrow_vctr(wk::wkt(c("POINT (1 2)")), schema = geoarrow_schema_geojson())),
     "POINT (1 2)"

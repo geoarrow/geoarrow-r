@@ -63,3 +63,9 @@ test_that("wk_handle() works for geoarrow.wkb stream", {
   )
 })
 
+test_that("wk_handle() works for geoarrow.wkt vctr", {
+  src <- wk::wkt(c("POINT (0 1)", "LINESTRING (1 1, 2 2)", NA))
+  vctr <- as_geoarrow_vctr(src, schema = geoarrow_schema_wkt())
+  expect_identical(wk::wk_handle(vctr, wk::wkt_writer()), src)
+})
+

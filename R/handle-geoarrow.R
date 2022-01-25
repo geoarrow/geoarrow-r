@@ -56,3 +56,10 @@ wk_handle.narrow_array_stream <- function(handleable, handler, ...,
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }
+
+#' @export
+#' @rdname wk_handle.narrow_array
+wk_handle.narrow_vctr_geoarrow <- function(handleable, handler, ...) {
+  wk_handle(attr(handleable, "array", exact = TRUE), handler, ...)
+}
+

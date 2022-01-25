@@ -34,71 +34,11 @@ as.character_geoarrow_vctr <- function(x, ...) {
 }
 
 #' @export
-format.narrow_vctr_geoarrow_wkb <- function(x, ...) {
-  format_geoarrow_vctr(x, ...)
+format.narrow_vctr_geoarrow <- function(x, ...) {
+  wk::wk_format(narrow::as_narrow_array(x))
 }
 
 #' @export
-format.narrow_vctr_geoarrow_wkt <- function(x, ...) {
-  format_geoarrow_vctr(x, ...)
-}
-
-#' @export
-format.narrow_vctr_geoarrow_geojson <- function(x, ...) {
-  format_geoarrow_vctr(x, ...)
-}
-
-#' @export
-format.narrow_vctr_geoarrow_point <- function(x, ...) {
-  format_geoarrow_vctr(x, ...)
-}
-
-#' @export
-format.narrow_vctr_geoarrow_linestring <- function(x, ...) {
-  format_geoarrow_vctr(x, ...)
-}
-
-#' @export
-format.narrow_vctr_geoarrow_polygon <- function(x, ...) {
-  format_geoarrow_vctr(x, ...)
-}
-
-#' @export
-format.narrow_vctr_geoarrow_multi <- function(x, ...) {
-  format_geoarrow_vctr(x, ...)
-}
-
-#' @export
-as.character.narrow_vctr_geoarrow_wkb <- function(x, ...) {
-  as.character_geoarrow_vctr(x, ...)
-}
-
-#' @export
-as.character.narrow_vctr_geoarrow_wkt <- function(x, ...) {
-  as.character_geoarrow_vctr(x, ...)
-}
-
-#' @export
-as.character.narrow_vctr_geoarrow_geojson <- function(x, ...) {
-  as.character_geoarrow_vctr(x, ...)
-}
-
-#' @export
-as.character.narrow_vctr_geoarrow_point <- function(x, ...) {
-  as.character_geoarrow_vctr(x, ...)
-}
-
-#' @export
-as.character.narrow_vctr_geoarrow_linestring <- function(x, ...) {
-  as.character_geoarrow_vctr(x, ...)
-}
-
-#' @export
-as.character.narrow_vctr_geoarrow_polygon <- function(x, ...) {
-  as.character_geoarrow_vctr(x, ...)
-}
-
-#' @export
-as.character.narrow_vctr_geoarrow_multi <- function(x, ...) {
-  as.character_geoarrow_vctr(x, ...)
+as.character.narrow_vctr_geoarrow <- function(x, ...) {
+  wk::wk_format(narrow::as_narrow_array(x))
 }
