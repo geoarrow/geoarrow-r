@@ -14,7 +14,8 @@ test_that("wk_crs() and wk_is_geodesic() works for arrays", {
     wk::wkt("LINESTRING (1 2, 3 4)"),
     schema = geoarrow_schema_linestring(
       point = geoarrow_schema_point(crs = "1234")
-    )
+    ),
+    strict = TRUE
   )
   expect_identical(wk_crs(arr), "1234")
 

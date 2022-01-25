@@ -18,34 +18,14 @@ wk_is_geodesic.narrow_array <- function(x) {
 #' @export
 wk_set_crs.narrow_array <- function(x, crs) {
   crs <- if (!is.null(crs)) wk::wk_crs_proj_definition(crs, verbose = TRUE)
-  x$schema <- recursive_modify_narrow_schema(
-    x$schema,
-    crs = crs,
-    extensions = c(
-      "geoarrow.point",
-      "geoarrow.wkt",
-      "geoarrow.wkb",
-      "geoarrow.gejson"
-    )
-  )
-
+  x$schema <- geoarrow_schema_set_crs(x$schema, crs)
   x
 }
 
 #' @importFrom wk wk_set_geodesic
 #' @export
 wk_set_geodesic.narrow_array <- function(x, geodesic) {
-  x$schema <- recursive_modify_narrow_schema(
-    x$schema,
-    geodesic = geodesic,
-    extensions = c(
-      "geoarrow.linestring",
-      "geoarrow.polygon",
-      "geoarrow.wkt",
-      "geoarrow.wkb"
-    )
-  )
-
+  x$schema <- geoarrow_schema_set_geodesic(x$schema, geodesic)
   x
 }
 
@@ -74,20 +54,49 @@ wk_set_geodesic.narrow_vctr_geoarrow <- function(x, geodesic) {
   x
 }
 
+
+geoarrow_schema_set_crs <- function(schema, crs) {
+  recursive_modify_narrow_schema(
+    schema,
+    crs = crs,
+    extensions = c(
+      "geoarrow.point",
+      "geoarrow.wkt",
+      "geoarrow.wkb",
+      "geoarrow.geojson"
+    )
+  )
+}
+
+geoarrow_schema_set_geodesic <- function(schema, geodesic) {
+  recursive_modify_narrow_schema(
+    schema,
+    geodesic = geodesic,
+    extensions = c(
+      "geoarrow.linestring",
+      "geoarrow.polygon",
+      "geoarrow.wkt",
+      "geoarrow.wkb"
+    )
+  )
+}
+
 recursive_extract_narrow_schema <- function(schema, key) {
   geo_metadata <- geoarrow_metadata(schema)
   if (!is.null(geo_metadata[[key]])) {
-    geo_metadata[[key]]
+    return(geo_metadata[[key]])
   } else {
     for (child in schema$children) {
       geo_metadata <- geoarrow_metadata(child)
       if (!is.null(geo_metadata[[key]])) {
         return(geo_metadata[[key]])
       } else {
-        return(recursive_extract_narrow_schema(child))
+        return(recursive_extract_narrow_schema(child, key))
       }
     }
   }
+
+  NULL
 }
 
 recursive_modify_narrow_schema <- function(schema, ..., extensions) {

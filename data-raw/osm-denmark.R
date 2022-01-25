@@ -1,118 +1,94 @@
 
+library(tidyverse)
 library(arrow)
 library(geoarrow)
 
-# curl::curl_download(
-#   "https://download.geofabrik.de/europe/denmark-latest-free.shp.zip",
-#   "data-raw/denmark-latest-free.shp.zip"
-# )
-#
-# dir.create("data-raw/denmark")
-# unzip("data-raw/denmark-latest-free.shp.zip", exdir = "data-raw/denmark")
-
-system.time(
-  buildings_sf <- sf::read_sf("data-raw/denmark/gis_osm_buildings_a_free_1.shp")
-)
-write_geoarrow_parquet(buildings_sf, "data-raw/buildings.parquet")
-
-library(geoarrow)
-
-# read_sf()
-system.time(
-  sf::read_sf(
-    "~/Desktop/rscratch/geoarrow/data-raw/denmark/gis_osm_buildings_a_free_1.shp"
+if (!dir.exists("data-raw/denmark")) {
+  curl::curl_download(
+    "https://download.geofabrik.de/europe/denmark-latest-free.shp.zip",
+    "data-raw/denmark-latest-free.shp.zip"
   )
-)
 
-# read + iterate over coords
-system.time(
-  read_geoarrow_parquet(
-    "~/Desktop/rscratch/geoarrow/data-raw/denmark-buildings.parquet",
-    handler = wk::wk_void_handler()
+  dir.create("data-raw/denmark")
+  unzip("data-raw/denmark-latest-free.shp.zip", exdir = "data-raw/denmark")
+}
+
+files <- tibble(
+  shp = list.files("data-raw/denmark", ".shp$", full.names = TRUE)
+) %>%
+  extract(shp, "name", "gis_(.*?)_free", remove = FALSE) %>%
+  mutate(
+    content = map(shp, sf::read_sf)
   )
-)
 
-# read + convert to sf
-system.time(
-  read_geoarrow_parquet(
-    "~/Desktop/rscratch/geoarrow/data-raw/denmark-buildings.parquet",
-    handler = wk::sfc_writer()
-  )
-)
+if (!dir.exists("data-raw/denmark_osm")) {
+  dir.create("data-raw/denmark_osm")
+}
 
-# read + convert to geos::geos_geometry()
-system.time(
-  read_geoarrow_parquet(
-    "~/Desktop/rscratch/geoarrow/data-raw/denmark-buildings.parquet",
-    handler = geos::geos_geometry_writer()
-  )
-)
+dst <- "data-raw/denmark_osm"
 
-buildings_geom <- vapour::vapour_read_geometry("data-raw/denmark/gis_osm_buildings_a_free_1.shp")
-buildings_attr <- vapour::vapour_read_attributes("data-raw/denmark/gis_osm_buildings_a_free_1.shp")
+for (name in files$name) {
+  message(glue::glue("Processing '{ name }'"))
 
-buildings_geom_wkb <- wk::new_wk_wkb(buildings_geom, crs = "OGC:CRS84", geodesic = TRUE)
-bulidings_boundary_geom_wkb <- wk::as_wkb(geos::geos_boundary(buildings_geom_wkb)) |>
-  wk::wk_set_geodesic(TRUE)
+  src <- files$content[[match(name, files$name)]]
+  wk::wk_crs(src) <- wk::wk_crs_longlat()
 
-buildings_centroid <- s2::s2_centroid(buildings_geom_wkb)
-buildings_xy <- wk::xy(
-  s2::s2_x(buildings_centroid), s2::s2_y(buildings_centroid),
-  crs = "OGC:CRS84"
-)
+  # some common existing formats
+  sf::write_sf(src, glue::glue("{dst}/{name}.gpkg"))
+  sf::write_sf(src, glue::glue("{dst}/{name}.fgb"))
 
-buildings <- tibble::tibble(!!! buildings_attr, geometry = bulidings_boundary_geom_wkb)
-buildings_sf <- tibble::tibble(
-  !!! buildings_attr,
-  geometry = wk::wk_translate(bulidings_boundary_geom_wkb, sf::st_sfc(crs = "OGC:CRS84"))
-)
+  # for verification
+  src_wkb <- wk::wk_handle(src, wk::wkb_writer())
+  src_crs <- wk::wk_crs_proj_definition(sf::st_crs(src), verbose = TRUE)
+  attributes(src_wkb) <- NULL
 
-write_geoarrow_parquet(
-  buildings,
-  "data-raw/denmark-buildings-point.parquet",
-  schema = geoarrow_schema_linestring(
-    point = geoarrow_schema_point(
-      crs = wk::wk_crs(buildings),
-      nullable = TRUE
+  check_output <- function(file) {
+    check <- read_geoarrow_parquet(
+      file,
+      handler = wk::wkb_writer()
     )
+
+    if (!identical(wk::wk_crs(check$geometry), src_crs)) {
+      message(glue::glue("CRS was not identical for file {file}"))
+      print(waldo::compare(wk::wk_crs(check$geometry), src_crs))
+    }
+
+    attributes(check$geometry) <- NULL
+    if (!identical(check$geometry, src_wkb)) {
+      message(glue::glue("Geometry not identical for file {file}"))
+    }
+  }
+
+  write_geoarrow_parquet(
+    src,
+    glue::glue("{dst}/{name}-wkb.parquet"),
+    compression = "uncompressed",
+    schema = geoarrow_schema_wkb()
   )
-)
+  check_output(glue::glue("{dst}/{name}-wkb.parquet"))
 
-write_geoarrow_parquet(
-  buildings,
-  "data-raw/denmark-buildings-point-struct.parquet",
-  schema = geoarrow_schema_linestring(
-    point = geoarrow_schema_point_struct(
-      crs = wk::wk_crs(buildings),
-      nullable = TRUE
-    )
+  write_geoarrow_parquet(
+    src,
+    glue::glue("{dst}/{name}-wkb.snappy.parquet"),
+    compression = "snappy",
+    schema = geoarrow_schema_wkb()
   )
-)
+  check_output(glue::glue("{dst}/{name}-wkb.snappy.parquet"))
 
-buildings_tbl <- arrow::read_parquet("data-raw/denmark-buildings-point.parquet", as_data_frame = FALSE)
-buildings_tbl_struct <- arrow::read_parquet("data-raw/denmark-buildings-point-struct.parquet", as_data_frame = FALSE)
-
-# about the same for points (reading)
-bench::mark(
-  point = arrow::read_parquet("data-raw/denmark-buildings-point.parquet", as_data_frame = FALSE),
-  point_struct = arrow::read_parquet("data-raw/denmark-buildings-point-struct.parquet", as_data_frame = FALSE),
-  check = FALSE
-)
-
-buildings_array <- narrow::as_narrow_array(buildings_tbl$geometry$chunk(0))
-buildings_array$schema <- geoarrow_schema_linestring(
-  point = geoarrow_schema_point(
-    nullable = TRUE
+  write_geoarrow_parquet(
+    src,
+    glue::glue("{dst}/{name}.parquet"),
+    compression = "uncompressed"
   )
-)
-buildings_array_struct <- narrow::as_narrow_array(buildings_tbl_struct$geometry$chunk(0))
-buildings_array_struct$schema <- geoarrow_schema_linestring(
-  point = geoarrow_schema_point_struct(
-    nullable = TRUE
-  )
-)
+  check_output(glue::glue("{dst}/{name}.parquet"))
 
-bench::mark(
-  point = wk::wk_void(buildings_array),
-  point_struct = wk::wk_void(buildings_array_struct)
-)
+  write_geoarrow_parquet(
+    src,
+    glue::glue("{dst}/{name}.snappy.parquet"),
+    compression = "snappy"
+  )
+  check_output(glue::glue("{dst}/{name}.snappy.parquet"))
+}
+
+
+

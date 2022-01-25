@@ -27,24 +27,18 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
   # set CRS and geodesic attributes from handleable
+
   if (!strict) {
     crs <- wk::wk_crs(handleable)
     if (inherits(crs, "wk_crs_inherit")) {
       crs <- NULL
     }
 
-    schema <- geoarrow_set_metadata(
+    schema <- geoarrow_schema_set_crs(
       schema,
-      crs = wk::wk_crs_proj_definition(
-        crs,
-        verbose = TRUE
-      )
+      wk::wk_crs_proj_definition(crs, verbose = TRUE)
     )
-
-    schema <- geoarrow_set_metadata(
-      schema,
-      geodesic = wk::wk_is_geodesic(handleable)
-    )
+    schema <- geoarrow_schema_set_geodesic(schema, wk::wk_is_geodesic(handleable))
   }
 
   if (identical(extension, "geoarrow.wkt")) {
