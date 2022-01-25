@@ -23,16 +23,8 @@ default:
 nest_switch_template <- '
 
 switch (${ extension }_meta.storage_type_) {
-case GeoArrowMeta::StorageType::FixedWidthList:
-    ${ switch_child("FixedWidthListView<%s>", indent) }
-    break;
-
 case GeoArrowMeta::StorageType::List:
     ${ switch_child("ListView<%s, int32_t>", indent) }
-    break;
-
-case GeoArrowMeta::StorageType::LargeList:
-    ${ switch_child("ListView<%s, int64_t>", indent) }
     break;
 
 default:
@@ -103,6 +95,65 @@ multi_switch <- function(switcher, indent = "    ", extension = "multi") {
 
   glue(nest_switch_template, .indent = indent)
 }
+
+
+factory <- glue("
+// autogen factory start
+GeoArrowArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& point_meta) {
+${point_switch()}
+}
+
+GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema,
+                                          GeoArrowMeta& linestring_meta) {
+    GeoArrowMeta point_meta(schema->children[0]);
+
+${linestring_switch()}
+}
+
+GeoArrowArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& polygon_meta) {
+    GeoArrowMeta linestring_meta(schema->children[0]);
+    GeoArrowMeta point_meta(schema->children[0]->children[0]);
+
+${polygon_switch()}
+}
+
+GeoArrowArrayView* create_view_multipoint(struct ArrowSchema* schema,
+                                          GeoArrowMeta& multi_meta, GeoArrowMeta& point_meta) {
+
+
+${multi_switch(point_switch)}
+}
+
+GeoArrowArrayView* create_view_multilinestring(struct ArrowSchema* schema,
+                                               GeoArrowMeta& multi_meta,
+                                               GeoArrowMeta& linestring_meta) {
+    GeoArrowMeta point_meta(schema->children[0]->children[0]);
+
+${multi_switch(linestring_switch)}
+}
+
+GeoArrowArrayView* create_view_multipolygon(struct ArrowSchema* schema,
+                                            GeoArrowMeta& multi_meta, GeoArrowMeta& polygon_meta) {
+    GeoArrowMeta linestring_meta(schema->children[0]->children[0]);
+    GeoArrowMeta point_meta(schema->children[0]->children[0]->children[0]);
+
+${multi_switch(polygon_switch)}
+}
+// autogen factory end
+")
+
+
+current <- readr::read_file("src/internal/geoarrow-factory.hpp")
+new <- stringr::str_replace(
+  current,
+  stringr::regex(
+    "// autogen factory start.*?// autogen factory end",
+    multiline = TRUE, dotall = TRUE
+  ),
+  factory
+)
+readr::write_file(new, "src/internal/geoarrow-factory.hpp")
+
 
 clipr::write_clip(point_switch())
 clipr::write_clip(linestring_switch())
