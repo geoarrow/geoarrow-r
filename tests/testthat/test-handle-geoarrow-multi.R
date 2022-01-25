@@ -145,6 +145,11 @@ test_that("geoarrow point reader works for multipolygon", {
   }
 })
 
+test_that("geoarrow multi reader works for null features", {
+  features <- geoarrow_create(wk::wkt(c(NA, "MULTIPOLYGON (((0 0, 0 1, 1 0, 0 0)))")))
+  expect_identical(is.na(wk::as_wkt(features)), c(TRUE, FALSE))
+})
+
 test_that("geoarrow linestring reader errors for invalid schemas", {
   schema <- geoarrow_schema_multi(geoarrow_schema_point())
   schema$children[[1]] <- narrow::narrow_schema("+l")

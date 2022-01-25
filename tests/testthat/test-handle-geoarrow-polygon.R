@@ -45,6 +45,11 @@ test_that("geoarrow point reader works for polygon", {
   }
 })
 
+test_that("geoarrow polygon reader works for null features", {
+  features <- geoarrow_create(wk::wkt(c(NA, "POLYGON ((0 0, 0 1, 1 0, 0 0))")))
+  expect_identical(is.na(wk::as_wkt(features)), c(TRUE, FALSE))
+})
+
 test_that("geoarrow polygon reader errors for invalid schemas", {
   schema <- geoarrow_schema_polygon()
   schema$children[[1]] <- narrow::narrow_schema("+l")

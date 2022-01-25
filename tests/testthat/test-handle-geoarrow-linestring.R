@@ -1,5 +1,5 @@
 
-test_that("geoarrow point reader works for linestring", {
+test_that("geoarrow reader works for linestring", {
   coords_base <- wk::xy(1:10, 11:20)
 
   for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
@@ -32,6 +32,11 @@ test_that("geoarrow point reader works for linestring", {
       expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
     }
   }
+})
+
+test_that("geoarrow linestring reader works for null features", {
+  features <- geoarrow_create(wk::wkt(c(NA, "LINESTRING (1 1, 2 2)")))
+  expect_identical(is.na(wk::as_wkt(features)), c(TRUE, FALSE))
 })
 
 test_that("geoarrow linestring reader errors for invalid schemas", {

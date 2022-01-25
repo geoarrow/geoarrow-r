@@ -72,6 +72,11 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   counts <- wk::wk_count(handleable)
   coords <- wk::wk_coords(handleable)
 
+  feature_null <- counts$n_geom == 0
+  counts$n_geom[feature_null] <- NA_integer_
+  counts$n_ring[feature_null] <- NA_integer_
+  counts$n_coord[feature_null] <- NA_real_
+
   if (identical(extension, "geoarrow.linestring")) {
     return(geoarrow_create_linestring_array(coords, counts$n_coord, schema, strict = strict))
   } else if (identical(extension, "geoarrow.polygon")) {

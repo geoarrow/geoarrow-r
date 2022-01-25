@@ -99,7 +99,7 @@ class GeoArrowArrayView {
 
     bool is_null(int64_t offset) {
         return validity_buffer_ &&
-            (validity_buffer_[offset / 8] << (offset % 8)) == 0;
+            (validity_buffer_[offset / 8] & (0x01 << (offset % 8))) == 0;
     }
 
     wk_meta_t meta_;
