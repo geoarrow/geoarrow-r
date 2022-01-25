@@ -33,3 +33,20 @@ test_that("geoarrow point reader works for linestring", {
     }
   }
 })
+
+test_that("geoarrow linestring reader errors for invalid schemas", {
+  schema <- geoarrow_schema_linestring()
+  schema$children[[1]] <- narrow::narrow_schema("+l")
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "linestring child has an invalid schema")
+
+  schema <- geoarrow_schema_linestring()
+  schema$children[[1]] <- narrow::narrow_schema("+l", children = list(narrow::narrow_schema("g")))
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "must be a geoarrow.point")
+
+  schema <- geoarrow_schema_linestring()
+  schema$format <- "+L"
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "linestring to be a list")
+})

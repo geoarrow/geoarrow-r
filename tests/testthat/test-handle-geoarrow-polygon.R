@@ -44,3 +44,30 @@ test_that("geoarrow point reader works for polygon", {
     }
   }
 })
+
+test_that("geoarrow polygon reader errors for invalid schemas", {
+  schema <- geoarrow_schema_polygon()
+  schema$children[[1]] <- narrow::narrow_schema("+l")
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "polygon child has an invalid schema")
+
+  schema <- geoarrow_schema_polygon()
+  schema$children[[1]] <- narrow::narrow_schema("g")
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "list but found 'g'")
+
+  schema <- geoarrow_schema_polygon()
+  schema$children[[1]]$children[[1]] <- narrow::narrow_schema("+l")
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "polygon grandchild has an invalid schema")
+
+  schema <- geoarrow_schema_polygon()
+  schema$children[[1]]$children[[1]] <- narrow::narrow_schema("+l", children = list(narrow::narrow_schema("g")))
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "must be a geoarrow.point")
+
+  schema <- geoarrow_schema_polygon()
+  schema$format <- "+L"
+  array <- narrow::narrow_array(schema, validate = FALSE)
+  expect_error(wk::wk_void(array), "polygon to be a list")
+})
