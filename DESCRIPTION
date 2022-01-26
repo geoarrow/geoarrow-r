@@ -28,6 +28,7 @@ Suggests:
     geos (>= 0.1.3),
     jsonlite,
     dplyr,
-    vctrs
+    vctrs,
+    sf
 Config/testthat/edition: 3
 URL: https://paleolimbot.github.io/geoarrow/

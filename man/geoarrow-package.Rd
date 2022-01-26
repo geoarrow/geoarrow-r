@@ -8,6 +8,13 @@
 \description{
 Provides extension types and conversions to between R-native object types and 'Arrow' columnar types.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://paleolimbot.github.io/geoarrow/}
+}
+
+}
 \author{
 \strong{Maintainer}: Dewey Dunnington \email{dewey@fishandwhistle.net} (\href{https://orcid.org/0000-0002-9415-4582}{ORCID})
 

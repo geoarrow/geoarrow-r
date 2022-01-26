@@ -2,6 +2,10 @@
 % Please edit documentation in R/read.R
 \name{read_geoarrow_parquet}
 \alias{read_geoarrow_parquet}
+\alias{read_geoarrow_feather}
+\alias{read_geoarrow_ipc_stream}
+\alias{read_geoarrow_parquet_sf}
+\alias{read_geoarrow_feather_sf}
 \alias{geoarrow_collect}
 \alias{geoarrow_collect.Table}
 \alias{geoarrow_collect.RecordBatch}
@@ -18,6 +22,26 @@ read_geoarrow_parquet(
   metadata = NULL
 )
 
+read_geoarrow_feather(
+  file,
+  ...,
+  as_data_frame = TRUE,
+  handler = NULL,
+  metadata = NULL
+)
+
+read_geoarrow_ipc_stream(
+  file,
+  ...,
+  as_data_frame = TRUE,
+  handler = NULL,
+  metadata = NULL
+)
+
+read_geoarrow_parquet_sf(file, ...)
+
+read_geoarrow_feather_sf(file, ...)
+
 geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
 
 \method{geoarrow_collect}{Table}(x, ..., handler = NULL, metadata = NULL)
@@ -32,7 +56,8 @@ geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
 }
 \arguments{
 \item{file}{A file or InputStream to read; passed to
-\code{\link[arrow:read_parquet]{arrow::read_parquet()}}.}
+\code{\link[arrow:read_parquet]{arrow::read_parquet()}}, \code{\link[arrow:read_feather]{arrow::read_feather()}}, or
+\code{\link[arrow:read_ipc_stream]{arrow::read_ipc_stream()}}.}
 
 \item{...}{
   Arguments passed on to \code{\link[arrow:write_parquet]{arrow::write_parquet}}

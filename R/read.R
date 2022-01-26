@@ -4,7 +4,8 @@
 #' @param x An object to collect into a data.frame, converting geometry
 #'   columns according to `handler`.
 #' @param file A file or InputStream to read; passed to
-#'   [arrow::read_parquet()].
+#'   [arrow::read_parquet()], [arrow::read_feather()], or
+#'   [arrow::read_ipc_stream()].
 #' @param as_data_frame Use `FALSE` to return an [arrow::Table]
 #'   instead of a data.frame.
 #' @param handler A [wk handler][wk::wk_handle] to use when `as.data.frame`
@@ -26,7 +27,67 @@ read_geoarrow_parquet <- function(file, ..., as_data_frame = TRUE, handler = NUL
     stop("Package 'arrow' required for read_geoarrow_parquet()", call. = FALSE) # nocov
   }
 
-  table <- arrow::read_parquet(file, ..., as_data_frame = FALSE)
+  read_arrow_wrapper(
+    arrow::read_parquet,
+    file,
+    ...,
+    as_data_frame = as_data_frame,
+    handler = handler,
+    metadata = metadata
+  )
+}
+
+#' @rdname read_geoarrow_parquet
+#' @export
+read_geoarrow_feather <- function(file, ..., as_data_frame = TRUE, handler = NULL,
+                                  metadata = NULL) {
+  if (!requireNamespace("arrow", quietly = TRUE)) {
+    stop("Package 'arrow' required for read_geoarrow_feather()", call. = FALSE) # nocov
+  }
+
+  read_arrow_wrapper(
+    arrow::read_feather,
+    file,
+    ...,
+    as_data_frame = as_data_frame,
+    handler = handler,
+    metadata = metadata
+  )
+}
+
+#' @rdname read_geoarrow_parquet
+#' @export
+read_geoarrow_ipc_stream <- function(file, ..., as_data_frame = TRUE, handler = NULL,
+                                     metadata = NULL) {
+  if (!requireNamespace("arrow", quietly = TRUE)) {
+    stop("Package 'arrow' required for read_geoarrow_ipc_stream()", call. = FALSE) # nocov
+  }
+
+  read_arrow_wrapper(
+    arrow::read_ipc_stream,
+    file,
+    ...,
+    as_data_frame = as_data_frame,
+    handler = handler,
+    metadata = metadata
+  )
+}
+
+#' @rdname read_geoarrow_parquet
+#' @export
+read_geoarrow_parquet_sf <- function(file, ...) {
+  sf::st_as_sf(read_geoarrow_parquet(file, ..., handler = wk::sfc_writer))
+}
+
+#' @rdname read_geoarrow_parquet
+#' @export
+read_geoarrow_feather_sf <- function(file, ...) {
+  sf::st_as_sf(read_geoarrow_parquet(file, ..., handler = wk::sfc_writer))
+}
+
+read_arrow_wrapper <- function(read_func, file, ..., as_data_frame = TRUE,
+                               handler = NULL, metadata = NULL) {
+  table <- read_func(file, ..., as_data_frame = FALSE)
 
   if (as_data_frame) {
     geoarrow_collect(table, handler = handler, metadata = metadata)
@@ -52,10 +113,6 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
     return(as.data.frame(x))
   }
 
-  if (is.null(handler)) {
-    handler <- collect_default_handler()
-  }
-
   handleable_results <- lapply(
     handleable_cols,
     function(col_name) {
@@ -67,9 +124,9 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
         schema = narrow::as_narrow_schema(arrow_type)
       )
 
-      result <- wk::wk_handle(
+      result <- wk_handle_wrapper(
         narrow::as_narrow_array_stream(array_or_chunked_array),
-        wk::as_wk_handler(handler),
+        handler,
         geoarrow_schema = geoarrow_schema,
         geoarrow_n_features = array_or_chunked_array$length()
       )
@@ -151,8 +208,15 @@ geoarrow_collect.arrow_dplyr_query <- function(x, ..., handler = NULL, metadata 
   geoarrow_collect(table, ..., handler = handler, metadata = metadata)
 }
 
-collect_default_handler <- function() {
-  wk::sfc_writer
+wk_handle_wrapper <- function(handleable, handler, ...) {
+  if (is.null(handler)) {
+    # for now...we should use a geoarrow_vctr for this but we need
+    # Concatenate for that to work (or for narrow_vctr to support
+    # chunked arrays or streams)
+    handler <- wk::wkb_writer()
+  }
+
+  wk::wk_handle(handleable, handler, ...)
 }
 
 geoarrow_object_metadata <- function(x, metadata = NULL) {
