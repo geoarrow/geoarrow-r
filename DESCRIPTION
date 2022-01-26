@@ -30,3 +30,4 @@ Suggests:
     dplyr,
     vctrs
 Config/testthat/edition: 3
+URL: https://paleolimbot.github.io/geoarrow/
