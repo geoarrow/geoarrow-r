@@ -50,6 +50,26 @@
   metadata <span class="op">=</span> <span class="cn">NULL</span>
 <span class="op">)</span>
 
+<span class="fu">read_geoarrow_feather</span><span class="op">(</span>
+  <span class="va">file</span>,
+  <span class="va">...</span>,
+  as_data_frame <span class="op">=</span> <span class="cn">TRUE</span>,
+  handler <span class="op">=</span> <span class="cn">NULL</span>,
+  metadata <span class="op">=</span> <span class="cn">NULL</span>
+<span class="op">)</span>
+
+<span class="fu">read_geoarrow_ipc_stream</span><span class="op">(</span>
+  <span class="va">file</span>,
+  <span class="va">...</span>,
+  as_data_frame <span class="op">=</span> <span class="cn">TRUE</span>,
+  handler <span class="op">=</span> <span class="cn">NULL</span>,
+  metadata <span class="op">=</span> <span class="cn">NULL</span>
+<span class="op">)</span>
+
+<span class="fu">read_geoarrow_parquet_sf</span><span class="op">(</span><span class="va">file</span>, <span class="va">...</span><span class="op">)</span>
+
+<span class="fu">read_geoarrow_feather_sf</span><span class="op">(</span><span class="va">file</span>, <span class="va">...</span><span class="op">)</span>
+
 <span class="fu">geoarrow_collect</span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, handler <span class="op">=</span> <span class="cn">NULL</span>, metadata <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>
 
 <span class="co"># S3 method for Table</span>
@@ -72,7 +92,8 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>file</dt>
 <dd><p>A file or InputStream to read; passed to
-<code><a href="https://arrow.apache.org/docs/r//reference/read_parquet.html" class="external-link">arrow::read_parquet()</a></code>.</p></dd>
+<code><a href="https://arrow.apache.org/docs/r//reference/read_parquet.html" class="external-link">arrow::read_parquet()</a></code>, <code><a href="https://arrow.apache.org/docs/r//reference/read_feather.html" class="external-link">arrow::read_feather()</a></code>, or
+<code><a href="https://arrow.apache.org/docs/r//reference/read_ipc_stream.html" class="external-link">arrow::read_ipc_stream()</a></code>.</p></dd>
 <dt>...</dt>
 <dd><p>Arguments passed on to <code><a href="https://arrow.apache.org/docs/r//reference/write_parquet.html" class="external-link">arrow::write_parquet</a></code></p><dl><dt><code>sink</code></dt>
 <dd><p>A string file path, URI, or <a href="https://arrow.apache.org/docs/r//reference/OutputStream.html" class="external-link">OutputStream</a>, or path in a file

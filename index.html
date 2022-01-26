@@ -73,9 +73,9 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://paleolimbot.github.io/geoarrow/">geoarrow</a></span><span class="op">)</span>
 
-<span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu">read_sf</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"shape/nc.shp"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span><span class="op">)</span>
+<span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">read_sf</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"shape/nc.shp"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="reference/write_geoarrow_parquet.html">write_geoarrow_parquet</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"nc.parquet"</span><span class="op">)</span>
-<span class="fu">sf</span><span class="fu">::</span><span class="fu">st_as_sf</span><span class="op">(</span><span class="fu"><a href="reference/read_geoarrow_parquet.html">read_geoarrow_parquet</a></span><span class="op">(</span><span class="st">"nc.parquet"</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="reference/read_geoarrow_parquet.html">read_geoarrow_parquet_sf</a></span><span class="op">(</span><span class="st">"nc.parquet"</span><span class="op">)</span>
 <span class="co">#&gt; Simple feature collection with 100 features and 14 fields</span>
 <span class="co">#&gt; Geometry type: MULTIPOLYGON</span>
 <span class="co">#&gt; Dimension:     XY</span>
@@ -99,12 +99,12 @@
 <p>You can use any of the schemas to experiment by passing the <code>schema</code> argument. These control how the geometry is stored in an Arrow data type (but shouldn’t affect the round trip back to R).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="reference/write_geoarrow_parquet.html">write_geoarrow_parquet</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"nc.parquet"</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_wkb</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
-<span class="fu">sf</span><span class="fu">::</span><span class="fu">st_as_sf</span><span class="op">(</span><span class="fu"><a href="reference/read_geoarrow_parquet.html">read_geoarrow_parquet</a></span><span class="op">(</span><span class="st">"nc.parquet"</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="reference/read_geoarrow_parquet.html">read_geoarrow_parquet_sf</a></span><span class="op">(</span><span class="st">"nc.parquet"</span><span class="op">)</span>
 <span class="co">#&gt; Simple feature collection with 100 features and 14 fields</span>
 <span class="co">#&gt; Geometry type: MULTIPOLYGON</span>
 <span class="co">#&gt; Dimension:     XY</span>
 <span class="co">#&gt; Bounding box:  xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965</span>
-<span class="co">#&gt; CRS:           NA</span>
+<span class="co">#&gt; Geodetic CRS:  NAD27</span>
 <span class="co">#&gt; # A tibble: 100 × 15</span>
 <span class="co">#&gt;     AREA PERIMETER CNTY_ CNTY_ID NAME  FIPS  FIPSNO CRESS_ID BIR74 SID74 NWBIR74</span>
 <span class="co">#&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;</span>
@@ -119,245 +119,7 @@
 <span class="co">#&gt;  9 0.118      1.42  1836    1836 Warr… 37185  37185       93   968     4     748</span>
 <span class="co">#&gt; 10 0.124      1.43  1837    1837 Stok… 37169  37169       85  1612     1     160</span>
 <span class="co">#&gt; # … with 90 more rows, and 4 more variables: BIR79 &lt;dbl&gt;, SID79 &lt;dbl&gt;,</span>
-<span class="co">#&gt; #   NWBIR79 &lt;dbl&gt;, geometry &lt;MULTIPOLYGON&gt;</span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="type-examples">Type examples<a class="anchor" aria-label="anchor" href="#type-examples"></a>
-</h2>
-<p>First, extension types for the kind of encodings existing libraries support already:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">geom_linestring</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"LINESTRING (1 2, 2 3)"</span><span class="op">)</span>
-
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span>
-  <span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_linestring</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_wkb</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,
-  <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span>
-<span class="op">)</span>
-<span class="co">#&gt; Array</span>
-<span class="co">#&gt; &lt;fixed_size_binary[41]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   010200000002000000000000000000F03F000000000000004000000000000000400000000000000840</span>
-<span class="co">#&gt; ]</span>
-
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span>
-  <span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_linestring</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_wkt</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,
-  <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span>
-<span class="op">)</span>
-<span class="co">#&gt; Array</span>
-<span class="co">#&gt; &lt;string&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   "LINESTRING (1 2, 2 3)"</span>
-<span class="co">#&gt; ]</span>
-
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span>
-  <span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_linestring</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_geojson</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,
-  <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span>
-<span class="op">)</span>
-<span class="co">#&gt; Array</span>
-<span class="co">#&gt; &lt;string&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   "{"type":"LineString","coordinates":[[1.0,2.0],[2.0,3.0]]}"</span>
-<span class="co">#&gt; ]</span></code></pre></div>
-<p>…but also Arrow-native forms that don’t need to be parsed.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">geom_point</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"POINT (1 2)"</span><span class="op">)</span>
-<span class="va">geom_linestring</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"LINESTRING (1 2, 2 3)"</span><span class="op">)</span>
-<span class="va">geom_poly</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"POLYGON ((0 0, 1 1, 0 1, 0 0))"</span><span class="op">)</span>
-<span class="va">geom_multipoint</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"MULTIPOINT (1 2)"</span><span class="op">)</span>
-<span class="va">geom_multilinestring</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"MULTILINESTRING ((1 2, 2 3))"</span><span class="op">)</span>
-<span class="va">geom_multipoly</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"MULTIPOLYGON (((0 0, 1 1, 0 1, 0 0)))"</span><span class="op">)</span>
-
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span><span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_point</span><span class="op">)</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span><span class="op">)</span>
-<span class="co">#&gt; FixedSizeListArray</span>
-<span class="co">#&gt; &lt;fixed_size_list&lt;: double not null&gt;[2]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   [</span>
-<span class="co">#&gt;     1,</span>
-<span class="co">#&gt;     2</span>
-<span class="co">#&gt;   ]</span>
-<span class="co">#&gt; ]</span>
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span><span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_linestring</span><span class="op">)</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span><span class="op">)</span>
-<span class="co">#&gt; FixedSizeListArray</span>
-<span class="co">#&gt; &lt;fixed_size_list&lt;: fixed_size_list&lt;: double not null&gt;[2] not null&gt;[2]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   [</span>
-<span class="co">#&gt;     [</span>
-<span class="co">#&gt;       1,</span>
-<span class="co">#&gt;       2</span>
-<span class="co">#&gt;     ],</span>
-<span class="co">#&gt;     [</span>
-<span class="co">#&gt;       2,</span>
-<span class="co">#&gt;       3</span>
-<span class="co">#&gt;     ]</span>
-<span class="co">#&gt;   ]</span>
-<span class="co">#&gt; ]</span>
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span><span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_poly</span><span class="op">)</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span><span class="op">)</span>
-<span class="co">#&gt; FixedSizeListArray</span>
-<span class="co">#&gt; &lt;fixed_size_list&lt;: fixed_size_list&lt;: fixed_size_list&lt;: double not null&gt;[2] not null&gt;[4] not null&gt;[1]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   [</span>
-<span class="co">#&gt;     [</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         0,</span>
-<span class="co">#&gt;         0</span>
-<span class="co">#&gt;       ],</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         1,</span>
-<span class="co">#&gt;         1</span>
-<span class="co">#&gt;       ],</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         0,</span>
-<span class="co">#&gt;         1</span>
-<span class="co">#&gt;       ],</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         0,</span>
-<span class="co">#&gt;         0</span>
-<span class="co">#&gt;       ]</span>
-<span class="co">#&gt;     ]</span>
-<span class="co">#&gt;   ]</span>
-<span class="co">#&gt; ]</span>
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span><span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_multipoint</span><span class="op">)</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span><span class="op">)</span>
-<span class="co">#&gt; FixedSizeListArray</span>
-<span class="co">#&gt; &lt;fixed_size_list&lt;: fixed_size_list&lt;: double not null&gt;[2] not null&gt;[1]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   [</span>
-<span class="co">#&gt;     [</span>
-<span class="co">#&gt;       1,</span>
-<span class="co">#&gt;       2</span>
-<span class="co">#&gt;     ]</span>
-<span class="co">#&gt;   ]</span>
-<span class="co">#&gt; ]</span>
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span><span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_multilinestring</span><span class="op">)</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span><span class="op">)</span>
-<span class="co">#&gt; FixedSizeListArray</span>
-<span class="co">#&gt; &lt;fixed_size_list&lt;: fixed_size_list&lt;: fixed_size_list&lt;: double not null&gt;[2] not null&gt;[2]&gt;[1]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   [</span>
-<span class="co">#&gt;     [</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         1,</span>
-<span class="co">#&gt;         2</span>
-<span class="co">#&gt;       ],</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         2,</span>
-<span class="co">#&gt;         3</span>
-<span class="co">#&gt;       ]</span>
-<span class="co">#&gt;     ]</span>
-<span class="co">#&gt;   ]</span>
-<span class="co">#&gt; ]</span>
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span><span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_multipoly</span><span class="op">)</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span><span class="op">)</span>
-<span class="co">#&gt; FixedSizeListArray</span>
-<span class="co">#&gt; &lt;fixed_size_list&lt;: fixed_size_list&lt;: fixed_size_list&lt;: fixed_size_list&lt;: double not null&gt;[2] not null&gt;[4] not null&gt;[1]&gt;[1]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   [</span>
-<span class="co">#&gt;     [</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         [</span>
-<span class="co">#&gt;           0,</span>
-<span class="co">#&gt;           0</span>
-<span class="co">#&gt;         ],</span>
-<span class="co">#&gt;         [</span>
-<span class="co">#&gt;           1,</span>
-<span class="co">#&gt;           1</span>
-<span class="co">#&gt;         ],</span>
-<span class="co">#&gt;         [</span>
-<span class="co">#&gt;           0,</span>
-<span class="co">#&gt;           1</span>
-<span class="co">#&gt;         ],</span>
-<span class="co">#&gt;         [</span>
-<span class="co">#&gt;           0,</span>
-<span class="co">#&gt;           0</span>
-<span class="co">#&gt;         ]</span>
-<span class="co">#&gt;       ]</span>
-<span class="co">#&gt;     ]</span>
-<span class="co">#&gt;   ]</span>
-<span class="co">#&gt; ]</span></code></pre></div>
-<p>Collections currently fall back on WKB but could theoretically be supported using a union type:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">geom_collection</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"GEOMETRYCOLLECTION (POINT (0 1), LINESTRING (1 1, 2 2))"</span><span class="op">)</span>
-<span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span><span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">geom_collection</span><span class="op">)</span>, <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span><span class="op">)</span>
-<span class="co">#&gt; Array</span>
-<span class="co">#&gt; &lt;fixed_size_binary[71]&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   01070000000200000001010000000000000000000000000000000000F03F010200000002000000000000000000F03F000000000000F03F00000000000000400000000000000040</span>
-<span class="co">#&gt; ]</span></code></pre></div>
-<p>The above examples all have a single feature/ring/linestring, so they fall back to using a fixed-width list. The ability to use a fixed-width list might be important if you have, say, 10 million rectangles that all have 5 points where there’s no need to store a 64-bit offset to each coordinate. For cases where there’s than <code>2 ^ 31</code> or more coordinates, the offsets will need to be 64-bit integers (i.e., large_list type). You can force either of these cases for any level of nesting by specifying a schema by hand:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">narrow</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/from_narrow_array.html" class="external-link">from_narrow_array</a></span><span class="op">(</span>
-  <span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
-    <span class="va">geom_poly</span>,
-    schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_polygon</a></span><span class="op">(</span>format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"+L"</span>, <span class="st">"+l"</span><span class="op">)</span><span class="op">)</span>,
-    strict <span class="op">=</span> <span class="cn">TRUE</span>
-  <span class="op">)</span>,
-  <span class="fu">arrow</span><span class="fu">::</span><span class="va"><a href="https://arrow.apache.org/docs/r//reference/array.html" class="external-link">Array</a></span>
-<span class="op">)</span>
-<span class="co">#&gt; LargeListArray</span>
-<span class="co">#&gt; &lt;large_list&lt;: list&lt;: fixed_size_list&lt;: double not null&gt;[2] not null&gt; not null&gt;&gt;</span>
-<span class="co">#&gt; [</span>
-<span class="co">#&gt;   [</span>
-<span class="co">#&gt;     [</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         0,</span>
-<span class="co">#&gt;         0</span>
-<span class="co">#&gt;       ],</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         1,</span>
-<span class="co">#&gt;         1</span>
-<span class="co">#&gt;       ],</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         0,</span>
-<span class="co">#&gt;         1</span>
-<span class="co">#&gt;       ],</span>
-<span class="co">#&gt;       [</span>
-<span class="co">#&gt;         0,</span>
-<span class="co">#&gt;         0</span>
-<span class="co">#&gt;       ]</span>
-<span class="co">#&gt;     ]</span>
-<span class="co">#&gt;   ]</span>
-<span class="co">#&gt; ]</span></code></pre></div>
-<p>There are a few options for point storage. The default is to store coordinates as a fixed-width list of doubles (float64) so that coordinates stay together in memory. This is probably fastest and mirrors the way that some other formats (e.g., WKB) store coordinates.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="op">(</span><span class="va">points</span> <span class="op">&lt;-</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/xy.html" class="external-link">xy</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt; &lt;wk_xy[3]&gt;</span>
-<span class="co">#&gt; [1] (1 4) (2 5) (3 6)</span>
-<span class="va">array</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">points</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">array</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="co">#&gt; [1] 1 4 2 5 3 6</span></code></pre></div>
-<p>Alternatively, you can store coordinates as a struct. This is much like storing x and y values in their own columns and might be useful if this is already how a user has these values in memory (e.g., the user read in a table where x and y values <em>were</em> their own columns). It also might be faster for operations like adding and dropping dimensions because the buffers stay separate for each dimension.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">array</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span><span class="va">points</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_point_struct</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">array</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="co">#&gt; [1] 1 2 3</span>
-<span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">array</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="co">#&gt; [1] 4 5 6</span></code></pre></div>
-<p>For both of these, it might be adequate to store values as float32 instead of float64. I didn’t implement that here yet but in theory it shouldn’t be a problem.</p>
-<p>These are far from an exhaustive list of how coordinates can be stored. For example, S2 cell IDs (64-bit integers with ~1 cm resolution describing a location on the globe) are a fast and compact way to encode geographic coordinates. The H3 library has a similar scheme where each 64-bit integer describes a hexagon on the sphere. Some libraries use 32-bit integers scaled by 1e6 to represent longitude and latitude, and some provide an exact decimal type to skirt around floating point precision issues, particularly for internal calculations (e.g., decimal128 or decimal256).</p>
-<p>It might not be worth supporting all the point storage formats in any particular implementation; however, the format is such that the coordinate array can be swapped out independent of the rest of the array structure.</p>
-</div>
-<div class="section level2">
-<h2 id="why-so-many-options">Why so many options?<a class="anchor" aria-label="anchor" href="#why-so-many-options"></a>
-</h2>
-<p>The options are provided here so that implementations can experiment to see if more than one is worth supporting.</p>
-</div>
-<div class="section level2">
-<h2 id="metadata">Metadata<a class="anchor" aria-label="anchor" href="#metadata"></a>
-</h2>
-<p>The schemas here use column-level extension types and extension metadata to encode dimension names, CRS information, and a flag to specify that edges should be considered geodesic rather than Cartesian.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">schema</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span>
-  geodesic <span class="op">=</span> <span class="cn">TRUE</span>,
-  point <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"OGC:CRS84"</span><span class="op">)</span>
-<span class="op">)</span>
-<span class="va">schema</span><span class="op">$</span><span class="va">metadata</span><span class="op">[[</span><span class="st">"ARROW:extension:name"</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; [1] "geoarrow.linestring"</span>
-<span class="fu"><a href="reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; $geodesic</span>
-<span class="co">#&gt; [1] "true"</span>
-<span class="fu"><a href="reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="co">#&gt; $crs</span>
-<span class="co">#&gt; [1] "OGC:CRS84"</span>
-<span class="co">#&gt;</span>
-<span class="co">#&gt; $dim</span>
-<span class="co">#&gt; [1] "xy"</span></code></pre></div>
-<p>I would argue that any string recognized by the latest PROJ release as a CRS is valid for the <code>crs</code> item (which lives with the point array). This includes full WKT2 output, which provides more detail at the expense of including redundant information that can get out of sync. I think “OGC:CRS84” or “EPSG:32620” are no less exact but are perhaps imprecise in a way I don’t yet understand.</p>
+<span class="co">#&gt; #   NWBIR79 &lt;dbl&gt;, geometry &lt;MULTIPOLYGON [°]&gt;</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
