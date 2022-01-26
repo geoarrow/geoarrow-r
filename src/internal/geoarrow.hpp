@@ -582,6 +582,42 @@ class GeoArrowMeta {
 };
 
 
+class GeoArrowHandler {
+public:
+    enum Result {
+        CONTINUE = 0,
+        ABORT = 1,
+        ABORT_FEATURE = 2
+    };
+
+    enum GeometryType {
+        GEOMETRY = 0,
+        POINT = 1,
+        LINESTRING = 2,
+        POLYGON = 3,
+        MULTIPOINT = 4,
+        MULTILINESTRING = 5,
+        MULTIPOLYGON = 6,
+        GEOMETRYCOLLECTION = 7
+    };
+
+    enum Dimensions {XY = 0, XYZ = 1, XYM = 2, XYZM = 3};
+
+    Result array_start(GeometryType geometry_type, Dimensions dimensions, int64_t length) {
+        return Result::CONTINUE;
+    }
+
+    Result feat_start() { return Result::CONTINUE; }
+    Result geom_start(int64_t size) { return Result::CONTINUE; }
+    Result ring_start(int64_t size) { return Result::CONTINUE; }
+    Result coord(double* coord) { return Result::CONTINUE; }
+    Result ring_end() { return Result::CONTINUE; }
+    Result geom_end() { return Result::CONTINUE; }
+    Result feat_end() { return Result::CONTINUE; }
+    Result array_end() { return Result::CONTINUE; }
+};
+
+
 namespace {
 
     template <class ArrayView>
