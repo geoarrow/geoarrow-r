@@ -603,13 +603,11 @@ public:
 
     enum Dimensions {XY = 0, XYZ = 1, XYM = 2, XYZM = 3};
 
-    Result array_start(GeometryType geometry_type, Dimensions dimensions, int64_t length) {
-        return Result::CONTINUE;
-    }
-
+    Result array_start(struct ArrowArray* array_data) { return Result::CONTINUE; }
     Result feat_start() { return Result::CONTINUE; }
-    Result geom_start(int64_t size) { return Result::CONTINUE; }
-    Result ring_start(int64_t size) { return Result::CONTINUE; }
+    Result null_feat() { return Result::CONTINUE; }
+    Result geom_start(int32_t size) { return Result::CONTINUE; }
+    Result ring_start(int32_t size) { return Result::CONTINUE; }
     Result coord(double* coord) { return Result::CONTINUE; }
     Result ring_end() { return Result::CONTINUE; }
     Result geom_end() { return Result::CONTINUE; }
@@ -621,7 +619,8 @@ public:
 namespace {
 
     template <class ArrayView>
-    int read_point_geometry(ArrayView& view, wk_handler_t* handler, int64_t offset, int64_t part_id = WK_PART_ID_NONE) {
+    int read_point_geometry(ArrayView& view, wk_handler_t* handler, int64_t offset,
+                            int64_t part_id = WK_PART_ID_NONE) {
         int result;
         HANDLE_OR_RETURN(handler->geometry_start(&view.meta_, part_id, handler->handler_data));
         HANDLE_OR_RETURN(view.read_coord(handler, offset, 0));
