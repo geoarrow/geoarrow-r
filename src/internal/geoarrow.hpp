@@ -648,6 +648,7 @@ public:
         ABORT_FEATURE = 2
     };
 
+    virtual void schema(const struct ArrowSchema* schema) {}
     virtual void new_geometry_type(GeoArrowMeta::GeometryType geometry_type) {}
     virtual void new_dimensions(GeoArrowMeta::Dimensions geometry_type) {}
 
@@ -743,6 +744,7 @@ class GeoArrowArrayView {
     virtual ~GeoArrowArrayView() {}
 
     void read_meta(GeoArrowHandler* handler) {
+        handler->schema(schema_);
         handler->new_geometry_type(geoarrow_meta_.geometry_type_);
         handler->new_dimensions(geoarrow_meta_.dimensions_);
     }

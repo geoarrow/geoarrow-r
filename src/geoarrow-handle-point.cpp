@@ -22,29 +22,33 @@
 class WKGeoArrowHandler: public geoarrow::GeoArrowHandler {
 public:
 
-    WKGeoArrowHandler(wk_handler_t* handler, wk_vector_meta_t* vector_meta):
+    WKGeoArrowHandler(wk_handler_t* handler, geoarrow::GeoArrowMeta geoarrow_meta):
       handler_(handler), feat_id_(-1), nest_level_(-1), ring_id_(-1),
       coord_id_(-1) {
-        WK_META_RESET(meta_[0], vector_meta->geometry_type);
+        WK_VECTOR_META_RESET(vector_meta_, geoarrow_meta.geometry_type_);
+        WK_META_RESET(meta_[0], geoarrow_meta.geometry_type_);
+        WK_META_RESET(meta_[1], geoarrow_meta.geometry_type_ + 3);
 
-        switch (vector_meta->geometry_type) {
-        case WK_MULTIPOINT:
-        case WK_MULTILINESTRING:
-        case WK_MULTIPOLYGON:
-            WK_META_RESET(meta_[1], vector_meta->geometry_type - 3);
-            break;
-        default:
-            WK_META_RESET(meta_[1], WK_GEOMETRY);
-        }
-
-        if (vector_meta->flags & WK_FLAG_HAS_Z) {
+        switch (geoarrow_meta.dimensions_) {
+        case geoarrow::GeoArrowMeta::Dimensions::XYZ:
+        case geoarrow::GeoArrowMeta::Dimensions::XYZM:
+            vector_meta_.flags |= WK_FLAG_HAS_Z;
             meta_[0].flags |= WK_FLAG_HAS_Z;
             meta_[1].flags |= WK_FLAG_HAS_Z;
+            break;
+        default:
+            break;
         }
 
-        if (vector_meta->flags & WK_FLAG_HAS_M) {
+        switch (geoarrow_meta.dimensions_) {
+        case geoarrow::GeoArrowMeta::Dimensions::XYM:
+        case geoarrow::GeoArrowMeta::Dimensions::XYZM:
+            vector_meta_.flags |= WK_FLAG_HAS_M;
             meta_[0].flags |= WK_FLAG_HAS_M;
             meta_[1].flags |= WK_FLAG_HAS_M;
+            break;
+        default:
+            break;
         }
 
         part_id_[0] = WK_PART_ID_NONE;
@@ -55,7 +59,7 @@ public:
         feat_id_++;
         nest_level_ = -1;
         part_id_[1] = -1;
-        return (Result) handler_->feature_start(vector_meta_, feat_id_, handler_->handler_data);
+        return (Result) handler_->feature_start(&vector_meta_, feat_id_, handler_->handler_data);
     }
 
     Result null_feat() {
@@ -98,12 +102,12 @@ public:
     }
 
     Result feat_end() {
-        return (Result) handler_->feature_start(vector_meta_, feat_id_, handler_->handler_data);
+        return (Result) handler_->feature_start(&vector_meta_, feat_id_, handler_->handler_data);
     }
 
 private:
     wk_handler_t* handler_;
-    wk_vector_meta_t* vector_meta_;
+    wk_vector_meta_t vector_meta_;
     wk_meta_t meta_[2];
     int32_t part_id_[2];
     int32_t ring_size_;
