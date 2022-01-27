@@ -82,7 +82,7 @@ public:
         return (Result) handler_->ring_start(&(meta_[nest_level_]), ring_size_, ring_id_, handler_->handler_data);
     }
 
-    Result coord(double* coord) {
+    Result coord(const double* coord) {
         coord_id_++;
         return (Result) handler_->coord(&(meta_[nest_level_]), coord, coord_id_, handler_->handler_data);
     }

@@ -143,6 +143,19 @@ class GeoArrowMeta {
         StorageTypeNone
     };
 
+    enum GeometryType {
+        GEOMETRY_TYPE_UNKNOWN = 0,
+        POINT = 1,
+        LINESTRING = 2,
+        POLYGON = 3,
+        MULTIPOINT = 4,
+        MULTILINESTRING = 5,
+        MULTIPOLYGON = 6,
+        GEOMETRYCOLLECTION = 7
+    };
+
+    enum Dimensions {DIMENSIONS_UNKNOWN = 0, XY = 1, XYZ = 2, XYM = 3, XYZM = 4};
+
     class ValidationError: public std::runtime_error {
       public:
         ValidationError(const char* what): std::runtime_error(what) {}
@@ -167,6 +180,8 @@ class GeoArrowMeta {
         geodesic_ = false;
         crs_size_ = false;
         crs_ = nullptr;
+        geometry_type_ = GeometryType::GEOMETRY_TYPE_UNKNOWN;
+        dimensions_ = Dimensions::DIMENSIONS_UNKNOWN;
         reset_error();
 
         memset(dim_, 0, sizeof(dim_));
@@ -212,6 +227,8 @@ class GeoArrowMeta {
         switch (extension_) {
         case Extension::Point:
             n_dims = strlen(dim_);
+            geometry_type_ = GeometryType::POINT;
+            dimensions_ = dimensions_from_dim(dim_);
 
             switch (storage_type_) {
             case StorageType::FixedWidthList:
@@ -283,6 +300,7 @@ class GeoArrowMeta {
             }
             break;
         case Extension::Linestring:
+            geometry_type_ = GeometryType::LINESTRING;
             switch (storage_type_) {
             case StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
@@ -304,6 +322,9 @@ class GeoArrowMeta {
                     return false;
                 }
 
+                dimensions_ = child.dimensions_;
+                crs_size_ = child.crs_size_;
+                crs_ = child.crs_;
                 break;
 
             default:
@@ -317,6 +338,7 @@ class GeoArrowMeta {
             break;
 
         case Extension::Polygon:
+            geometry_type_ = GeometryType::POLYGON;
             switch (storage_type_) {
             case StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
@@ -358,6 +380,9 @@ class GeoArrowMeta {
                     return false;
                 }
 
+                dimensions_ = child.dimensions_;
+                crs_size_ = child.crs_size_;
+                crs_ = child.crs_;
                 break;
 
             default:
@@ -385,15 +410,27 @@ class GeoArrowMeta {
                     return false;
                 }
 
-                if (child.extension_ != Extension::Point &&
-                    child.extension_ != Extension::Linestring &&
-                    child.extension_ != Extension::Polygon) {
+                switch (child.extension_) {
+                case Extension::Point:
+                    geometry_type_ = GeometryType::MULTIPOINT;
+                    break;
+                case Extension::Linestring:
+                    geometry_type_ = GeometryType::MULTILINESTRING;
+                    break;
+                case Extension::Polygon:
+                    geometry_type_ = GeometryType::MULTIPOLYGON;
+                    break;
+                default:
                     snprintf(
                         error_, 1024,
                         "Child of geoarrow.multi must be a geoarrow.point, geoarrow.linestring, or geoarrow.polygon");
                     return false;
                 }
 
+                dimensions_ = child.dimensions_;
+                crs_size_ = child.crs_size_;
+                crs_ = child.crs_;
+                geodesic_ = child.geodesic_;
                 break;
 
             default:
@@ -567,6 +604,20 @@ class GeoArrowMeta {
         }
     }
 
+    Dimensions dimensions_from_dim(const char* dim) {
+        if (strcmp(dim, "xy") == 0) {
+            return Dimensions::XY;
+        } else if (strcmp(dim, "xyz") == 0) {
+            return Dimensions::XYZ;
+        } else if (strcmp(dim, "xym") == 0) {
+            return Dimensions::XYM;
+        } else if (strcmp(dim, "xyzm") == 0) {
+            return Dimensions::XYZM;
+        } else {
+            return Dimensions::DIMENSIONS_UNKNOWN;
+        }
+    }
+
     StorageType storage_type_;
     int64_t fixed_width_;
     int32_t expected_buffers_;
@@ -578,10 +629,17 @@ class GeoArrowMeta {
     int32_t crs_size_;
     const char* crs_;
 
+    GeometryType geometry_type_;
+    Dimensions dimensions_;
+
     char error_[1024];
 };
 
-
+// A `GeoArrowHandler` is a stateful handler base class that responds to events
+// as they are encountered while iterating over a `GeoArrowArrayView`. This
+// style of iteration is useful for certain types of operations, particularly
+// if virtual method calls are a concern. You can also use `GeoArrowArrayView`'s
+// pull-style iterators to iterate over geometries.
 class GeoArrowHandler {
 public:
     enum Result {
@@ -590,29 +648,21 @@ public:
         ABORT_FEATURE = 2
     };
 
-    enum GeometryType {
-        GEOMETRY = 0,
-        POINT = 1,
-        LINESTRING = 2,
-        POLYGON = 3,
-        MULTIPOINT = 4,
-        MULTILINESTRING = 5,
-        MULTIPOLYGON = 6,
-        GEOMETRYCOLLECTION = 7
-    };
+    virtual void new_geometry_type(GeoArrowMeta::GeometryType geometry_type) {}
+    virtual void new_dimensions(GeoArrowMeta::Dimensions geometry_type) {}
 
-    enum Dimensions {XY = 0, XYZ = 1, XYM = 2, XYZM = 3};
+    virtual Result array_start(const struct ArrowArray* array_data) { return Result::CONTINUE; }
+    virtual Result feat_start() { return Result::CONTINUE; }
+    virtual Result null_feat() { return Result::CONTINUE; }
+    virtual Result geom_start(int32_t size) { return Result::CONTINUE; }
+    virtual Result ring_start(int32_t size) { return Result::CONTINUE; }
+    virtual Result coord(const double* coord) { return Result::CONTINUE; }
+    virtual Result ring_end() { return Result::CONTINUE; }
+    virtual Result geom_end() { return Result::CONTINUE; }
+    virtual Result feat_end() { return Result::CONTINUE; }
+    virtual Result array_end() { return Result::CONTINUE; }
 
-    Result array_start(struct ArrowArray* array_data) { return Result::CONTINUE; }
-    Result feat_start() { return Result::CONTINUE; }
-    Result null_feat() { return Result::CONTINUE; }
-    Result geom_start(int32_t size) { return Result::CONTINUE; }
-    Result ring_start(int32_t size) { return Result::CONTINUE; }
-    Result coord(double* coord) { return Result::CONTINUE; }
-    Result ring_end() { return Result::CONTINUE; }
-    Result geom_end() { return Result::CONTINUE; }
-    Result feat_end() { return Result::CONTINUE; }
-    Result array_end() { return Result::CONTINUE; }
+    virtual ~GeoArrowHandler() {}
 };
 
 
@@ -663,6 +713,14 @@ namespace {
 
 } // anonymous namespace
 
+
+// The `GeoArrowArrayView` is the main class that uses of the API will interact with.
+// it is an abstract class that represents a view of a `struct ArrowSchema` and
+// a sequence of `struct ArrowArray`s, both of which must be valid pointers for the
+// lifetime of the `GeoArrowArrayView`. The `GeoArrowArrayView` supports handler-style
+// iteration using a `GeoArrowHandler` and pull-style iteration using virtual methods.
+// The handler-style iteration is particularly useful as a way to write general-purpose
+// code without using virtual methods.
 class GeoArrowArrayView {
   public:
     GeoArrowArrayView(const struct ArrowSchema* schema):
@@ -683,6 +741,11 @@ class GeoArrowArrayView {
     }
 
     virtual ~GeoArrowArrayView() {}
+
+    void read_meta(GeoArrowHandler* handler) {
+        handler->new_geometry_type(geoarrow_meta_.geometry_type_);
+        handler->new_dimensions(geoarrow_meta_.dimensions_);
+    }
 
     virtual int read_features(wk_handler_t* handler) {
         throw std::runtime_error("GeoArrowArrayView::read_features() not implemented");
