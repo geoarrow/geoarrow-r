@@ -27,7 +27,7 @@ public:
       coord_id_(-1) {
         WK_VECTOR_META_RESET(vector_meta_, geoarrow_meta.geometry_type_);
         WK_META_RESET(meta_[0], geoarrow_meta.geometry_type_);
-        WK_META_RESET(meta_[1], geoarrow_meta.geometry_type_ + 3);
+        WK_META_RESET(meta_[1], geoarrow_meta.geometry_type_ - 3);
 
         vector_meta_.size = size;
 
