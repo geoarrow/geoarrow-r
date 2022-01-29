@@ -37,3 +37,39 @@ test_that("geoarrow_read_parquet/geoarrow_collect works", {
 
   unlink(temp)
 })
+
+test_that("geoarrow_read_feather() works", {
+  skip_if_not_installed("arrow")
+
+  tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
+  temp <- tempfile()
+  write_geoarrow_feather(tbl, temp, schema = geoarrow_schema_wkb())
+
+  table <- read_geoarrow_feather(temp, handler = wk::xy_writer, as_data_frame = FALSE)
+  expect_true(inherits(table, "Table"))
+
+  expect_identical(
+    as.data.frame(read_geoarrow_feather(temp, handler = wk::xy_writer)),
+    tbl
+  )
+
+  unlink(temp)
+})
+
+test_that("geoarrow_read_ipc_stream() works", {
+  skip_if_not_installed("arrow")
+
+  tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
+  temp <- tempfile()
+  write_geoarrow_ipc_stream(tbl, temp, schema = geoarrow_schema_wkb())
+
+  table <- read_geoarrow_ipc_stream(temp, handler = wk::xy_writer, as_data_frame = FALSE)
+  expect_true(inherits(table, "Table"))
+
+  expect_identical(
+    as.data.frame(read_geoarrow_ipc_stream(temp, handler = wk::xy_writer)),
+    tbl
+  )
+
+  unlink(temp)
+})

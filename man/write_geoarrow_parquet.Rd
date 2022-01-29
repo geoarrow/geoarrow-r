@@ -2,9 +2,15 @@
 % Please edit documentation in R/write.R
 \name{write_geoarrow_parquet}
 \alias{write_geoarrow_parquet}
+\alias{write_geoarrow_feather}
+\alias{write_geoarrow_ipc_stream}
 \title{Write geometry as Apache Parquet files}
 \usage{
 write_geoarrow_parquet(handleable, ..., schema = NULL, strict = FALSE)
+
+write_geoarrow_feather(handleable, ..., schema = NULL, strict = FALSE)
+
+write_geoarrow_ipc_stream(handleable, ..., schema = NULL, strict = FALSE)
 }
 \arguments{
 \item{handleable}{An object with a \code{\link[wk:wk_handle]{wk::wk_handle()}} method}

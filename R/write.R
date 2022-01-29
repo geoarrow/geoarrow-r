@@ -12,6 +12,39 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
     stop("Package 'arrow' required for write_geoarrow_parquet()", call. = FALSE) # nocov
   }
 
+  batch <- geoarrow_make_batch(handleable, schema, strict)
+
+  # write!
+  arrow::write_parquet(batch, ...)
+}
+
+#' @rdname write_geoarrow_parquet
+#' @export
+write_geoarrow_feather <- function(handleable, ..., schema = NULL, strict = FALSE) {
+  if (!requireNamespace("arrow", quietly = TRUE)) {
+    stop("Package 'arrow' required for write_geoarrow_feather()", call. = FALSE) # nocov
+  }
+
+  batch <- geoarrow_make_batch(handleable, schema, strict)
+
+  # write!
+  arrow::write_feather(batch, ...)
+}
+
+#' @rdname write_geoarrow_parquet
+#' @export
+write_geoarrow_ipc_stream <- function(handleable, ..., schema = NULL, strict = FALSE) {
+  if (!requireNamespace("arrow", quietly = TRUE)) {
+    stop("Package 'arrow' required for write_geoarrow_ipc_stream()", call. = FALSE) # nocov
+  }
+
+  batch <- geoarrow_make_batch(handleable, schema, strict)
+
+  # write!
+  arrow::write_ipc_stream(batch, ...)
+}
+
+geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE) {
   if (!is.data.frame(handleable)) {
     handleable <- data.frame(geometry = handleable)
   } else {
@@ -52,8 +85,7 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
   # add file metadata
   batch$metadata$geo <- jsonlite::toJSON(file_metadata, null = "null", auto_unbox = TRUE)
 
-  # write!
-  arrow::write_parquet(batch, ...)
+  batch
 }
 
 is_handleable_column <- function(x) {
