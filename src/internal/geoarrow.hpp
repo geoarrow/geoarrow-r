@@ -182,7 +182,7 @@ class GeoArrowMeta {
         if (schema == nullptr) {
             storage_type_ = StorageType::StorageTypeNone;
             extension_ = Extension::ExtensionNone;
-            snprintf(error_, 1024, "schema is NULL");
+            set_error("schema is NULL");
             return false;
         }
 
@@ -198,9 +198,7 @@ class GeoArrowMeta {
         case StorageType::List:
         case StorageType::LargeList:
             if (schema->n_children != 1) {
-                snprintf(
-                    error_, 1024,
-                    "Expected container schema to have one child but found %lld", schema->n_children);
+                set_error("Expected container schema to have one child but found %lld", schema->n_children);
                 return false;
             }
             break;
@@ -221,36 +219,25 @@ class GeoArrowMeta {
             switch (storage_type_) {
             case StorageType::FixedWidthList:
                 if (fixed_width_ != n_dims) {
-                    snprintf(
-                        error_, 1024,
+                    set_error(
                         "Expected geoarrow.point with dimensions '%s' to have width %d but found width %lld",
                         dim_, n_dims, fixed_width_);
                     return false;
                 }
                 if (!child.set_schema(schema->children[0])) {
-                    // straight using child.error_ gives a format warning because the
-                    // complier knows that it could contain some characters and might
-                    // truncate (which is fine, but we need the warning to go away).
-                    char child_error[800];
-                    memset(child_error, 0, sizeof(child_error));
-                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
-                    snprintf(
-                        error_, 1024,
-                        "geoarrow.point has an invalid child schema: %s",
-                        child_error);
+                    set_child_error(
+                        child.error_,
+                        "geoarrow.point has an invalid child schema");
                     return false;
                 }
                 if (child.storage_type_ != Float64) {
-                    snprintf(
-                        error_, 1024,
-                        "Expected child of fixed-width list geoarrow.point to have type Float64");
+                    set_error("Expected child of fixed-width list geoarrow.point to have type Float64");
                     return false;
                 }
                 break;
             case StorageType::Struct:
                 if (schema->n_children < n_dims) {
-                    snprintf(
-                        error_, 1024,
+                    set_error(
                         "Expected struct geoarrow.point with dimensions '%s' to have %d or more children but found %lld",
                         dim_, n_dims, schema->n_children);
                     return false;
@@ -258,20 +245,14 @@ class GeoArrowMeta {
 
                 for (uint64_t i = 0; i < n_dims; i++) {
                     if (!child.set_schema(schema->children[i])) {
-                        // see above note about snprintf(..., child.error_)
-                        char child_error[800];
-                        memset(child_error, 0, sizeof(child_error));
-                        memcpy(child_error, child.error_, sizeof(child_error) - 1);
-                        snprintf(
-                            error_, 1024,
-                            "Struct geoarrow.point child %lld has an invalid schema: %s",
-                            i, child_error);
+                        set_child_error(
+                            child.error_,
+                            "Struct geoarrow.point child %lld has an invalid schema", i);
                         return false;
                     }
 
                     if (child.storage_type_ != StorageType::Float64) {
-                        snprintf(
-                            error_, 1024,
+                        set_error(
                             "Struct geoarrow.point child %lld had an unsupported storage type '%s'",
                             i, schema->children[i]->format);
                         return false;
@@ -280,8 +261,7 @@ class GeoArrowMeta {
 
                 break;
             default:
-                snprintf(
-                    error_, 1024,
+                set_error(
                     "Expected geoarrow.point to be a struct or a fixed-width list but found '%s'",
                     schema->format);
                 return false;
@@ -292,21 +272,14 @@ class GeoArrowMeta {
             switch (storage_type_) {
             case StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
-                    // see above note about snprintf(..., child.error_)
-                    char child_error[800];
-                    memset(child_error, 0, sizeof(child_error));
-                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
-                    snprintf(
-                        error_, 1024,
-                        "geoarrow.linestring child has an invalid schema: %s",
-                        child_error);
+                    set_child_error(
+                        child.error_,
+                        "geoarrow.linestring child has an invalid schema");
                     return false;
                 }
 
                 if (child.extension_ != Extension::Point) {
-                    snprintf(
-                        error_, 1024,
-                        "Child of geoarrow.linestring must be a geoarrow.point");
+                    set_error("Child of geoarrow.linestring must be a geoarrow.point");
                     return false;
                 }
 
@@ -316,8 +289,7 @@ class GeoArrowMeta {
                 break;
 
             default:
-                snprintf(
-                    error_, 1024,
+                set_error(
                     "Expected geoarrow.linestring to be a list but found '%s'",
                     schema->format);
                 return false;
@@ -330,41 +302,28 @@ class GeoArrowMeta {
             switch (storage_type_) {
             case StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
-                    // see above note about snprintf(..., child.error_)
-                    char child_error[800];
-                    memset(child_error, 0, sizeof(child_error));
-                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
-                    snprintf(
-                        error_, 1024,
-                        "geoarrow.polygon child has an invalid schema: %s",
-                        child_error);
+                    set_child_error(
+                        child.error_,
+                        "geoarrow.polygon child has an invalid schema");
                     return false;
                 }
 
                 if (child.storage_type_ != StorageType::List) {
-                    snprintf(
-                        error_, 1024,
+                    set_error(
                         "Expected child of a geoarrow.polygon to be a list but found '%s'",
                         schema->children[0]->format);
                     return false;
                 }
 
                 if (!child.set_schema(schema->children[0]->children[0])) {
-                    // see above note about snprintf(..., child.error_)
-                    char child_error[800];
-                    memset(child_error, 0, sizeof(child_error));
-                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
-                    snprintf(
-                        error_, 1024,
-                        "geoarrow.polygon grandchild has an invalid schema: %s",
-                        child_error);
+                    set_child_error(
+                        child.error_,
+                        "geoarrow.polygon grandchild has an invalid schema");
                     return false;
                 }
 
                 if (child.extension_ != Extension::Point) {
-                    snprintf(
-                        error_, 1024,
-                        "Grandchild of geoarrow.polygon must be a geoarrow.point");
+                    set_error("Grandchild of geoarrow.polygon must be a geoarrow.point");
                     return false;
                 }
 
@@ -374,8 +333,7 @@ class GeoArrowMeta {
                 break;
 
             default:
-                snprintf(
-                    error_, 1024,
+                set_error(
                     "Expected geoarrow.polygon to be a list but found '%s'",
                     schema->format);
                 return false;
@@ -387,14 +345,9 @@ class GeoArrowMeta {
         switch (storage_type_) {
             case StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
-                    // see above note about snprintf(..., child.error_)
-                    char child_error[800];
-                    memset(child_error, 0, sizeof(child_error));
-                    memcpy(child_error, child.error_, sizeof(child_error) - 1);
-                    snprintf(
-                        error_, 1024,
-                        "geoarrow.multi child has an invalid schema: %s",
-                        child_error);
+                    set_child_error(
+                        child.error_,
+                        "geoarrow.multi child has an invalid schema");
                     return false;
                 }
 
@@ -409,8 +362,7 @@ class GeoArrowMeta {
                     geometry_type_ = GeometryType::MULTIPOLYGON;
                     break;
                 default:
-                    snprintf(
-                        error_, 1024,
+                    set_error(
                         "Child of geoarrow.multi must be a geoarrow.point, geoarrow.linestring, or geoarrow.polygon");
                     return false;
                 }
@@ -422,8 +374,7 @@ class GeoArrowMeta {
                 break;
 
             default:
-                snprintf(
-                    error_, 1024,
+                set_error(
                     "Expected geoarrow.multi to be a list but found '%s'",
                     schema->format);
                 return false;
@@ -440,8 +391,7 @@ class GeoArrowMeta {
 
     bool array_valid(const struct ArrowArray* array) {
         if (array->n_buffers != expected_buffers_) {
-            snprintf(
-                error_, 1024,
+            set_error(
                 "Expected array with %d buffers but found %lld",
                 expected_buffers_, array->n_buffers);
             return false;
@@ -452,9 +402,9 @@ class GeoArrowMeta {
         case StorageType::List:
         case StorageType::LargeList:
             if (array->n_children != 1) {
-                snprintf(
-                    error_, 1024,
-                    "Expected container array to have one child but found %lld", array->n_children);
+                set_error(
+                    "Expected container array to have one child but found %lld",
+                    array->n_children);
                 return false;
             }
             break;
@@ -621,6 +571,31 @@ class GeoArrowMeta {
     Dimensions dimensions_;
 
     char error_[1024];
+
+private:
+
+    int set_error(const char* fmt, ...) {
+        memset(error_, 0, sizeof(error_));
+        va_list args;
+        va_start(args, fmt);
+        int result = vsnprintf(error_, sizeof(error_) - 1, fmt, args);
+        va_end(args);
+        return result;
+    }
+
+    void set_child_error(const char* child_error_, const char* fmt, ...) {
+        char child_error[800];
+        memset(child_error, 0, sizeof(child_error));
+        memcpy(child_error, child_error_, sizeof(child_error) - 1);
+        memset(error_, 0, sizeof(error_));
+
+        va_list args;
+        va_start(args, fmt);
+        int result = vsnprintf(error_, sizeof(error_) - 1, fmt, args);
+        va_end(args);
+
+        snprintf(error_ + result, sizeof(error_) - result - 1, ": %s", child_error);
+    }
 };
 
 // A `GeoArrowHandler` is a stateful handler base class that responds to events
