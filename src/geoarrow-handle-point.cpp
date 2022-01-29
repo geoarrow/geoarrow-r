@@ -22,12 +22,14 @@
 class WKGeoArrowHandler: public geoarrow::GeoArrowHandler {
 public:
 
-    WKGeoArrowHandler(wk_handler_t* handler, geoarrow::GeoArrowMeta geoarrow_meta):
+    WKGeoArrowHandler(wk_handler_t* handler, const geoarrow::GeoArrowMeta& geoarrow_meta, R_xlen_t size):
       handler_(handler), feat_id_(-1), nest_level_(-1), ring_id_(-1),
       coord_id_(-1) {
         WK_VECTOR_META_RESET(vector_meta_, geoarrow_meta.geometry_type_);
         WK_META_RESET(meta_[0], geoarrow_meta.geometry_type_);
         WK_META_RESET(meta_[1], geoarrow_meta.geometry_type_ + 3);
+
+        vector_meta_.size = size;
 
         switch (geoarrow_meta.dimensions_) {
         case geoarrow::GeoArrowMeta::Dimensions::XYZ:
@@ -102,12 +104,14 @@ public:
     }
 
     Result feat_end() {
-        return (Result) handler_->feature_start(&vector_meta_, feat_id_, handler_->handler_data);
+        return (Result) handler_->feature_end(&vector_meta_, feat_id_, handler_->handler_data);
     }
+
+    wk_vector_meta_t vector_meta_;
 
 private:
     wk_handler_t* handler_;
-    wk_vector_meta_t vector_meta_;
+
     wk_meta_t meta_[2];
     int32_t part_id_[2];
     int32_t ring_size_;
@@ -144,18 +148,21 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     SEXP view_xptr = PROTECT(R_MakeExternalPtr(view, R_NilValue, R_NilValue));
     R_RegisterCFinalizer(view_xptr, &delete_array_view_xptr);
 
+    R_xlen_t vector_size = WK_VECTOR_SIZE_UNKNOWN;
     if (TYPEOF(n_features_sexp) == INTSXP) {
         if (INTEGER(n_features_sexp)[0] != NA_INTEGER) {
-            view->set_vector_size(INTEGER(n_features_sexp)[0]);
+            vector_size = INTEGER(n_features_sexp)[0];
         }
     } else {
         double n_features_double = REAL(n_features_sexp)[0];
         if (!ISNA(n_features_double) && !ISNAN(n_features_double)) {
-            view->set_vector_size(n_features_double);
+            vector_size = n_features_double;
         }
     }
 
-    int result = handler->vector_start(&view->vector_meta_, handler->handler_data);
+    WKGeoArrowHandler geoarrow_handler(handler, view->geoarrow_meta_, vector_size);
+
+    int result = handler->vector_start(&geoarrow_handler.vector_meta_, handler->handler_data);
     if (result == WK_CONTINUE) {
         struct ArrowArray* array_data = (struct ArrowArray*) malloc(sizeof(struct ArrowArray));
         if (array_data == NULL) {
@@ -185,13 +192,18 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
             }
 
             view->set_array(array_data);
-            HANDLE_CONTINUE_OR_BREAK(view->read_features(handler));
+            result = (int) view->read_features(&geoarrow_handler);
+            if (result == WK_CONTINUE) {
+                continue;
+            } else if (result == WK_ABORT) {
+                break;
+            }
         }
 
         UNPROTECT(1);
     }
 
-    SEXP result_sexp = PROTECT(handler->vector_end(&view->vector_meta_, handler->handler_data));
+    SEXP result_sexp = PROTECT(handler->vector_end(&geoarrow_handler.vector_meta_, handler->handler_data));
     UNPROTECT(2);
     return result_sexp;
 

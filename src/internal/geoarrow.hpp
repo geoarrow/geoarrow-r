@@ -106,12 +106,14 @@ struct ArrowArrayStream {
 
 #define HANDLE_OR_RETURN(expr)                                 \
     result = expr;                                             \
-    if (result != WK_CONTINUE) return result
+    if (result != GeoArrowHandler::Result::CONTINUE) return result
 
 
 #define HANDLE_CONTINUE_OR_BREAK(expr)                         \
     result = expr;                                             \
-    if (result == WK_ABORT_FEATURE) continue; else if (result == WK_ABORT) break
+    if (result == GeoArrowHandler::Result::ABORT_FEATURE) \
+        continue; \
+    else if (result == GeoArrowHandler::Result::ABORT) break
 
 
 namespace geoarrow {
@@ -670,45 +672,41 @@ public:
 namespace {
 
     template <class ArrayView>
-    int read_point_geometry(ArrayView& view, wk_handler_t* handler, int64_t offset,
-                            int64_t part_id = WK_PART_ID_NONE) {
-        int result;
-        HANDLE_OR_RETURN(handler->geometry_start(&view.meta_, part_id, handler->handler_data));
-        HANDLE_OR_RETURN(view.read_coord(handler, offset, 0));
-        HANDLE_OR_RETURN(handler->geometry_end(&view.meta_, part_id, handler->handler_data));
-        return WK_CONTINUE;
+    GeoArrowHandler::Result read_point_geometry(ArrayView& view, GeoArrowHandler* handler, int64_t offset) {
+        GeoArrowHandler::Result result;
+        HANDLE_OR_RETURN(handler->geom_start(view.meta_.size));
+        HANDLE_OR_RETURN(view.read_coord(handler, offset));
+        HANDLE_OR_RETURN(handler->geom_end());
+        return GeoArrowHandler::Result::CONTINUE;
     }
 
-
     template <class ArrayView>
-    int read_feature_templ(ArrayView& view, int64_t offset, wk_handler_t* handler) {
-        int result;
-        view.feature_id_++;
-        HANDLE_OR_RETURN(handler->feature_start(&view.vector_meta_, view.feature_id_, handler->handler_data));
+    GeoArrowHandler::Result read_feature_templ(ArrayView& view, int64_t offset, GeoArrowHandler* handler) {
+        GeoArrowHandler::Result result;
+        HANDLE_OR_RETURN(handler->feat_start());
 
         if (view.is_null(offset)) {
-            HANDLE_OR_RETURN(handler->null_feature(handler->handler_data));
+            HANDLE_OR_RETURN(handler->null_feat());
         } else {
-            HANDLE_OR_RETURN(view.read_geometry(handler, offset, WK_PART_ID_NONE));
+            HANDLE_OR_RETURN(view.read_geometry(handler, offset));
         }
 
-        HANDLE_OR_RETURN(handler->feature_end(&view.vector_meta_, view.feature_id_, handler->handler_data));
-        return WK_CONTINUE;
+        HANDLE_OR_RETURN(handler->feat_end());
+        return GeoArrowHandler::Result::CONTINUE;
     }
 
-
     template <class ArrayView>
-    int read_features_templ(ArrayView& view, wk_handler_t* handler) {
-        int result;
+    GeoArrowHandler::Result read_features_templ(ArrayView& view, GeoArrowHandler* handler) {
+        GeoArrowHandler::Result result;
 
         for (uint64_t i = 0; i < view.array_->length; i++) {
             HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler, i));
         }
 
-        if (result == WK_ABORT) {
-            return WK_ABORT;
+        if (result == GeoArrowHandler::Result::ABORT) {
+            return GeoArrowHandler::Result::ABORT;
         } else {
-            return WK_CONTINUE;
+            return GeoArrowHandler::Result::CONTINUE;
         }
     }
 
@@ -749,7 +747,7 @@ class GeoArrowArrayView {
         handler->new_dimensions(geoarrow_meta_.dimensions_);
     }
 
-    virtual int read_features(wk_handler_t* handler) {
+    virtual GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         throw std::runtime_error("GeoArrowArrayView::read_features() not implemented");
     }
 
@@ -796,26 +794,22 @@ class GeoArrowPointView: public GeoArrowArrayView {
         data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
     }
 
-    int read_features(wk_handler_t* handler) {
+    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowPointView>(*this, handler);
     }
 
-    int read_feature(wk_handler_t* handler, int64_t offset) {
+    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowPointView>(*this, offset, handler);
     }
 
-    int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
-        return read_point_geometry<GeoArrowPointView>(*this, handler, offset, part_id);
+    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
+        return read_point_geometry<GeoArrowPointView>(*this, handler, offset);
     }
 
-    int read_coord(wk_handler_t* handler, int64_t offset, int64_t coord_id = 0) {
-        int result;
-        HANDLE_OR_RETURN(handler->coord(
-            &meta_,
-            data_buffer_ + (offset + array_->offset) * coord_size_,
-            coord_id,
-            handler->handler_data));
-        return WK_CONTINUE;
+    GeoArrowHandler::Result read_coord(GeoArrowHandler* handler, int64_t offset) {
+        GeoArrowHandler::Result result;
+        HANDLE_OR_RETURN(handler->coord(data_buffer_ + (offset + array_->offset) * coord_size_));
+        return GeoArrowHandler::Result::CONTINUE;
     }
 
     int coord_size_;
@@ -845,32 +839,27 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         }
     }
 
-    int read_features(wk_handler_t* handler) {
+    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowPointStructView>(*this, handler);
     }
 
-    int read_feature(wk_handler_t* handler, int64_t offset) {
+    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowPointStructView>(*this, offset, handler);
     }
 
-    int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
-        return read_point_geometry<GeoArrowPointStructView>(*this, handler, offset, part_id);
+    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
+        return read_point_geometry<GeoArrowPointStructView>(*this, handler, offset);
     }
 
-    int read_coord(wk_handler_t* handler, int64_t offset, int64_t coord_id = 0) {
-        int result;
+    GeoArrowHandler::Result read_coord(GeoArrowHandler* handler, int64_t offset) {
+        GeoArrowHandler::Result result;
 
         for (int i = 0; i < coord_size_; i++) {
             coord_[i] = coord_buffer_[i][array_->offset + offset];
         }
 
-        HANDLE_OR_RETURN(handler->coord(
-            &meta_,
-            coord_,
-            coord_id,
-            handler->handler_data));
-
-        return WK_CONTINUE;
+        HANDLE_OR_RETURN(handler->coord(coord_));
+        return GeoArrowHandler::Result::CONTINUE;
     }
 
     int coord_size_;
@@ -922,28 +911,28 @@ class GeoArrowLinestringView: public ListView<PointView> {
         }
     }
 
-    int read_features(wk_handler_t* handler) {
+    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowLinestringView>(*this, handler);
     }
 
-    int read_feature(wk_handler_t* handler, int64_t offset) {
+    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowLinestringView>(*this, offset, handler);
     }
 
-    int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
-        int result;
+    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
+        GeoArrowHandler::Result result;
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
         this->meta_.size = size;
 
-        HANDLE_OR_RETURN(handler->geometry_start(&this->meta_, part_id, handler->handler_data));
+        HANDLE_OR_RETURN(handler->geom_start(size));
         for (int64_t i = 0; i < size; i++) {
-            HANDLE_OR_RETURN(this->child_.read_coord(handler, initial_child_offset + i, i));
+            HANDLE_OR_RETURN(this->child_.read_coord(handler, initial_child_offset + i));
         }
 
-        HANDLE_OR_RETURN(handler->geometry_end(&this->meta_, part_id, handler->handler_data));
-        return WK_CONTINUE;
+        HANDLE_OR_RETURN(handler->geom_end());
+        return GeoArrowHandler::Result::CONTINUE;
     }
 };
 
@@ -966,36 +955,36 @@ class GeoArrowPolygonView: public ListView<ListView<PointView>> {
         }
     }
 
-    int read_features(wk_handler_t* handler) {
+    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowPolygonView>(*this, handler);
     }
 
-    int read_feature(wk_handler_t* handler, int64_t offset) {
+    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowPolygonView>(*this, offset, handler);
     }
 
-    int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
-        int result;
+    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
+        GeoArrowHandler::Result result;
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
         this->meta_.size = size;
 
-        HANDLE_OR_RETURN(handler->geometry_start(&this->meta_, part_id, handler->handler_data));
+        HANDLE_OR_RETURN(handler->geom_start(size));
         for (int64_t i = 0; i < size; i++) {
 
             int64_t initial_coord_offset = this->child_.child_offset(initial_child_offset + i);
             int64_t ring_size = this->child_.child_size(initial_child_offset + i);
 
-            HANDLE_OR_RETURN(handler->ring_start(&this->meta_, ring_size, i, handler->handler_data));
+            HANDLE_OR_RETURN(handler->ring_start(ring_size));
             for (int64_t j = 0; j < ring_size; j++) {
-                HANDLE_OR_RETURN(this->child_.child_.read_coord(handler, initial_coord_offset + j, j));
+                HANDLE_OR_RETURN(this->child_.child_.read_coord(handler, initial_coord_offset + j));
             }
-            HANDLE_OR_RETURN(handler->ring_end(&this->meta_, ring_size, i, handler->handler_data));
+            HANDLE_OR_RETURN(handler->ring_end());
         }
 
-        HANDLE_OR_RETURN(handler->geometry_end(&this->meta_, part_id, handler->handler_data));
-        return WK_CONTINUE;
+        HANDLE_OR_RETURN(handler->geom_end());
+        return GeoArrowHandler::Result::CONTINUE;
     }
 
 };
@@ -1035,27 +1024,27 @@ class GeoArrowMultiView: public ListView<ChildView> {
         }
     }
 
-    int read_features(wk_handler_t* handler) {
+    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowMultiView>(*this, handler);
     }
 
-    int read_feature(wk_handler_t* handler, int64_t offset) {
+    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowMultiView>(*this, offset, handler);
     }
 
-    int read_geometry(wk_handler_t* handler, int64_t offset, uint32_t part_id = WK_PART_ID_NONE) {
-        int result;
+    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
+        GeoArrowHandler::Result result;
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
         this->meta_.size = size;
 
-        HANDLE_OR_RETURN(handler->geometry_start(&this->meta_, part_id, handler->handler_data));
+        HANDLE_OR_RETURN(handler->geom_start(size));
         for (int64_t i = 0; i < size; i++) {
-            HANDLE_OR_RETURN(this->child_.read_geometry(handler, initial_child_offset + i, i));
+            HANDLE_OR_RETURN(this->child_.read_geometry(handler, initial_child_offset + i));
         }
-        HANDLE_OR_RETURN(handler->geometry_end(&this->meta_, part_id, handler->handler_data));
-        return WK_CONTINUE;
+        HANDLE_OR_RETURN(handler->geom_end());
+        return GeoArrowHandler::Result::CONTINUE;
     }
 };
 
