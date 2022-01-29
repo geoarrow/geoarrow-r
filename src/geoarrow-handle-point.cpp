@@ -22,16 +22,27 @@
 class WKGeoArrowHandler: public geoarrow::GeoArrowHandler {
 public:
 
-    WKGeoArrowHandler(wk_handler_t* handler, const geoarrow::GeoArrowMeta& geoarrow_meta, R_xlen_t size):
+    WKGeoArrowHandler(wk_handler_t* handler, R_xlen_t size):
       handler_(handler), feat_id_(-1), nest_level_(-1), ring_id_(-1),
       coord_id_(-1) {
-        WK_VECTOR_META_RESET(vector_meta_, geoarrow_meta.geometry_type_);
-        WK_META_RESET(meta_[0], geoarrow_meta.geometry_type_);
-        WK_META_RESET(meta_[1], geoarrow_meta.geometry_type_ - 3);
+        WK_VECTOR_META_RESET(vector_meta_, WK_GEOMETRY);
+        WK_META_RESET(meta_[0], WK_GEOMETRY);
+        WK_META_RESET(meta_[1], WK_GEOMETRY);
 
         vector_meta_.size = size;
 
-        switch (geoarrow_meta.dimensions_) {
+        part_id_[0] = WK_PART_ID_NONE;
+        part_id_[1] = -1;
+    }
+
+    void new_geometry_type(geoarrow::GeoArrowMeta::GeometryType geometry_type) {
+        vector_meta_.geometry_type = geometry_type;
+        meta_[0].geometry_type = geometry_type;
+        meta_[1].geometry_type = geometry_type - 3;
+    }
+
+    void new_dimensions(geoarrow::GeoArrowMeta::Dimensions dimensions) {
+        switch (dimensions) {
         case geoarrow::GeoArrowMeta::Dimensions::XYZ:
         case geoarrow::GeoArrowMeta::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_Z;
@@ -42,7 +53,7 @@ public:
             break;
         }
 
-        switch (geoarrow_meta.dimensions_) {
+        switch (dimensions) {
         case geoarrow::GeoArrowMeta::Dimensions::XYM:
         case geoarrow::GeoArrowMeta::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_M;
@@ -52,9 +63,6 @@ public:
         default:
             break;
         }
-
-        part_id_[0] = WK_PART_ID_NONE;
-        part_id_[1] = -1;
     }
 
     Result feat_start() {
@@ -160,7 +168,8 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
         }
     }
 
-    WKGeoArrowHandler geoarrow_handler(handler, view->meta_, vector_size);
+    WKGeoArrowHandler geoarrow_handler(handler, vector_size);
+    view->read_meta(&geoarrow_handler);
 
     int result = handler->vector_start(&geoarrow_handler.vector_meta_, handler->handler_data);
     if (result == WK_CONTINUE) {
