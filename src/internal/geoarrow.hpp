@@ -102,20 +102,6 @@ struct ArrowArrayStream {
 #endif
 
 
-#include "wk-v1.h"
-
-#define HANDLE_OR_RETURN(expr)                                 \
-    result = expr;                                             \
-    if (result != GeoArrowHandler::Result::CONTINUE) return result
-
-
-#define HANDLE_CONTINUE_OR_BREAK(expr)                         \
-    result = expr;                                             \
-    if (result == GeoArrowHandler::Result::ABORT_FEATURE) \
-        continue; \
-    else if (result == GeoArrowHandler::Result::ABORT) break
-
-
 namespace geoarrow {
 
 class GeoArrowMeta {
@@ -669,12 +655,24 @@ public:
 };
 
 
+#define HANDLE_OR_RETURN(expr)                                 \
+    result = expr;                                             \
+    if (result != GeoArrowHandler::Result::CONTINUE) return result
+
+
+#define HANDLE_CONTINUE_OR_BREAK(expr)                         \
+    result = expr;                                             \
+    if (result == GeoArrowHandler::Result::ABORT_FEATURE) \
+        continue; \
+    else if (result == GeoArrowHandler::Result::ABORT) break
+
+
 namespace {
 
     template <class ArrayView>
     GeoArrowHandler::Result read_point_geometry(ArrayView& view, GeoArrowHandler* handler, int64_t offset) {
         GeoArrowHandler::Result result;
-        HANDLE_OR_RETURN(handler->geom_start(view.meta_.size));
+        HANDLE_OR_RETURN(handler->geom_start(1));
         HANDLE_OR_RETURN(view.read_coord(handler, offset));
         HANDLE_OR_RETURN(handler->geom_end());
         return GeoArrowHandler::Result::CONTINUE;
@@ -724,20 +722,7 @@ class GeoArrowArrayView {
   public:
     GeoArrowArrayView(const struct ArrowSchema* schema):
       schema_(schema), array_(nullptr), geoarrow_meta_(schema),
-      feature_id_(-1), validity_buffer_(nullptr) {
-        WK_META_RESET(meta_, WK_GEOMETRY);
-        WK_VECTOR_META_RESET(vector_meta_, WK_GEOMETRY);
-
-        if (strcmp(geoarrow_meta_.dim_, "xyz") == 0 || strcmp(geoarrow_meta_.dim_, "xyzm") == 0) {
-            meta_.flags |= WK_FLAG_HAS_Z;
-            vector_meta_.flags |= WK_FLAG_HAS_Z;
-        }
-
-        if (strcmp(geoarrow_meta_.dim_, "xym") == 0 || strcmp(geoarrow_meta_.dim_, "xyzm") == 0) {
-            meta_.flags |= WK_FLAG_HAS_M;
-            vector_meta_.flags |= WK_FLAG_HAS_M;
-        }
-    }
+      feature_id_(-1), validity_buffer_(nullptr) {}
 
     virtual ~GeoArrowArrayView() {}
 
@@ -760,17 +745,11 @@ class GeoArrowArrayView {
         validity_buffer_ = reinterpret_cast<const uint8_t*>(array->buffers[0]);
     }
 
-    void set_vector_size(int64_t size) {
-        vector_meta_.size = size;
-    }
-
     bool is_null(int64_t offset) {
         return validity_buffer_ &&
             (validity_buffer_[offset / 8] & (0x01 << (offset % 8))) == 0;
     }
 
-    wk_meta_t meta_;
-    wk_vector_meta_t vector_meta_;
     const struct ArrowSchema* schema_;
     const struct ArrowArray* array_;
     GeoArrowMeta geoarrow_meta_;
@@ -783,9 +762,6 @@ class GeoArrowPointView: public GeoArrowArrayView {
   public:
     GeoArrowPointView(const struct ArrowSchema* schema):
       GeoArrowArrayView(schema), data_buffer_(nullptr) {
-        meta_.geometry_type = WK_POINT;
-        vector_meta_.geometry_type = WK_POINT;
-        meta_.size = 1;
         coord_size_ = geoarrow_meta_.fixed_width_;
     }
 
@@ -820,13 +796,19 @@ class GeoArrowPointView: public GeoArrowArrayView {
 class GeoArrowPointStructView: public GeoArrowArrayView {
   public:
     GeoArrowPointStructView(const struct ArrowSchema* schema): GeoArrowArrayView(schema) {
-        meta_.geometry_type = WK_POINT;
-        vector_meta_.geometry_type = WK_POINT;
-        meta_.size = 1;
+        switch (geoarrow_meta_.dimensions_) {
+        case GeoArrowMeta::Dimensions::XYZ:
+        case GeoArrowMeta::Dimensions::XYM:
+            coord_size_ = 3;
+            break;
+        case GeoArrowMeta::Dimensions::XYZM:
+            coord_size_ = 4;
+            break;
+        default:
+            coord_size_ = 2;
+            break;
+        }
 
-        coord_size_ = 2;
-        if (vector_meta_.flags & WK_FLAG_HAS_Z) coord_size_++;
-        if (vector_meta_.flags & WK_FLAG_HAS_M) coord_size_++;
         memset(coord_buffer_, 0, sizeof(coord_buffer_));
     }
 
@@ -896,20 +878,7 @@ class ListView: public GeoArrowArrayView {
 template <class PointView = GeoArrowPointView>
 class GeoArrowLinestringView: public ListView<PointView> {
   public:
-    GeoArrowLinestringView(struct ArrowSchema* schema): ListView<PointView>(schema) {
-        this->meta_.geometry_type = WK_LINESTRING;
-        this->vector_meta_.geometry_type = WK_LINESTRING;
-
-        if (this->child_.meta_.flags & WK_FLAG_HAS_Z) {
-            this->meta_.flags |= WK_FLAG_HAS_Z;
-            this->vector_meta_.flags |= WK_FLAG_HAS_Z;
-        }
-
-        if (this->child_.meta_.flags & WK_FLAG_HAS_M) {
-            this->meta_.flags |= WK_FLAG_HAS_M;
-            this->vector_meta_.flags |= WK_FLAG_HAS_M;
-        }
-    }
+    GeoArrowLinestringView(struct ArrowSchema* schema): ListView<PointView>(schema) {}
 
     GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowLinestringView>(*this, handler);
@@ -924,7 +893,6 @@ class GeoArrowLinestringView: public ListView<PointView> {
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
-        this->meta_.size = size;
 
         HANDLE_OR_RETURN(handler->geom_start(size));
         for (int64_t i = 0; i < size; i++) {
@@ -940,20 +908,7 @@ class GeoArrowLinestringView: public ListView<PointView> {
 template <class PointView = GeoArrowPointView>
 class GeoArrowPolygonView: public ListView<ListView<PointView>> {
   public:
-    GeoArrowPolygonView(struct ArrowSchema* schema): ListView<ListView<PointView>>(schema) {
-        this->meta_.geometry_type = WK_POLYGON;
-        this->vector_meta_.geometry_type = WK_POLYGON;
-
-        if (this->child_.child_.meta_.flags & WK_FLAG_HAS_Z) {
-            this->meta_.flags |= WK_FLAG_HAS_Z;
-            this->vector_meta_.flags |= WK_FLAG_HAS_Z;
-        }
-
-        if (this->child_.child_.meta_.flags & WK_FLAG_HAS_M) {
-            this->meta_.flags |= WK_FLAG_HAS_M;
-            this->vector_meta_.flags |= WK_FLAG_HAS_M;
-        }
-    }
+    GeoArrowPolygonView(struct ArrowSchema* schema): ListView<ListView<PointView>>(schema) {}
 
     GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowPolygonView>(*this, handler);
@@ -968,7 +923,6 @@ class GeoArrowPolygonView: public ListView<ListView<PointView>> {
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
-        this->meta_.size = size;
 
         HANDLE_OR_RETURN(handler->geom_start(size));
         for (int64_t i = 0; i < size; i++) {
@@ -993,36 +947,7 @@ class GeoArrowPolygonView: public ListView<ListView<PointView>> {
 template <class ChildView>
 class GeoArrowMultiView: public ListView<ChildView> {
   public:
-    GeoArrowMultiView(struct ArrowSchema* schema): ListView<ChildView>(schema) {
-        switch (this->child_.meta_.geometry_type) {
-        case WK_POINT:
-            this->meta_.geometry_type = WK_MULTIPOINT;
-            this->vector_meta_.geometry_type = WK_MULTIPOINT;
-            break;
-        case WK_LINESTRING:
-            this->meta_.geometry_type = WK_MULTILINESTRING;
-            this->vector_meta_.geometry_type = WK_MULTILINESTRING;
-            break;
-        case WK_POLYGON:
-            this->meta_.geometry_type = WK_MULTIPOLYGON;
-            this->vector_meta_.geometry_type = WK_MULTIPOLYGON;
-            break;
-        default:
-            this->meta_.geometry_type = WK_GEOMETRYCOLLECTION;
-            this->vector_meta_.geometry_type = WK_GEOMETRYCOLLECTION;
-            break;
-        }
-
-        if (this->child_.meta_.flags & WK_FLAG_HAS_Z) {
-            this->meta_.flags |= WK_FLAG_HAS_Z;
-            this->vector_meta_.flags |= WK_FLAG_HAS_Z;
-        }
-
-        if (this->child_.meta_.flags & WK_FLAG_HAS_M) {
-            this->meta_.flags |= WK_FLAG_HAS_M;
-            this->vector_meta_.flags |= WK_FLAG_HAS_M;
-        }
-    }
+    GeoArrowMultiView(struct ArrowSchema* schema): ListView<ChildView>(schema) {}
 
     GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
         return read_features_templ<GeoArrowMultiView>(*this, handler);
@@ -1037,7 +962,6 @@ class GeoArrowMultiView: public ListView<ChildView> {
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
-        this->meta_.size = size;
 
         HANDLE_OR_RETURN(handler->geom_start(size));
         for (int64_t i = 0; i < size; i++) {
