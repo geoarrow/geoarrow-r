@@ -160,7 +160,7 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
         }
     }
 
-    WKGeoArrowHandler geoarrow_handler(handler, view->geoarrow_meta_, vector_size);
+    WKGeoArrowHandler geoarrow_handler(handler, view->meta_, vector_size);
 
     int result = handler->vector_start(&geoarrow_handler.vector_meta_, handler->handler_data);
     if (result == WK_CONTINUE) {

@@ -696,15 +696,15 @@ namespace {
 class GeoArrowArrayView {
   public:
     GeoArrowArrayView(const struct ArrowSchema* schema):
-      schema_(schema), array_(nullptr), geoarrow_meta_(schema),
+      schema_(schema), array_(nullptr), meta_(schema),
       feature_id_(-1), validity_buffer_(nullptr) {}
 
     virtual ~GeoArrowArrayView() {}
 
     void read_meta(GeoArrowHandler* handler) {
         handler->schema(schema_);
-        handler->new_geometry_type(geoarrow_meta_.geometry_type_);
-        handler->new_dimensions(geoarrow_meta_.dimensions_);
+        handler->new_geometry_type(meta_.geometry_type_);
+        handler->new_dimensions(meta_.dimensions_);
     }
 
     virtual GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
@@ -712,8 +712,8 @@ class GeoArrowArrayView {
     }
 
     virtual void set_array(const struct ArrowArray* array) {
-        if (!geoarrow_meta_.array_valid(array)) {
-            throw GeoArrowMeta::ValidationError(geoarrow_meta_.error_);
+        if (!meta_.array_valid(array)) {
+            throw GeoArrowMeta::ValidationError(meta_.error_);
         }
 
         array_ = array;
@@ -727,7 +727,7 @@ class GeoArrowArrayView {
 
     const struct ArrowSchema* schema_;
     const struct ArrowArray* array_;
-    GeoArrowMeta geoarrow_meta_;
+    GeoArrowMeta meta_;
     int64_t feature_id_;
     const uint8_t* validity_buffer_;
 };
@@ -737,7 +737,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
   public:
     GeoArrowPointView(const struct ArrowSchema* schema):
       GeoArrowArrayView(schema), data_buffer_(nullptr) {
-        coord_size_ = geoarrow_meta_.fixed_width_;
+        coord_size_ = meta_.fixed_width_;
     }
 
     void set_array(const struct ArrowArray* array) {
@@ -771,7 +771,7 @@ class GeoArrowPointView: public GeoArrowArrayView {
 class GeoArrowPointStructView: public GeoArrowArrayView {
   public:
     GeoArrowPointStructView(const struct ArrowSchema* schema): GeoArrowArrayView(schema) {
-        switch (geoarrow_meta_.dimensions_) {
+        switch (meta_.dimensions_) {
         case GeoArrowMeta::Dimensions::XYZ:
         case GeoArrowMeta::Dimensions::XYM:
             coord_size_ = 3;
