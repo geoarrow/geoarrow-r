@@ -43,7 +43,10 @@ geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
     ),
     children = list(
-      narrow::narrow_schema(format = format_coord, name = "")
+      narrow::narrow_schema(
+        format = format_coord,
+        name = dim
+      )
     )
   )
 }
@@ -76,6 +79,8 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 #' @export
 geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
                                        point = geoarrow_schema_point()) {
+  point$name <- "points"
+
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+l",
@@ -91,6 +96,8 @@ geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
 #' @export
 geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
                                     point = geoarrow_schema_point()) {
+  point$name <- "points"
+
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+l",
@@ -99,7 +106,11 @@ geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
     ),
     children = list(
-      narrow::narrow_schema(format = "+l", name = "", children = list(point))
+      narrow::narrow_schema(
+        format = "+l",
+        name = "rings",
+        children = list(point)
+      )
     )
   )
 }
@@ -107,6 +118,8 @@ geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_multi <- function(child, name = "") {
+  child$name <- "parts"
+
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+l",
