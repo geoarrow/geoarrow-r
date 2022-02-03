@@ -96,7 +96,7 @@ geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
 #' @export
 geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
                                     point = geoarrow_schema_point()) {
-  point$name <- "points"
+  point$name <- "vertices"
 
   narrow::narrow_schema(
     name = scalar_chr(name),
@@ -169,7 +169,7 @@ geoarrow_schema_multi <- function(child, name = "") {
   } else if (identical(child_ext, "geoarrow.polygon")) {
     child$name <- "polygons"
   } else {
-    "parts"
+    "geometries"
   }
 
   narrow::narrow_schema(

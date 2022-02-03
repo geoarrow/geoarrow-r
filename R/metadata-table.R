@@ -263,9 +263,6 @@ guess_column_encoding <- function(schema) {
       "geoarrow.point" = return("point"),
       "geoarrow.linestring" = return("linestring"),
       "geoarrow.polygon" = return("polygon"),
-      "geoarrow.multipoint" = return("multipoint"),
-      "geoarrow.multilinestring" = return("multilinestring"),
-      "geoarrow.multipolygon" = return("multipolygon"),
       "geoarrow.multi" = {
         child_encoding <- guess_column_encoding(schema$children[[1]])
         switch(
@@ -284,34 +281,56 @@ guess_column_encoding <- function(schema) {
     return("WKB")
   } else if (schema$format %in% c("u", "U")) {
     return("WKT")
+  } else if (schema$format %in% c("+w:2", "+w:4")) {
+    child_format <- schema$children[[1]]$format
+    if (identical(child_format, "g") || identical(child_format, "f")) {
+      return("point")
+    }
   }
 
   # based on format + child names
   child_names <- vapply(schema$children, "[[", "name", FUN.VALUE = character(1))
-  if (format == "+s") {
+  if (schema$format == "+s") {
      dims <- paste(child_names, collapse = "")
      if (dims %in% c("xy", "xyz", "xym", "xyzm")) {
        return("point")
-     } else {
-       stop(sprintf("Can't guess encoding for struct"))
      }
   } else if (length(child_names) == 1) {
     switch(
       child_names,
-      "coords" = return("point"),
+      "xy" =,
+      "xyz" =,
+      "xym" =,
+      "xyzm" = return("point"),
       "vertices" = return("linestring"),
       "rings" = return("polygon"),
       "points" = return("multipoint"),
       "linestrings" = return("multilinestring"),
-      "polygons" = return("multipolygon")
+      "polygons" = return("multipolygon"),
+      "geometries" = {
+        child_encoding <- guess_column_encoding(schema$children[[1]])
+        switch(
+          child_encoding,
+          "point" = return("multipoint"),
+          "linestring" = return("multilinestring"),
+          "polygon" = return("multipolygon")
+        )
+      }
     )
+  }
+
+  if (length(child_names) == 0) {
+    child_names <- "<none>"
+  } else {
+    child_names <- paste0("'", child_names, "'", collapse = ", ")
   }
 
   stop(
     sprintf(
       "Can't guess encoding for schema with format '%s' and child name(s) %s",
       schema$format,
-      paste0("'", child_names, "'", collapse = ", ")
-    )
+      child_names
+    ),
+    call. = FALSE
   )
 }

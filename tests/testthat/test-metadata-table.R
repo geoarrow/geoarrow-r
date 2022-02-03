@@ -790,7 +790,168 @@ test_that("guess_column_encoding() works for extensioned arrays", {
 
   expect_identical(
     guess_column_encoding(geoarrow_schema_multipoint()),
+    "multipoint"
+  )
+
+  expect_identical(
+    guess_column_encoding(geoarrow_schema_multilinestring()),
+    "multilinestring"
+  )
+
+  expect_identical(
+    guess_column_encoding(geoarrow_schema_multipolygon()),
+    "multipolygon"
+  )
+
+  schema <- geoarrow_schema_multipoint()
+  schema$children[[1]] <- geoarrow_schema_multipoint()
+  expect_error(guess_column_encoding(schema), "Unsupported child encoding for multi")
+})
+
+test_that("guess_column_encoding() works for unextensioned arrays", {
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema("w:10")
+    ),
+    "WKB"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema("z")
+    ),
+    "WKB"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema("Z")
+    ),
+    "WKB"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema("u")
+    ),
+    "WKT"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema("U")
+    ),
+    "WKT"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema("+w:2", children = list(narrow::narrow_schema("f")))
+    ),
     "point"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema("+w:4", children = list(narrow::narrow_schema("g")))
+    ),
+    "point"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema(
+        "+w:02",
+        children = list(narrow::narrow_schema("g", name = "xy"))
+      )
+    ),
+    "point"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema(
+        "+w:03",
+        children = list(narrow::narrow_schema("g", name = "xyz"))
+      )
+    ),
+    "point"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema(
+        "+w:03",
+        children = list(narrow::narrow_schema("g", name = "xym"))
+      )
+    ),
+    "point"
+  )
+
+  expect_identical(
+    guess_column_encoding(
+      narrow::narrow_schema(
+        "+w:04",
+        children = list(narrow::narrow_schema("g", name = "xyzm"))
+      )
+    ),
+    "point"
+  )
+
+  schema <- geoarrow_schema_point_struct(dim = "xy")
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "point")
+
+  schema <- geoarrow_schema_point_struct(dim = "xyz")
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "point")
+
+  schema <- geoarrow_schema_point_struct(dim = "xym")
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "point")
+
+  schema <- geoarrow_schema_point_struct(dim = "xyzm")
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "point")
+
+  schema <- geoarrow_schema_linestring()
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "linestring")
+
+  schema <- geoarrow_schema_polygon()
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "polygon")
+
+  schema <- geoarrow_schema_multipoint()
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "multipoint")
+
+  schema <- geoarrow_schema_multilinestring()
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "multilinestring")
+
+  schema <- geoarrow_schema_multipolygon()
+  schema$metadata <- NULL
+  expect_identical(guess_column_encoding(schema), "multipolygon")
+
+  schema <- geoarrow_schema_multipoint()
+  schema$metadata <- NULL
+  schema$children[[1]]$name <- "geometries"
+  expect_identical(guess_column_encoding(schema), "multipoint")
+
+  expect_error(
+    guess_column_encoding(narrow::narrow_schema("i")),
+    "Can't guess encoding for schema"
+  )
+
+  expect_error(
+    guess_column_encoding(
+      narrow::narrow_schema(
+        "+l",
+        children = list(narrow::narrow_schema("i", name = "not_recognized"))
+      )
+    ),
+    "Can't guess encoding for schema"
   )
 })
 
