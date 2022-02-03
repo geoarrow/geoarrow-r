@@ -772,3 +772,25 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   )
 })
 
+test_that("guess_column_encoding() works for extensioned arrays", {
+  expect_identical(
+    guess_column_encoding(geoarrow_schema_point()),
+    "point"
+  )
+
+  expect_identical(
+    guess_column_encoding(geoarrow_schema_linestring()),
+    "linestring"
+  )
+
+  expect_identical(
+    guess_column_encoding(geoarrow_schema_polygon()),
+    "polygon"
+  )
+
+  expect_identical(
+    guess_column_encoding(geoarrow_schema_multipoint()),
+    "point"
+  )
+})
+

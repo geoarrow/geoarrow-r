@@ -248,3 +248,70 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
     stop(sprintf("Unsupported encoding field: '%s'", encoding))
   )
 }
+
+guess_column_encoding <- function(schema) {
+  schema <- narrow::as_narrow_schema(schema)
+
+  # based on extension name:
+  ext <- schema$metadata[["ARROW:extension:name"]]
+  if (!is.null(ext)) {
+    switch(
+      ext,
+      "geoarrow.wkb" = return("WKB"),
+      "geoarrow.wkt" = return("WKT"),
+      "geoarrow.geojson" = return("GeoJSON"),
+      "geoarrow.point" = return("point"),
+      "geoarrow.linestring" = return("linestring"),
+      "geoarrow.polygon" = return("polygon"),
+      "geoarrow.multipoint" = return("multipoint"),
+      "geoarrow.multilinestring" = return("multilinestring"),
+      "geoarrow.multipolygon" = return("multipolygon"),
+      "geoarrow.multi" = {
+        child_encoding <- guess_column_encoding(schema$children[[1]])
+        switch(
+          child_encoding,
+          "point" = return("multipoint"),
+          "linestring" = return("multilinestring"),
+          "polygon" = return("multipolygon"),
+          stop(sprintf("Unsupported child encoding for multi: '%s'", child_encoding))
+        )
+      }
+    )
+  }
+
+  # based on format:
+  if (schema$format %in% c("Z", "z") || startsWith(schema$format, "w:")) {
+    return("WKB")
+  } else if (schema$format %in% c("u", "U")) {
+    return("WKT")
+  }
+
+  # based on format + child names
+  child_names <- vapply(schema$children, "[[", "name", FUN.VALUE = character(1))
+  if (format == "+s") {
+     dims <- paste(child_names, collapse = "")
+     if (dims %in% c("xy", "xyz", "xym", "xyzm")) {
+       return("point")
+     } else {
+       stop(sprintf("Can't guess encoding for struct"))
+     }
+  } else if (length(child_names) == 1) {
+    switch(
+      child_names,
+      "coords" = return("point"),
+      "vertices" = return("linestring"),
+      "rings" = return("polygon"),
+      "points" = return("multipoint"),
+      "linestrings" = return("multilinestring"),
+      "polygons" = return("multipolygon")
+    )
+  }
+
+  stop(
+    sprintf(
+      "Can't guess encoding for schema with format '%s' and child name(s) %s",
+      schema$format,
+      paste0("'", child_names, "'", collapse = ", ")
+    )
+  )
+}

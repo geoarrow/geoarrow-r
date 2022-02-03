@@ -5,6 +5,9 @@
 \alias{geoarrow_schema_point_struct}
 \alias{geoarrow_schema_linestring}
 \alias{geoarrow_schema_polygon}
+\alias{geoarrow_schema_multipoint}
+\alias{geoarrow_schema_multilinestring}
+\alias{geoarrow_schema_multipolygon}
 \alias{geoarrow_schema_multi}
 \alias{geoarrow_schema_wkb}
 \alias{geoarrow_schema_wkt}
@@ -27,6 +30,28 @@ geoarrow_schema_linestring(
 )
 
 geoarrow_schema_polygon(
+  name = "",
+  geodesic = FALSE,
+  point = geoarrow_schema_point()
+)
+
+geoarrow_schema_multipoint(
+  child,
+  name = "",
+  dim = "xy",
+  crs = NULL,
+  format_coord = "g"
+)
+
+geoarrow_schema_multilinestring(
+  child,
+  name = "",
+  geodesic = FALSE,
+  point = geoarrow_schema_point()
+)
+
+geoarrow_schema_multipolygon(
+  child,
   name = "",
   geodesic = FALSE,
   point = geoarrow_schema_point()

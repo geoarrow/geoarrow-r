@@ -117,6 +117,49 @@ geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
 
 #' @rdname geoarrow_schema_point
 #' @export
+geoarrow_schema_multipoint <- function(child, name = "", dim = "xy",
+                                       crs = NULL, format_coord = "g") {
+  geoarrow_schema_multi(
+    geoarrow_schema_point(
+      name = "points",
+      dim = dim,
+      crs = crs,
+      format_coord = format_coord
+    ),
+    name = name
+  )
+}
+
+#' @rdname geoarrow_schema_point
+#' @export
+geoarrow_schema_multilinestring <- function(child, name = "", geodesic = FALSE,
+                                            point = geoarrow_schema_point()) {
+  geoarrow_schema_multi(
+    geoarrow_schema_linestring(
+      name = "linestrings",
+      geodesic = geodesic,
+      point = point
+    ),
+    name = name
+  )
+}
+
+#' @rdname geoarrow_schema_point
+#' @export
+geoarrow_schema_multipolygon <- function(child, name = "", geodesic = FALSE,
+                                         point = geoarrow_schema_point()) {
+  geoarrow_schema_multi(
+    geoarrow_schema_polygon(
+      name = "polygons",
+      geodesic = geodesic,
+      point = point
+    ),
+    name = name
+  )
+}
+
+#' @rdname geoarrow_schema_point
+#' @export
 geoarrow_schema_multi <- function(child, name = "") {
   child_ext <- scalar_chr(child$metadata[["ARROW:extension:name"]])
   if (identical(child_ext, "geoarrow.point")) {
