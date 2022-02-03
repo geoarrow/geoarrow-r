@@ -63,6 +63,28 @@
   point <span class="op">=</span> <span class="fu">geoarrow_schema_point</span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
 
+<span class="fu">geoarrow_schema_multipoint</span><span class="op">(</span>
+  <span class="va">child</span>,
+  name <span class="op">=</span> <span class="st">""</span>,
+  dim <span class="op">=</span> <span class="st">"xy"</span>,
+  crs <span class="op">=</span> <span class="cn">NULL</span>,
+  format_coord <span class="op">=</span> <span class="st">"g"</span>
+<span class="op">)</span>
+
+<span class="fu">geoarrow_schema_multilinestring</span><span class="op">(</span>
+  <span class="va">child</span>,
+  name <span class="op">=</span> <span class="st">""</span>,
+  geodesic <span class="op">=</span> <span class="cn">FALSE</span>,
+  point <span class="op">=</span> <span class="fu">geoarrow_schema_point</span><span class="op">(</span><span class="op">)</span>
+<span class="op">)</span>
+
+<span class="fu">geoarrow_schema_multipolygon</span><span class="op">(</span>
+  <span class="va">child</span>,
+  name <span class="op">=</span> <span class="st">""</span>,
+  geodesic <span class="op">=</span> <span class="cn">FALSE</span>,
+  point <span class="op">=</span> <span class="fu">geoarrow_schema_point</span><span class="op">(</span><span class="op">)</span>
+<span class="op">)</span>
+
 <span class="fu">geoarrow_schema_multi</span><span class="op">(</span><span class="va">child</span>, name <span class="op">=</span> <span class="st">""</span><span class="op">)</span>
 
 <span class="fu">geoarrow_schema_wkb</span><span class="op">(</span>name <span class="op">=</span> <span class="st">""</span>, format <span class="op">=</span> <span class="st">"z"</span>, crs <span class="op">=</span> <span class="cn">NULL</span>, geodesic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>
@@ -105,7 +127,7 @@ using the shortest geodesic path (great circle on a sphere).</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu">geoarrow_schema_point</span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+w:2' at 0x55da4f2015f0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+w:2' at 0x560cddabc160&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - format: +w:2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - name: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - flags: nullable</span>
@@ -114,15 +136,15 @@ using the shortest geodesic path (great circle on a sphere).</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:17] 01 00 00 00 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema 'g' at 0x55da4b082f60&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema 'g' at 0x560cdf7fdc90&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - format: g</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: xy</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - metadata:  list()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - children[0]:</span>
 <span class="r-in"><span class="fu">geoarrow_schema_linestring</span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+l' at 0x55da4a8b40f0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+l' at 0x560cdf698730&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - format: +l</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - name: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - flags: nullable</span>
@@ -131,24 +153,24 @@ using the shortest geodesic path (great circle on a sphere).</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:4] 00 00 00 00</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+w:2' at 0x55da4f40e250&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+w:2' at 0x560cddf85b50&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - format: +w:2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: vertices</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - metadata: List of 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:name    : chr "geoarrow.point"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:17] 01 00 00 00 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema 'g' at 0x55da5019bb10&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema 'g' at 0x560cdd768890&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - format: g</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     - name: xy</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - metadata:  list()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - children[0]:</span>
 <span class="r-in"><span class="fu">geoarrow_schema_polygon</span><span class="op">(</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+l' at 0x55da50182520&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+l' at 0x560cdd95f8b0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - format: +l</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - name: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - flags: nullable</span>
@@ -157,31 +179,31 @@ using the shortest geodesic path (great circle on a sphere).</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:4] 00 00 00 00</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+l' at 0x55da4c871d70&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+l' at 0x560ce01cf3b0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - format: +l</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: rings</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - metadata:  list()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema '+w:2' at 0x55da50150860&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema '+w:2' at 0x560cdc4dd760&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - format: +w:2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     - name: vertices</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - metadata: List of 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:name    : chr "geoarrow.point"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:17] 01 00 00 00 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       &lt;narrow_schema 'g' at 0x55da501abe20&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       &lt;narrow_schema 'g' at 0x560ce019a370&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       - format: g</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       - name: xy</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       - metadata:  list()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       - children[0]:</span>
 <span class="r-in"><span class="fu">geoarrow_schema_multi</span><span class="op">(</span><span class="fu">geoarrow_schema_point</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+l' at 0x55da5014ff70&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_schema '+l' at 0x560cdf698730&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - format: +l</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - name: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - flags: nullable</span>
@@ -190,18 +212,18 @@ using the shortest geodesic path (great circle on a sphere).</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:4] 00 00 00 00</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+w:2' at 0x55da4f7e6240&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+w:2' at 0x560cddf85b50&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - format: +w:2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   - name: points</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - metadata: List of 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:name    : chr "geoarrow.point"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:17] 01 00 00 00 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema 'g' at 0x55da4b3df140&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema 'g' at 0x560cdd768890&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - format: g</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     - name: </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     - name: xy</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - flags: nullable</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - metadata:  list()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - dictionary: NULL</span>
