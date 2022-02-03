@@ -79,7 +79,7 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 #' @export
 geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
                                        point = geoarrow_schema_point()) {
-  point$name <- "points"
+  point$name <- "vertices"
 
   narrow::narrow_schema(
     name = scalar_chr(name),
@@ -118,7 +118,16 @@ geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
 #' @rdname geoarrow_schema_point
 #' @export
 geoarrow_schema_multi <- function(child, name = "") {
-  child$name <- "parts"
+  child_ext <- scalar_chr(child$metadata[["ARROW:extension:name"]])
+  if (identical(child_ext, "geoarrow.point")) {
+    child$name <- "points"
+  } else if (identical(child_ext, "geoarrow.linestring")) {
+    child$name <- "linestrings"
+  } else if (identical(child_ext, "geoarrow.polygon")) {
+    child$name <- "polygons"
+  } else {
+    "parts"
+  }
 
   narrow::narrow_schema(
     name = scalar_chr(name),
