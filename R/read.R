@@ -107,10 +107,14 @@ geoarrow_collect <- function(x, ..., handler = NULL, metadata = NULL) {
 geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
   metadata <- geoarrow_object_metadata(x, metadata)
 
+  if (is.null(metadata$columns)) {
+    metadata$columns <- guess_metadata_columns(x)
+  }
+
   handleable_cols <- intersect(names(x), names(metadata$columns))
 
   if (length(handleable_cols) == 0) {
-    return(as.data.frame(x))
+    return(tibble::as_tibble(as.data.frame(x)))
   }
 
   handleable_results <- lapply(
@@ -219,16 +223,27 @@ wk_handle_wrapper <- function(handleable, handler, ...) {
 
 geoarrow_object_metadata <- function(x, metadata = NULL) {
   metadata <- metadata %||% x$metadata$geo
-  if (is.null(metadata)) {
-    stop(
-      "`x$metadata$geo` was not found and `metadata` was not specified",
-      call. = FALSE
-    )
-  }
 
-  if (is.list(metadata)) {
-    metadata
+  if (is.list(metadata) || is.null(metadata)) {
+    as.list(metadata)
   } else {
     jsonlite::fromJSON(metadata)
   }
+}
+
+guess_metadata_columns <- function(x) {
+  guessed_encodings <- vapply(names(x), function(col_name) {
+    tryCatch(
+      guess_column_encoding(x$schema[[col_name]]),
+      error = function(e) NA_character_
+    )
+  }, character(1))
+  names(guessed_encodings) <- names(x)
+  guessed_encodings <- guessed_encodings[!is.na(guessed_encodings)]
+
+  # exclude WKT and WKB guesses because these are possibly generic column
+  # types and would be annoying if guessed wrong
+  guessed_encodings <- guessed_encodings[!(guessed_encodings %in% c("WKT", "WKB"))]
+
+  lapply(guessed_encodings, function(e) list(encoding = e))
 }

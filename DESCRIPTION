@@ -28,6 +28,7 @@ Suggests:
     geos (>= 0.1.3),
     jsonlite,
     dplyr,
+    tibble,
     vctrs,
     sf
 Config/testthat/edition: 3

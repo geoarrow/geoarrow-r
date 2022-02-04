@@ -89,6 +89,3 @@ for (name in files$name) {
   )
   check_output(glue::glue("{dst}/{name}.snappy.parquet"))
 }
-
-
-

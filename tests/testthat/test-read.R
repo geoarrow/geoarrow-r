@@ -20,19 +20,31 @@ test_that("geoarrow_read_parquet/geoarrow_collect works", {
     tbl
   )
 
-  expect_error(
-    ds %>%
-      dplyr::filter(id %in% c("a", "b", "c")) %>%
-      geoarrow_collect(),
-    "`metadata` was not specified"
-  )
-
   expect_identical(
     ds %>%
       dplyr::filter(id %in% c("a", "b", "c")) %>%
       geoarrow_collect(handler = wk::xy_writer, metadata = ds$metadata$geo) %>%
       as.data.frame(),
     tbl[1:3, ]
+  )
+
+  unlink(temp)
+})
+
+test_that("geoarrow_collect works without table-level metadata", {
+  skip_if_not_installed("arrow")
+
+  tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
+  temp <- tempfile()
+  write_geoarrow_parquet(tbl, temp)
+
+  table <- arrow::read_parquet(temp, as_data_frame = FALSE)
+  expect_true(inherits(table, "Table"))
+  table$metadata$geo <- NULL
+
+  expect_identical(
+    as.data.frame(geoarrow_collect(table, handler = wk::xy_writer)),
+    tbl
   )
 
   unlink(temp)
