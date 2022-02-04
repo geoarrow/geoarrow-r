@@ -96,30 +96,37 @@
 <span class="co">#&gt; 10 0.124      1.43  1837    1837 Stok… 37169  37169       85  1612     1     160</span>
 <span class="co">#&gt; # … with 90 more rows, and 4 more variables: BIR79 &lt;dbl&gt;, SID79 &lt;dbl&gt;,</span>
 <span class="co">#&gt; #   NWBIR79 &lt;dbl&gt;, geometry &lt;MULTIPOLYGON [°]&gt;</span></code></pre></div>
-<p>You can use any of the schemas to experiment by passing the <code>schema</code> argument. These control how the geometry is stored in an Arrow data type (but shouldn’t affect the round trip back to R).</p>
+<p>You can also use <code><a href="https://arrow.apache.org/docs/r//reference/open_dataset.html" class="external-link">arrow::open_dataset()</a></code> and <code><a href="reference/read_geoarrow_parquet.html">geoarrow_collect_sf()</a></code> to use the full power of the Arrow compute engine on datasets of one or more files:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="reference/write_geoarrow_parquet.html">write_geoarrow_parquet</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"nc.parquet"</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_schema_point.html">geoarrow_schema_wkb</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="reference/read_geoarrow_parquet.html">read_geoarrow_parquet_sf</a></span><span class="op">(</span><span class="st">"nc.parquet"</span><span class="op">)</span>
-<span class="co">#&gt; Simple feature collection with 100 features and 14 fields</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/apache/arrow/" class="external-link">arrow</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span>
+
+<span class="op">(</span><span class="va">query</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r//reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="st">"nc.parquet"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"^A"</span>, <span class="va">NAME</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span>
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">NAME</span>, <span class="va">geometry</span><span class="op">)</span> <span class="op">)</span>
+<span class="co">#&gt; FileSystemDataset (query)</span>
+<span class="co">#&gt; NAME: string</span>
+<span class="co">#&gt; geometry: list&lt;polygons: list&lt;rings: list&lt;vertices: fixed_size_list&lt;xy: double&gt;[2]&gt;&gt;&gt;</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; * Filter: match_substring_regex(NAME, {pattern="^A", ignore_case=false})</span>
+<span class="co">#&gt; See $.data for the source Arrow object</span>
+
+<span class="va">query</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
+  <span class="fu"><a href="reference/read_geoarrow_parquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span>
+<span class="co">#&gt; Simple feature collection with 6 features and 1 field</span>
 <span class="co">#&gt; Geometry type: MULTIPOLYGON</span>
 <span class="co">#&gt; Dimension:     XY</span>
-<span class="co">#&gt; Bounding box:  xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965</span>
+<span class="co">#&gt; Bounding box:  xmin: -82.07776 ymin: 34.80792 xmax: -79.23799 ymax: 36.58965</span>
 <span class="co">#&gt; Geodetic CRS:  NAD27</span>
-<span class="co">#&gt; # A tibble: 100 × 15</span>
-<span class="co">#&gt;     AREA PERIMETER CNTY_ CNTY_ID NAME  FIPS  FIPSNO CRESS_ID BIR74 SID74 NWBIR74</span>
-<span class="co">#&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;  &lt;dbl&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;</span>
-<span class="co">#&gt;  1 0.114      1.44  1825    1825 Ashe  37009  37009        5  1091     1      10</span>
-<span class="co">#&gt;  2 0.061      1.23  1827    1827 Alle… 37005  37005        3   487     0      10</span>
-<span class="co">#&gt;  3 0.143      1.63  1828    1828 Surry 37171  37171       86  3188     5     208</span>
-<span class="co">#&gt;  4 0.07       2.97  1831    1831 Curr… 37053  37053       27   508     1     123</span>
-<span class="co">#&gt;  5 0.153      2.21  1832    1832 Nort… 37131  37131       66  1421     9    1066</span>
-<span class="co">#&gt;  6 0.097      1.67  1833    1833 Hert… 37091  37091       46  1452     7     954</span>
-<span class="co">#&gt;  7 0.062      1.55  1834    1834 Camd… 37029  37029       15   286     0     115</span>
-<span class="co">#&gt;  8 0.091      1.28  1835    1835 Gates 37073  37073       37   420     0     254</span>
-<span class="co">#&gt;  9 0.118      1.42  1836    1836 Warr… 37185  37185       93   968     4     748</span>
-<span class="co">#&gt; 10 0.124      1.43  1837    1837 Stok… 37169  37169       85  1612     1     160</span>
-<span class="co">#&gt; # … with 90 more rows, and 4 more variables: BIR79 &lt;dbl&gt;, SID79 &lt;dbl&gt;,</span>
-<span class="co">#&gt; #   NWBIR79 &lt;dbl&gt;, geometry &lt;MULTIPOLYGON [°]&gt;</span></code></pre></div>
+<span class="co">#&gt; # A tibble: 6 × 2</span>
+<span class="co">#&gt;   NAME                                                                  geometry</span>
+<span class="co">#&gt;   &lt;chr&gt;                                                       &lt;MULTIPOLYGON [°]&gt;</span>
+<span class="co">#&gt; 1 Ashe      (((-81.47276 36.23436, -81.54084 36.27251, -81.56198 36.27359, -81.…</span>
+<span class="co">#&gt; 2 Alleghany (((-81.23989 36.36536, -81.24069 36.37942, -81.26284 36.40504, -81.…</span>
+<span class="co">#&gt; 3 Avery     (((-81.94135 35.95498, -81.9614 35.93922, -81.94495 35.91861, -81.9…</span>
+<span class="co">#&gt; 4 Alamance  (((-79.24619 35.86815, -79.23799 35.83725, -79.54099 35.83699, -79.…</span>
+<span class="co">#&gt; 5 Alexander (((-81.10889 35.7719, -81.12728 35.78897, -81.1414 35.82332, -81.32…</span>
+<span class="co">#&gt; 6 Anson     (((-79.91995 34.80792, -80.32528 34.81476, -80.27512 35.19311, -80.…</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
