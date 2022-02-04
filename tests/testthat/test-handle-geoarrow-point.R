@@ -35,9 +35,35 @@ test_that("geoarrow point reader works for point", {
 
 test_that("geoarrow point reader errors for invalid schemas", {
   schema <- geoarrow_schema_point_struct()
-  schema$children <- list()
-  points_array <- narrow::narrow_array(schema, validate = FALSE)
-  expect_error(wk::wk_void(points_array), "dimensions 'xy' to have 2 or more children")
+  schema$children[[1]]$name <- "xray"
+  points_array <- narrow::narrow_array(
+    schema,
+    validate = FALSE
+  )
+  expect_error(
+    wk::wk_void(points_array),
+    "Expected struct geoarrow.point child 0 to have name"
+  )
+
+  schema$children[[1]]$name <- "a"
+  points_array <- narrow::narrow_array(
+    schema,
+    validate = FALSE
+  )
+  expect_error(
+    wk::wk_void(points_array),
+    "Expected struct geoarrow.point child 0 to have name"
+  )
+
+  schema$children[[1]]$name <- "y"
+  points_array <- narrow::narrow_array(
+    schema,
+    validate = FALSE
+  )
+  expect_error(
+    wk::wk_void(points_array),
+    "Struct geoarrow.point child names must be"
+  )
 
   schema <- geoarrow_schema_point_struct()
   schema$children[[1]] <- narrow::narrow_schema("n")
@@ -67,7 +93,7 @@ test_that("geoarrow point reader errors for invalid schemas", {
   expect_error(wk::wk_void(points_array), "'xy' to have width 2 but found width 3")
 
   schema <- geoarrow_schema_point()
-  schema$children[[1]] <- narrow::narrow_schema("+l")
+  schema$children[[1]] <- narrow::narrow_schema("+l", name = "xy")
   points_array <- narrow::narrow_array(
     schema,
     narrow::narrow_array_data(),

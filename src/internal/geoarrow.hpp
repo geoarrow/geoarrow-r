@@ -208,20 +208,19 @@ class GeoArrowMeta {
 
 
         GeoArrowMeta child;
-        int n_dims;
 
         switch (extension_) {
         case Extension::Point:
-            n_dims = strlen(dim_);
             geometry_type_ = GeometryType::POINT;
-            dimensions_ = dimensions_from_dim(dim_);
 
             switch (storage_type_) {
             case StorageType::FixedWidthList:
-                if (fixed_width_ != n_dims) {
+                strncpy(dim_, schema->children[0]->name, 4);
+                dimensions_ = dimensions_from_dim(dim_);
+                if (fixed_width_ != strlen(dim_)) {
                     set_error(
                         "Expected geoarrow.point with dimensions '%s' to have width %d but found width %lld",
-                        dim_, n_dims, fixed_width_);
+                        dim_, strlen(dim_), fixed_width_);
                     return false;
                 }
                 if (!child.set_schema(schema->children[0])) {
@@ -236,14 +235,7 @@ class GeoArrowMeta {
                 }
                 break;
             case StorageType::Struct:
-                if (schema->n_children < n_dims) {
-                    set_error(
-                        "Expected struct geoarrow.point with dimensions '%s' to have %d or more children but found %lld",
-                        dim_, n_dims, schema->n_children);
-                    return false;
-                }
-
-                for (uint64_t i = 0; i < n_dims; i++) {
+                for (uint64_t i = 0; i < schema->n_children; i++) {
                     if (!child.set_schema(schema->children[i])) {
                         set_child_error(
                             child.error_,
@@ -257,6 +249,21 @@ class GeoArrowMeta {
                             i, schema->children[i]->format);
                         return false;
                     }
+
+                    dim_[i] = schema->children[i]->name[0];
+                    if (strlen(schema->children[i]->name) != 1 || strchr("xyzm", dim_[i]) == nullptr) {
+                        set_error(
+                            "Expected struct geoarrow.point child %lld to have name 'x', 'y', 'z', or 'm', but found '%s'",
+                            i, schema->children[i]->name);
+                        return false;
+                    }
+                }
+
+                dimensions_ = dimensions_from_dim(dim_);
+                if (dimensions_ == Dimensions::DIMENSIONS_UNKNOWN) {
+                    set_error(
+                        "Struct geoarrow.point child names must be 'xy', 'xyz', 'xym', or 'xyzm'");
+                    return false;
                 }
 
                 break;
@@ -524,9 +531,7 @@ class GeoArrowMeta {
                         continue;
                     }
 
-                    if (name_len >= 3 && strncmp(name, "dim", 3) == 0) {
-                        memcpy(dim_, value, std::min<int32_t>(4, value_len));
-                    } else if (name_len >= 3 && strncmp(name, "crs", 3) == 0) {
+                    if (name_len >= 3 && strncmp(name, "crs", 3) == 0) {
                         crs_size_ = value_len;
                         crs_ = value;
                     } else if (name_len >= 3 && strncmp(name, "geodesic", 3) == 0) {
