@@ -117,11 +117,9 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
     handleable_cols,
     function(col_name) {
       array_or_chunked_array <- x[[col_name]]
-      arrow_type <- array_or_chunked_array$type
-
       geoarrow_schema <- schema_from_column_metadata(
         meta = metadata$columns[[col_name]],
-        schema = narrow::as_narrow_schema(arrow_type)
+        schema = narrow::as_narrow_schema(x$schema[[col_name]])
       )
 
       result <- wk_handle_wrapper(
