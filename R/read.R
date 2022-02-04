@@ -247,7 +247,7 @@ geoarrow_object_metadata <- function(x, metadata = NULL) {
 guess_metadata_columns <- function(x) {
   # first, look for extension metadata
   guessed_encodings <- vapply(names(x), function(col_name) {
-    schema <- x$schema[[col_name]]
+    schema <- narrow::as_narrow_schema(x$schema[[col_name]])
     ext <- schema$metadata[["ARROW:extension:name"]] %||% ""
     if (grepl("^geoarrow\\.", ext)) "::embedded::" else NA_character_
   }, character(1))
