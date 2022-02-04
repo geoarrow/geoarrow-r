@@ -85,7 +85,7 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
   result
 }
 
-schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NULL) {
+schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), geodesic = NULL) {
   if (!is.null(schema$dictionary)) {
     schema$dictionary <- schema_from_column_metadata(
       meta,
@@ -100,8 +100,10 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
   encoding <- scalar_chr(meta$encoding %||% guess_column_encoding(schema))
   dim <- guess_column_dim(schema)
 
-  if (is.null(crs)) {
+  if (inherits(crs, "crs_unspecified") && ("crs" %in% names(meta))) {
     crs <- meta$crs
+  } else if (inherits(crs, "crs_unspecified")) {
+    crs <- guess_column_crs(schema)
   }
 
   if (is.null(geodesic)) {
@@ -117,13 +119,13 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
     "WKB" = geoarrow_schema_wkb(
       name = schema$name,
       format = schema$format,
-      crs = crs,
+      crs = crs_chr_or_null(crs),
       geodesic = geodesic
     ),
     "WKT" = geoarrow_schema_wkt(
       name = schema$name,
       format = schema$format,
-      crs = crs,
+      crs = crs_chr_or_null(crs),
       geodesic = geodesic
     ),
     "GeoJSON" = {
@@ -131,7 +133,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       geoarrow_schema_geojson(
         name = schema$name,
         format = schema$format,
-        crs = crs
+        crs = crs_chr_or_null(crs)
       )
     },
     "point" = {
@@ -148,7 +150,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
 
         geoarrow_schema_point_struct(
           name = schema$name,
-          crs = crs,
+          crs = crs_chr_or_null(crs),
           dim = dim,
           format_coord = format_coord
         )
@@ -157,7 +159,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
         geoarrow_schema_point(
           name = schema$name,
           dim = dim,
-          crs = crs,
+          crs = crs_chr_or_null(crs),
           format_coord = schema$children[[1]]$format
         )
       }
@@ -170,7 +172,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
         point = schema_from_column_metadata(
           list(encoding = "point"),
           schema$children[[1]],
-          crs = crs
+          crs = crs_chr_or_null(crs)
         )
       )
     },
@@ -185,7 +187,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
         point = schema_from_column_metadata(
           list(encoding = "point"),
           schema$children[[1]]$children[[1]],
-          crs = crs
+          crs = crs_chr_or_null(crs)
         )
       )
     },
@@ -355,4 +357,28 @@ guess_column_dim <- function(schema) {
   }
 
   return(NULL)
+}
+
+guess_column_crs <- function(schema) {
+  ext <- schema$metadata[["ARROW:extension:name"]]
+  if (identical(ext, "point")) {
+    return(geoarrow_metadata(schema)$crs)
+  }
+
+  for (child in schema$children) {
+    child_crs <- guess_column_crs(child)
+    if (!inherits(child_crs, "crs_unspecified")) {
+      return(child_crs)
+    }
+  }
+
+  crs_unspecified()
+}
+
+crs_unspecified <- function() {
+  structure(list(), class = "crs_unspecified")
+}
+
+crs_chr_or_null <- function(crs) {
+  if (inherits(crs, "crs_unspecified")) NULL else crs
 }
