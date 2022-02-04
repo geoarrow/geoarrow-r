@@ -42,33 +42,27 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
     "geoarrow.geojson" = list(crs = ext_meta$crs, encoding = "GeoJSON"),
     "geoarrow.point" = list(
       crs = ext_meta$crs,
-      dim = ext_meta$dim,
       encoding = "point"
     ),
     "geoarrow.linestring" = list(
       crs = geoarrow_metadata(schema$children[[1]])$crs,
-      dim = geoarrow_metadata(schema$children[[1]])$dim,
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = "linestring"
     ),
     "geoarrow.polygon" = list(
       crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs,
-      dim = geoarrow_metadata(schema$children[[1]]$children[[1]])$dim,
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = "polygon"
     ),
     "geoarrow.multi" = {
       child <- geoarrow_metadata_column(schema$children[[1]], include_crs = TRUE)
       crs <- child$crs
-      dim <- child$dim
       geodesic <- child$geodesic
       child$crs <- NULL
       child$geodesic <- NULL
-      child$dim <- NULL
 
       list(
         crs = crs,
-        dim = dim,
         geodesic = geodesic,
         encoding = paste0("multi", child$encoding)
       )
@@ -82,35 +76,29 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
     result$geodesic <- NULL
   }
 
-  # don't include dim if NULL
-  if (is.null(result$dim)) {
-    result$dim <- NULL
-  }
-
   # don't include crs, geodesic, or dim if not top level
   if (!include_crs) {
     result$crs <- NULL
     result$geodesic <- NULL
-    result$dim <- NULL
   }
 
   result
 }
 
-schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NULL, dim = NULL) {
+schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NULL) {
   if (!is.null(schema$dictionary)) {
     schema$dictionary <- schema_from_column_metadata(
       meta,
       schema$dictionary,
       crs = crs,
-      geodesic = geodesic,
-      dim = dim
+      geodesic = geodesic
     )
 
     return(schema)
   }
 
-  encoding <- scalar_chr(meta$encoding)
+  encoding <- scalar_chr(meta$encoding %||% guess_column_encoding(schema))
+  dim <- guess_column_dim(schema)
 
   if (is.null(crs)) {
     crs <- meta$crs
@@ -122,10 +110,6 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
 
   if (is.null(geodesic)) {
     geodesic <- FALSE
-  }
-
-  if (is.null(dim)) {
-    dim <- meta$dim
   }
 
   switch(
@@ -151,7 +135,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
       )
     },
     "point" = {
-      stopifnot(identical(geodesic, FALSE))
+      stopifnot(identical(geodesic, FALSE), !is.null(dim))
 
       if (identical(schema$format, "+s")) {
         stopifnot(identical(nchar(dim), length(schema$children)))
@@ -169,6 +153,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
           format_coord = format_coord
         )
       } else {
+        stopifnot(!is.null(dim))
         geoarrow_schema_point(
           name = schema$name,
           dim = dim,
@@ -185,8 +170,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
         point = schema_from_column_metadata(
           list(encoding = "point"),
           schema$children[[1]],
-          crs = crs,
-          dim = dim
+          crs = crs
         )
       )
     },
@@ -201,8 +185,7 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
         point = schema_from_column_metadata(
           list(encoding = "point"),
           schema$children[[1]]$children[[1]],
-          crs = crs,
-          dim = dim
+          crs = crs
         )
       )
     },
@@ -214,33 +197,30 @@ schema_from_column_metadata <- function(meta, schema, crs = NULL, geodesic = NUL
           list(encoding = "point"),
           schema$children[[1]],
           crs = crs,
-          dim = dim,
           geodesic = geodesic
         )
       )
     },
     "multilinestring" = {
-      stopifnot(identical(schema$format, "+l"))
+      stopifnot(identical(schema$format, "+l"), !is.null(dim))
       geoarrow_schema_multi(
         name = schema$name,
         child = schema_from_column_metadata(
           list(encoding = "linestring"),
           schema$children[[1]],
           crs = crs,
-          dim = dim,
           geodesic = geodesic
         )
       )
     },
     "multipolygon" = {
-      stopifnot(identical(schema$format, "+l"))
+      stopifnot(identical(schema$format, "+l"), !is.null(dim))
       geoarrow_schema_multi(
         name = schema$name,
         child = schema_from_column_metadata(
           list(encoding = "polygon"),
           schema$children[[1]],
           crs = crs,
-          dim = dim,
           geodesic = geodesic
         )
       )
@@ -333,4 +313,46 @@ guess_column_encoding <- function(schema) {
     ),
     call. = FALSE
   )
+}
+
+guess_column_dim <- function(schema) {
+  if (identical(schema$format, "+s")) {
+    child_formats <- vapply(schema$children, "[[", character(1), "format")
+    child_names <- vapply(schema$children, "[[", character(1), "name")
+    child_names_smush <- paste(child_names, collapse = "")
+    has_child_types <- all(child_formats == "g") || all(child_formats == "f")
+    has_child_names <- child_names_smush %in% c("xy", "xyz", "xym", "xyzm")
+    if (has_child_types && has_child_names) {
+      return(child_names_smush)
+    }
+
+    if (has_child_types && length(child_names) == 2) {
+      return("xy")
+    } else if (has_child_types && length(child_names) == 4) {
+      return("xyzm")
+    }
+  } else if (startsWith(schema$format, "+w:") && length(schema$children) == 1) {
+    has_child_type <- schema$children[[1]]$format %in% c("f", "g")
+    has_child_name <- schema$children[[1]]$name %in% c("xy", "xyz", "xym", "xyzm")
+    if (has_child_type && has_child_name) {
+      return(schema$children[[1]]$name)
+    }
+
+    # try to use fixed width to guess
+    parsed <- narrow::parse_format(schema$format)
+    if (has_child_type && identical(parsed$args$n_items, 2L)) {
+      return("xy")
+    } else if (has_child_type && identical(parsed$args$n_items, 4L)) {
+      return("xyzm")
+    }
+  }
+
+  for (child in schema$children) {
+    child_dim <- guess_column_dim(child)
+    if (!is.null(child_dim)) {
+      return(child_dim)
+    }
+  }
+
+  return(NULL)
 }
