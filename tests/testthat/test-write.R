@@ -11,6 +11,10 @@ test_that("geoarrow_write_parquet() works", {
   table <- arrow::read_parquet(f, as_data_frame = FALSE)
   schema <- narrow::as_narrow_schema(table$schema)
   expect_identical(schema$children[[1]]$format, "+w:2")
+  expect_identical(
+    schema$children[[1]]$metadata[["ARROW:extension:name"]],
+    "geoarrow.point"
+  )
 
   unlink(f)
 })
