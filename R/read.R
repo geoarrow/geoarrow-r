@@ -109,6 +109,16 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
 
   if (is.null(metadata$columns)) {
     metadata$columns <- guess_metadata_columns(x)
+
+    # if nothing could be guessed, fall back on x$metadata$geo
+    if (length(metadata$columns) == 0) {
+      geo <- x$metadata$geo
+      if (is.character(geo)) {
+        geo <- jsonlite::fromJSON(geo)
+      }
+
+      metadata$columns <- geo$columns
+    }
   }
 
   handleable_cols <- intersect(names(x), names(metadata$columns))
@@ -121,10 +131,15 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
     handleable_cols,
     function(col_name) {
       array_or_chunked_array <- x[[col_name]]
-      geoarrow_schema <- schema_from_column_metadata(
-        meta = metadata$columns[[col_name]],
-        schema = narrow::as_narrow_schema(x$schema[[col_name]])
-      )
+
+      if (identical(metadata$columns[[col_name]]$encoding, "::embedded::")) {
+        geoarrow_schema <- narrow::as_narrow_schema(x$schema[[col_name]])
+      } else {
+        geoarrow_schema <- schema_from_column_metadata(
+          meta = metadata$columns[[col_name]],
+          schema = narrow::as_narrow_schema(x$schema[[col_name]])
+        )
+      }
 
       result <- wk_handle_wrapper(
         narrow::as_narrow_array_stream(array_or_chunked_array),
@@ -222,8 +237,6 @@ wk_handle_wrapper <- function(handleable, handler, ...) {
 }
 
 geoarrow_object_metadata <- function(x, metadata = NULL) {
-  metadata <- metadata %||% x$metadata$geo
-
   if (is.list(metadata) || is.null(metadata)) {
     as.list(metadata)
   } else {
@@ -232,6 +245,20 @@ geoarrow_object_metadata <- function(x, metadata = NULL) {
 }
 
 guess_metadata_columns <- function(x) {
+  # first, look for extension metadata
+  guessed_encodings <- vapply(names(x), function(col_name) {
+    schema <- x$schema[[col_name]]
+    ext <- schema$metadata[["ARROW:extension:name"]] %||% ""
+    if (grepl("^geoarrow\\.", ext)) "::embedded::" else NA_character_
+  }, character(1))
+  names(guessed_encodings) <- names(x)
+  guessed_encodings <- guessed_encodings[!is.na(guessed_encodings)]
+
+  if (length(guessed_encodings) > 0) {
+    return(lapply(guessed_encodings, function(e) list(encoding = e)))
+  }
+
+  # then, try guessing
   guessed_encodings <- vapply(names(x), function(col_name) {
     tryCatch(
       guess_column_encoding(x$schema[[col_name]]),
