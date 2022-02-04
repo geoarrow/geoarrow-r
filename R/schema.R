@@ -40,7 +40,7 @@ geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
     format = sprintf("+w:%d", n_dim),
     metadata = list(
       "ARROW:extension:name" = "geoarrow.point",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs)
     ),
     children = list(
       narrow::narrow_schema(
@@ -69,7 +69,7 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
     format = "+s",
     metadata = list(
       "ARROW:extension:name" = "geoarrow.point",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, dim = dim)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs)
     ),
     children = children
   )

@@ -390,15 +390,19 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE,
   )
   geoarrow_meta <- geoarrow_metadata(schema)
 
+  schema_dim <- paste(
+    vapply(schema$children, "[[", character(1), "name"),
+    collapse = ""
+  )
+
   stopifnot(
-    !is.null(geoarrow_meta$dim),
-    geoarrow_meta$dim %in% c("xy", "xyz", "xym", "xyzm")
+    schema_dim %in% c("xy", "xyz", "xym", "xyzm")
   )
 
   # so that you can pass an xy() or list(x, y)
   coords <- unclass(coords)
 
-  dims_in_schema <- strsplit(geoarrow_meta$dim, "")[[1]]
+  dims_in_schema <- strsplit(schema_dim, "")[[1]]
   dims_in_coords <- intersect(names(coords), c("x", "y", "z", "m"))
 
   if (strict) {
@@ -411,10 +415,6 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE,
     )
   } else {
     # updates the schema to reflect the dimensions in the data
-    schema <- geoarrow_set_metadata(
-      schema,
-      dim = paste0(dims_in_coords, collapse = "")
-    )
     coords_dim <- coords[dims_in_coords]
 
     if (identical(schema$format, "+s")) {
@@ -424,6 +424,7 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE,
       })
     } else if (startsWith(schema$format, "+w")) {
       schema$format <- sprintf("+w:%d", length(dims_in_coords))
+      schema$children[[1]]$name <- paste(dims_in_coords, collapse = "")
     }
   }
 
@@ -566,13 +567,24 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point())
   }
 
   if (vector_meta$has_z && vector_meta$has_m) {
-    point_metadata$dim <- "xyzm"
+    dims_in_coords <- "xyzm"
   } else if (vector_meta$has_z) {
-    point_metadata$dim <- "xyz"
+    dims_in_coords <- "xyz"
   } else if (vector_meta$has_m) {
-    point_metadata$dim <- "xym"
+    dims_in_coords <- "xym"
   } else {
-    point_metadata$dim <- "xy"
+    dims_in_coords <- "xy"
+  }
+
+  # dims are stored differently for struct fixed-width type
+  if (identical(point$format, "+s")) {
+    coord_format <- point$children[[1]]$format
+    point$children <- lapply(strsplit(dims_in_coords, "")[[1]], function(d) {
+      narrow::narrow_schema(coord_format, name = d)
+    })
+  } else if (startsWith(point$format, "+w")) {
+    point$format <- sprintf("+w:%d", nchar(dims_in_coords))
+    point$children[[1]]$name <- dims_in_coords
   }
 
   point$metadata[["ARROW:extension:metadata"]] <-

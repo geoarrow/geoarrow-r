@@ -734,8 +734,12 @@ test_that("point arrays can't be created from invalid schemas", {
         "i",
         metadata = list(
           "ARROW:extension:name" = "geoarrow.point",
-          "ARROW:extension:metadata" = geoarrow_metadata_serialize(dim = "fish")
-        ))
+          "ARROW:extension:metadata" = geoarrow_metadata_serialize()
+        ),
+        children = list(
+          narrow::narrow_schema("g", name = "fish")
+        )
+      )
     ),
     "xyzm"
   )
@@ -747,8 +751,10 @@ test_that("point arrays can't be created from invalid schemas", {
         "i",
         metadata = list(
           "ARROW:extension:name" = "geoarrow.point",
-          "ARROW:extension:metadata" = geoarrow_metadata_serialize(dim = "xy")
-        ))
+          "ARROW:extension:metadata" = geoarrow_metadata_serialize()
+        ),
+        children = list(narrow::narrow_schema("i", name = "xy"))
+      )
     ),
     "Unsupported point storage type"
   )
@@ -833,36 +839,28 @@ test_that("geoarrow_schema_default() works with and without wk::wk_vector_meta()
 
 test_that("geoarrow_schema_default() detects dimensions from vector_meta", {
   schema_point <- geoarrow_schema_default(wk::xy(1:2, 1:2))
-  geoarrow_meta <- geoarrow_metadata(schema_point)
-  expect_identical(geoarrow_meta$dim, "xy")
+  expect_identical(schema_point$children[[1]]$name, "xy")
 
   schema_point_xyz <- geoarrow_schema_default(wk::xyz(1:2, 1:2, 1:2))
-  geoarrow_meta <- geoarrow_metadata(schema_point_xyz)
-  expect_identical(geoarrow_meta$dim, "xyz")
+  expect_identical(schema_point_xyz$children[[1]]$name, "xyz")
 
   schema_point_xym <- geoarrow_schema_default(wk::xym(1:2, 1:2, 1:2))
-  geoarrow_meta <- geoarrow_metadata(schema_point_xym)
-  expect_identical(geoarrow_meta$dim, "xym")
+  expect_identical(schema_point_xym$children[[1]]$name, "xym")
 
   schema_point_xyzm <- geoarrow_schema_default(wk::xyzm(1:2, 1:2, 1:2, 1:2))
-  geoarrow_meta <- geoarrow_metadata(schema_point_xyzm)
-  expect_identical(geoarrow_meta$dim, "xyzm")
+  expect_identical(schema_point_xyzm$children[[1]]$name, "xyzm")
 })
 
 test_that("geoarrow_schema_default() detects dimensions from meta", {
-  schema_point <- geoarrow_schema_default(wk::as_wkt(wk::xy(1:2, 1:2)))
-  geoarrow_meta <- geoarrow_metadata(schema_point)
-  expect_identical(geoarrow_meta$dim, "xy")
+  schema_point <- geoarrow_schema_default(wk::wkt("POINT (1 1)"))
+  expect_identical(schema_point$children[[1]]$name, "xy")
 
-  schema_point_xyz <- geoarrow_schema_default(wk::as_wkt(wk::xyz(1:2, 1:2, 1:2)))
-  geoarrow_meta <- geoarrow_metadata(schema_point_xyz)
-  expect_identical(geoarrow_meta$dim, "xyz")
+  schema_point_xyz <- geoarrow_schema_default(wk::wkt("POINT Z (1 1 1)"))
+  expect_identical(schema_point_xyz$children[[1]]$name, "xyz")
 
-  schema_point_xym <- geoarrow_schema_default(wk::as_wkt(wk::xym(1:2, 1:2, 1:2)))
-  geoarrow_meta <- geoarrow_metadata(schema_point_xym)
-  expect_identical(geoarrow_meta$dim, "xym")
+  schema_point_xym <- geoarrow_schema_default(wk::wkt("POINT M (1 1 1)"))
+  expect_identical(schema_point_xym$children[[1]]$name, "xym")
 
-  schema_point_xyzm <- geoarrow_schema_default(wk::as_wkt(wk::xyzm(1:2, 1:2, 1:2, 1:2)))
-  geoarrow_meta <- geoarrow_metadata(schema_point_xyzm)
-  expect_identical(geoarrow_meta$dim, "xyzm")
+  schema_point_xyzm <- geoarrow_schema_default(wk::wkt("POINT ZM (1 1 1 1)"))
+  expect_identical(schema_point_xyzm$children[[1]]$name, "xyzm")
 })
