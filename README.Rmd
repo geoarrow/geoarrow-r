@@ -6,6 +6,7 @@ output: github_document
 
 ```{r, include = FALSE}
 library(arrow)
+library(dplyr)
 library(sf)
 
 knitr::opts_chunk$set(
@@ -46,11 +47,18 @@ write_geoarrow_parquet(nc, "nc.parquet")
 read_geoarrow_parquet_sf("nc.parquet")
 ```
 
-You can use any of the schemas to experiment by passing the `schema` argument. These control how the geometry is stored in an Arrow data type (but shouldn't affect the round trip back to R).
+You can also use `arrow::open_dataset()` and `geoarrow_collect_sf()` to use the full power of the Arrow compute engine on datasets of one or more files:
 
 ```{r}
-write_geoarrow_parquet(nc, "nc.parquet", schema = geoarrow_schema_wkb())
-read_geoarrow_parquet_sf("nc.parquet")
+library(arrow)
+library(dplyr)
+
+(query <- open_dataset("nc.parquet") %>%
+  filter(grepl("^A", NAME)) %>%
+  select(NAME, geometry) )
+
+query %>% 
+  geoarrow_collect_sf()
 ```
 
 ```{r, include = FALSE}

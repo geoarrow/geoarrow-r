@@ -6,6 +6,7 @@
 \alias{read_geoarrow_ipc_stream}
 \alias{read_geoarrow_parquet_sf}
 \alias{read_geoarrow_feather_sf}
+\alias{geoarrow_collect_sf}
 \alias{geoarrow_collect}
 \alias{geoarrow_collect.Table}
 \alias{geoarrow_collect.RecordBatch}
@@ -41,6 +42,8 @@ read_geoarrow_ipc_stream(
 read_geoarrow_parquet_sf(file, ...)
 
 read_geoarrow_feather_sf(file, ...)
+
+geoarrow_collect_sf(x, ..., metadata = NULL)
 
 geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
 
