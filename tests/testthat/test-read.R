@@ -34,7 +34,7 @@ test_that("geoarrow_read_parquet/geoarrow_collect works", {
 test_that("geoarrow_collect works without table-level metadata", {
   skip_if_not_installed("arrow")
 
-  tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
+  tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52, crs = "EPSG:1234"))
   temp <- tempfile()
   write_geoarrow_parquet(tbl, temp)
 

@@ -361,7 +361,7 @@ guess_column_dim <- function(schema) {
 
 guess_column_crs <- function(schema) {
   ext <- schema$metadata[["ARROW:extension:name"]]
-  if (identical(ext, "point")) {
+  if (identical(ext, "geoarrow.point")) {
     return(geoarrow_metadata(schema)$crs)
   }
 
