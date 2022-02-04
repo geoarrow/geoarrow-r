@@ -306,7 +306,7 @@ test_that("schema_from_column_metadata() works for point", {
   bare_point$metadata <- NULL
 
   schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "point", dim = "xy"),
+    list(crs = NULL, encoding = "point"),
     bare_point
   )
   expect_identical(
@@ -319,7 +319,7 @@ test_that("schema_from_column_metadata() works for point", {
 
   # with crs
   schema_reconstructed <- schema_from_column_metadata(
-    list(crs = "EPSG:1234", encoding = "point", dim = "xy"),
+    list(crs = "EPSG:1234", encoding = "point"),
     bare_point
   )
   expect_identical(
@@ -351,7 +351,7 @@ test_that("schema_from_column_metadata() works for point struct", {
   bare_point$metadata <- NULL
 
   schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "point", dim = "xy"),
+    list(crs = NULL, encoding = "point"),
     bare_point
   )
   expect_identical(
@@ -364,7 +364,7 @@ test_that("schema_from_column_metadata() works for point struct", {
 
   # with crs
   schema_reconstructed <- schema_from_column_metadata(
-    list(crs = "EPSG:1234", encoding = "point", dim = "xy"),
+    list(crs = "EPSG:1234", encoding = "point"),
     bare_point
   )
   expect_identical(
@@ -412,7 +412,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   # with crs
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = "EPSG:1234", dim = "xy",
+      crs = "EPSG:1234",
       encoding = "linestring"
     ),
     bare
@@ -473,7 +473,7 @@ test_that("schema_from_column_metadata() works for polygon", {
 
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, dim = "xy",
+      crs = NULL,
       encoding = "polygon"
     ),
     bare
@@ -489,7 +489,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   # with crs
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = "EPSG:1234", dim = "xy",
+      crs = "EPSG:1234",
       encoding = "polygon"
     ),
     bare
@@ -552,7 +552,7 @@ test_that("schema_from_column_metadata() works for multipoint", {
 
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, dim = "xy",
+      crs = NULL,
       encoding = "multipoint"
     ),
     bare
@@ -570,7 +570,7 @@ test_that("schema_from_column_metadata() works for multipoint", {
   # with crs
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = "EPSG:1234", dim = "xy",
+      crs = "EPSG:1234",
       encoding = "multipoint"
     ),
     bare
@@ -590,7 +590,7 @@ test_that("schema_from_column_metadata() works for multipoint", {
   bare$children[[1]]$format <- "+w:4"
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, dim = "xyzm",
+      crs = NULL,
       encoding = "multipoint"
     ),
     bare
@@ -654,7 +654,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   bare$children[[1]]$children[[1]]$format <- "+w:4"
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, dim = "xyzm",
+      crs = NULL,
       encoding = "multilinestring"
     ),
     bare
@@ -701,7 +701,7 @@ test_that("schema_from_column_metadata() works for multipolygon", {
 
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, dim = "xy",
+      crs = NULL,
       encoding = "multipolygon"
     ),
     bare
