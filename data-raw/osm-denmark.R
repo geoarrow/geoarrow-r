@@ -89,3 +89,11 @@ for (name in files$name) {
   )
   check_output(glue::glue("{dst}/{name}.snappy.parquet"))
 }
+
+# copy a few to a test dataset folder in the inst/ folder
+unlink("inst/denmark_osm", recursive = TRUE)
+dir.create("inst/denmark_osm")
+
+arrow::open_dataset("data-raw/denmark_osm/osm_places.parquet") %>%
+  dplyr::group_by(fclass) %>%
+  arrow::write_dataset("inst/denmark_osm/osm_places")
