@@ -1,0 +1,436 @@
+---
+title: "C and C++ development guide"
+---
+
+```{r, include = FALSE}
+library(cpp11)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The geoarrow package exposes a [set of high-level helpers to integrate geospatial data with Arrow Datasets](geoarrow.html) that depends on a low-level C++ to seamlessly and efficiently integrate with other representations of geometry in R and elsewhere. The [format used](format.html) can be easily represented using the [Apache Arrow C Data interface](https://arrow.apache.org/docs/format/CDataInterface.html), exposing vectors of geometries as ABI-stable C structures that can be used without any header other than the two `struct` definitions in [arrow/c/abi.h](https://github.com/apache/arrow/blob/master/cpp/src/arrow/c/abi.h).
+
+We'll use the [narrow](https://paleolimbot.github.io/narrow/) and geoarrow packages to demonstrate the structure of geoarrow arrays and how they can be iterated over in C and C++.
+
+```{r}
+library(narrow)
+library(geoarrow)
+```
+
+We'll also need some test arrays with each of the six types supported in the Arrow-native format.
+
+```{r}
+points <- geoarrow_create(
+  wk::wkt(c("POINT (30 10)", "POINT (40 30)"))
+)
+
+linestrings <- geoarrow_create(
+  wk::wkt(
+    c(
+      "LINESTRING (30 10, 10 30, 40 40)", 
+      "LINESTRING (0 0, 10 5)"
+    )
+  )
+)
+
+polygons <- geoarrow_create(
+  wk::wkt(
+    c(
+      "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))", 
+      "POLYGON (
+        (35 10, 45 45, 15 40, 10 20, 35 10),
+        (20 30, 35 35, 30 20, 20 30))"
+    )
+  )
+)
+
+multipoints <- geoarrow_create(
+  wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (0 0, 3 8)"))
+)
+
+multilinestrings <- geoarrow_create(
+  wk::wkt(
+    c(
+      "MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))", 
+      "MULTILINESTRING (
+        (35 10, 45 45, 15 40, 10 20, 35 10),
+        (20 30, 35 35, 30 20, 20 30))"
+    )
+  )
+)
+
+multipolygons <- geoarrow_create(
+  wk::wkt(
+    c(
+      "MULTIPOLYGON (
+        ((30 20, 45 40, 10 40, 30 20)),
+        ((15 5, 40 10, 10 20, 5 10, 15 5)))", 
+      "MULTIPOLYGON (
+        ((40 40, 20 45, 45 30, 40 40)),
+        ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),
+          (30 20, 20 15, 20 25, 30 20)))"
+    )
+  )
+)
+```
+
+```{r, echo=FALSE}
+old_par <- par(mfrow = c(2, 3))
+for (array in list(points, linestrings, polygons)) {
+  wk::wk_plot(array, col = rgb(0, 0, 0, alpha = 0.5))
+}
+for (array in list(multipoints, multilinestrings, multipolygons)) {
+  wk::wk_plot(array, col = rgb(0, 0, 0, alpha = 0.5))
+}
+
+par(old_par)
+```
+
+The other piece of setup you may need to follow along is a way to pass the example arrays into C and/or C++ code. If you are writing an R package, you can include the narrow package in your `LinkingTo:` field in your DESCRIPTION; if you are writing an RMarkdown document (like this one), you can set your PKG_CPPFLAGS environment variable to include the "include" directory in the narrow package directory:
+
+```{r}
+Sys.setenv(
+  PKG_CPPFLAGS = paste0("-I", system.file("include", package = "narrow"))
+)
+```
+
+This will let you `#include "narrow.h"`, which includes a copy of the Arrow C Data structure definitions and functions to extract them safely from R objects.
+
+```{c, results="hide"}
+#include "narrow.h"
+```
+
+## Inspecting the data from R
+
+The easiest way to inspect geoarrow array data is from R using the [wk](https://paleolimbot.github.io/wk/) package. The general structure of an array is available from `wk::wk_vector_meta()`, which is fast (it doesn't iterate over all the points). 
+
+```{r}
+wk::wk_vector_meta(points)
+```
+
+If you need the geodesic flag or the CRS, you can use `wk::wk_is_geoesic()` or `wk::wk_crs()`:
+
+```{r}
+wk::wk_is_geodesic(points)
+wk::wk_crs(points)
+```
+
+You can access coordinate values as flat arrays using `wk_coords()`:
+
+```{r}
+wk::wk_coords(linestrings)
+```
+
+If you need geoarrow/arrow-specific metadata information, you can inspect the schemas directly using the list-like interface of schem aobjects. The most important thing you will have to check is the extension name, which will tell you which bit of compiled code you will need to safely access the array data.
+
+```{r}
+points$schema$metadata[["ARROW:extension:name"]]
+```
+
+For points, you will also have to check dimensions and the storage type, since depending on the dimensions and/or encoding the underlying arrays could have buffer numbers and/or types.
+
+```{r}
+points$schema$format
+points$schema$children[[1]]$format
+points$schema$children[[1]]$name
+```
+
+The above output indicates that the point array is a fixed-size list (size 2) whose child is a float64. The dimension output indicates that the dimension type is xy.
+
+You may also need to access the extension metadata which contains information like the CRS. This metadata is serialized in the raw schema, so you'll need `geoarrow_metadata()` to extract it.
+
+```{r}
+geoarrow_metadata(points$schema)
+```
+
+
+
+## Inspecting the data using geoarrow.hpp
+
+(TODO...write this!)
+
+## Inspecting the data from C
+
+If you need to deal with arbitrary vectors of that may have different types or different point encodings, you should `#include "geoarrow.hpp"` and use the helper functions provided there; however, the geoarrow format was designed to be accessible from C code without helpers. If you can make some assumptions about the geometry type and storage type of your input but still want the speed of compiled code, using the C structures directly may be a good fit.
+
+The easiest way to inspect the schema, which encodes the storage type and extra geo-specific extension metadata, is to do it before you drop into C. In particular, `wk::wk_vector_meta()` has been implemented for geoarrow arrays in such a way that it will (1) validate the schema to let you make stronger assumptions about the C structures you are given and (2) deserialize and extract the metadata you might need to reduce the number of problems you have to solve in C.
+
+If you really do need to do this in compiled code, you can access the `struct ArrowSchema` directly. For example, to extract the dimensions from C, you can do this:
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_point_dimensions(SEXP schema_xptr) {
+  struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
+  return Rf_mkString(schema->children[0]->name);
+}
+```
+
+```{r}
+.Call("c_point_dimensions", points$schema)
+.Call("c_point_dimensions", linestrings$schema$children[[1]])
+```
+
+If you're in R, the preferred approach is to extract the information you need from `wk::wk_vector_meta()`, since this will also validate the schema (making it so that you can write more compact compiled code that assumes a valid structure).
+
+Now that we've inspected the metadata, we can move on to the data! Accessing the coordinates and doing things with them is the whole reason we're all here...so let's get to it! As an example, I'm going to print coordinates with information about the containing structures.
+
+### Points
+
+For points encoded as a fixed-size list (the default), you need three pieces of information: the length, the initial offset into the array, and the buffer of `double`s containing the coordinates. You will need to validate at least this much about the schema in advance:
+
+```{r}
+stopifnot(
+  points$schema$format == "+w:2",
+  points$schema$children[[1]]$format == "g"
+)
+```
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_point_print(SEXP array_data_xptr) {
+  struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
+  
+  int coord_size = 2;
+  double* coords = (double*) array_data->children[0]->buffers[1];
+  coords = coords + (array_data->offset) * coord_size;
+
+  double* coord;
+  for (int64_t i = 0; i < array_data->length; i++) {
+    coord = coords + (i * coord_size);
+    Rprintf("point[%d] (%g %g)\n", i, coord[0], coord[1]);
+  }
+  
+  return R_NilValue;
+}
+```
+
+```{r}
+invisible(.Call("c_point_print", points$array_data))
+```
+
+For points encoded as a struct, the approach is similar but one buffer per dimension is required. You will need to validate at least this much in advance:
+
+```{r}
+points_struct <- geoarrow_create(
+  points,
+  schema = geoarrow_schema_point_struct()
+)
+
+stopifnot(
+  points_struct$schema$format == "+s",
+  points_struct$schema$children[[1]]$format == "g",
+  points_struct$schema$children[[2]]$format == "g"
+)
+```
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_point_struct_print(SEXP array_data_xptr) {
+  struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
+  
+  double* x = (double*) array_data->children[0]->buffers[1];
+  double* y = (double*) array_data->children[1]->buffers[1];
+  x = x + array_data->offset;
+  y = y + array_data->offset;
+
+  for (int64_t i = 0; i < array_data->length; i++) {
+    Rprintf("point[%d] (%g %g)\n", i, x[i], y[i]);
+  }
+  
+  return R_NilValue;
+}
+```
+
+```{r}
+invisible(.Call("c_point_struct_print", points_struct$array_data))
+```
+
+### Linestrings
+
+In addition to all the information about a point, you also need the offsets into the point array from the outer linestring. Just like the point, you'll need to validate a few things about the array that you have been handed to avoid a segfault.
+
+```{r}
+stopifnot(
+  linestrings$schema$format == "+l",
+  linestrings$schema$children[[1]]$format == "+w:2",
+  linestrings$schema$children[[1]]$children[[1]]$format == "g"
+)
+```
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_linestring_print(SEXP array_data_xptr) {
+  struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
+  
+  int coord_size = 2;
+  double* coords = (double*) array_data->children[0]->children[0]->buffers[1];
+  int32_t* coord_offsets = (int32_t*) array_data->buffers[1];
+  
+  coord_offsets = coord_offsets + array_data->offset;
+  coords = coords + coord_offsets[0];
+
+  double* coord;
+  for (int64_t i = 0; i < array_data->length; i++) {
+    int32_t n_coords = coord_offsets[i + 1] - coord_offsets[i];
+    
+    for (int32_t j = 0; j < n_coords; j++) {
+      coord = coords + coord_size * (coord_offsets[i] + j);
+      Rprintf("linestring[%d]->point[%d] (%g %g)\n", i, j, coord[0], coord[1]);
+    }
+  }
+  
+  return R_NilValue;
+}
+```
+
+```{r}
+invisible(.Call("c_linestring_print", linestrings$array_data))
+```
+
+### Polygons
+
+In addition to all the information about a linestring, you also need the offsets into the rings array from the outer polygon You'll need to validate the outer layer in addition to all the bits validated about the inner arrays.
+
+```{r}
+stopifnot(
+  polygons$schema$format == "+l",
+  polygons$schema$children[[1]]$format == "+l",
+  polygons$schema$children[[1]]$children[[1]]$format == "+w:2",
+  polygons$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
+)
+```
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_polygon_print(SEXP array_data_xptr) {
+  struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
+  
+  int coord_size = 2;
+  double* coords = (double*) array_data->children[0]->children[0]->children[0]->buffers[1];
+  int32_t* coord_offsets = (int32_t*) array_data->children[0]->buffers[1];
+  int32_t* ring_offsets = (int32_t*) array_data->buffers[1];
+  
+  ring_offsets = ring_offsets + array_data->offset;
+  coord_offsets = coord_offsets + ring_offsets[0];
+  coords = coords + coord_offsets[0];
+
+  double* coord;
+  int32_t* coord_offset;
+  for (int64_t i = 0; i < array_data->length; i++) {
+    int32_t n_seq = ring_offsets[i + 1] - ring_offsets[i];
+    coord_offset = coord_offsets + ring_offsets[i];
+    
+    
+    for (int32_t j = 0; j < n_seq; j++) {
+      int32_t n_coords = coord_offset[j + 1] - coord_offset[j];
+      
+      for (int32_t k = 0; k < n_coords; k++) {
+        coord = coords + (coord_size * (coord_offset[j] + k));
+        Rprintf(
+          "polygon[%d]->ring[%d]->point[%d] (%g %g)\n",
+          i, j, k, coord[0], coord[1]);
+      }
+    }
+  }
+  
+  return R_NilValue;
+}
+```
+
+```{r}
+invisible(.Call("c_polygon_print", polygons$array_data))
+```
+
+### Multipoints
+
+Iterating over multipoints requires the same code and assertions as for linestrings:
+
+```{r}
+invisible(.Call("c_linestring_print", multipoints$array_data))
+```
+
+### Multilinestrings
+
+Iterating over multilinestrings requires the same code and assertions as for polygons:
+
+```{r}
+invisible(.Call("c_polygon_print", multilinestrings$array_data))
+```
+
+### Multipolygons
+
+In addition to all the information about a polygon, you also need the offsets into the geometries array from the outer collection. You'll need to validate the outer layer in addition to all the bits validated about the inner arrays.
+
+```{r}
+stopifnot(
+  multipolygons$schema$format == "+l",
+  multipolygons$children[[1]]$schema$format == "+l",
+  multipolygons$children[[1]]$schema$children[[1]]$format == "+l",
+  multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$format == "+w:2",
+  multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
+)
+```
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_multipolygon_print(SEXP array_data_xptr) {
+  struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
+  
+  int coord_size = 2;
+  double* coords = (double*) array_data->children[0]->children[0]->children[0]->children[0]->buffers[1];
+  int32_t* coord_offsets = (int32_t*) array_data->children[0]->children[0]->buffers[1];
+  int32_t* ring_offsets = (int32_t*) array_data->children[0]->buffers[1];
+  int32_t* geom_offsets = (int32_t*) array_data->buffers[1];
+  
+  geom_offsets = geom_offsets + array_data->offset;
+  ring_offsets = ring_offsets + geom_offsets[0];
+  coord_offsets = coord_offsets + ring_offsets[0];
+  coords = coords + coord_offsets[0];
+
+  double* coord;
+  int32_t* coord_offset;
+  int32_t* ring_offset;
+  for (int64_t i = 0; i < array_data->length; i++) {
+    int32_t n_geoms = geom_offsets[i + 1] - geom_offsets[i];
+    ring_offset = ring_offsets + geom_offsets[i];
+    
+    for (int32_t j = 0; j < n_geoms; j++) {
+      int32_t n_rings = ring_offset[j + 1] - ring_offset[j];
+      coord_offset = coord_offsets + ring_offsets[j];
+      
+      
+      for (int32_t k = 0; k < n_rings; k++) {
+        int32_t n_coords = coord_offset[k + 1] - coord_offset[k];
+        
+        for (int32_t l = 0; l < n_coords; l++) {
+          coord = coords + (coord_size * (coord_offset[k] + l));
+          Rprintf(
+            "multipolygon[%d]->polygon[%d]->ring[%d]->point[%d] (%g %g)\n",
+            i, j, k, l, coord[0], coord[1]);
+        }
+      }
+    } 
+  }
+  
+  return R_NilValue;
+}
+```
+
+```{r}
+invisible(.Call("c_multipolygon_print", multipolygons$array_data))
+```
