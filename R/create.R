@@ -66,6 +66,18 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   counts <- wk::wk_count(handleable)
   coords <- wk::wk_coords(handleable)
 
+  # because of a bug in wk_count(), we need to know the number of
+  # features to properly handle zero values
+  if (is.data.frame(handleable)) {
+    n_feat <- nrow(handleable)
+  } else {
+    n_feat <- length(handleable)
+  }
+
+  if (n_feat == 0) {
+    counts <- counts[integer(0), , drop = FALSE]
+  }
+
   feature_null <- counts$n_geom == 0
   counts$n_geom[feature_null] <- NA_integer_
   counts$n_ring[feature_null] <- NA_integer_
@@ -480,7 +492,7 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE,
         buffers = list(validity_buffer),
         children = list(
           narrow::narrow_array_data(
-            buffers = list(NULL, interleaved),
+            buffers = list(NULL, as.numeric(interleaved)),
             length = length(interleaved),
             null_count = 0
           )
