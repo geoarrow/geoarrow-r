@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-The geoarrow package exposes a [set of high-level helpers to integrate geospatial data with Arrow Datasets](geoarrow.html) that depends on a low-level C++ to seamlessly and efficiently integrate with other representations of geometry in R and elsewhere. The [format used](format.html) can be easily represented using the [Apache Arrow C Data interface](https://arrow.apache.org/docs/format/CDataInterface.html), exposing vectors of geometries as ABI-stable C structures that can be used without any header other than the two `struct` definitions in [arrow/c/abi.h](https://github.com/apache/arrow/blob/master/cpp/src/arrow/c/abi.h).
+The geoarrow package exposes a [set of high-level helpers to integrate geospatial data with Arrow Datasets](geoarrow.html); however, the [format used](format.html) can be easily represented using the [Apache Arrow C Data interface](https://arrow.apache.org/docs/format/CDataInterface.html), exposing vectors of geometries as ABI-stable C structures that can be used without any header other than the two `struct` definitions in [arrow/c/abi.h](https://github.com/apache/arrow/blob/master/cpp/src/arrow/c/abi.h).
 
 We'll use the [narrow](https://paleolimbot.github.io/narrow/) and geoarrow packages to demonstrate the structure of geoarrow arrays and how they can be iterated over in C and C++.
 
