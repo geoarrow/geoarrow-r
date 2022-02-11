@@ -184,9 +184,9 @@ SEXP c_point_print(SEXP array_data_xptr) {
   coords = coords + (array_data->offset) * coord_size;
 
   double* coord;
-  for (int64_t i = 0; i < array_data->length; i++) {
-    coord = coords + (i * coord_size);
-    Rprintf("point[%d] (%g %g)\n", i, coord[0], coord[1]);
+  for (int64_t point_id = 0; point_id < array_data->length; point_id++) {
+    coord = coords + (point_id * coord_size);
+    Rprintf("point[%d] (%g %g)\n", point_id, coord[0], coord[1]);
   }
   
   return R_NilValue;
@@ -224,8 +224,8 @@ SEXP c_point_struct_print(SEXP array_data_xptr) {
   x = x + array_data->offset;
   y = y + array_data->offset;
 
-  for (int64_t i = 0; i < array_data->length; i++) {
-    Rprintf("point[%d] (%g %g)\n", i, x[i], y[i]);
+  for (int64_t point_id = 0; point_id < array_data->length; point_id++) {
+    Rprintf("point[%d] (%g %g)\n", point_id, x[point_id], y[point_id]);
   }
   
   return R_NilValue;
@@ -272,12 +272,12 @@ SEXP c_linestring_print(SEXP array_data_xptr) {
   coords = coords + coord_offsets[0];
 
   double* coord;
-  for (int64_t i = 0; i < array_data->length; i++) {
-    int32_t n_coords = coord_offsets[i + 1] - coord_offsets[i];
+  for (int64_t line_id = 0; line_id < array_data->length; line_id++) {
+    int32_t n_coords = coord_offsets[line_id + 1] - coord_offsets[line_id];
     
-    for (int32_t j = 0; j < n_coords; j++) {
-      coord = coords + coord_size * (coord_offsets[i] + j);
-      Rprintf("linestring[%d]->point[%d] (%g %g)\n", i, j, coord[0], coord[1]);
+    for (int32_t point_id = 0; point_id < n_coords; point_id++) {
+      coord = coords + coord_size * (coord_offsets[line_id] + point_id);
+      Rprintf("linestring[%d]->point[%d] (%g %g)\n", line_id, point_id, coord[0], coord[1]);
     }
   }
   
@@ -323,19 +323,19 @@ SEXP c_polygon_print(SEXP array_data_xptr) {
 
   double* coord;
   int32_t* coord_offset;
-  for (int64_t i = 0; i < array_data->length; i++) {
-    int32_t n_seq = ring_offsets[i + 1] - ring_offsets[i];
-    coord_offset = coord_offsets + ring_offsets[i];
+  for (int64_t poly_id = 0; poly_id < array_data->length; poly_id++) {
+    int32_t n_rings = ring_offsets[poly_id + 1] - ring_offsets[poly_id];
+    coord_offset = coord_offsets + ring_offsets[poly_id];
     
     
-    for (int32_t j = 0; j < n_seq; j++) {
-      int32_t n_coords = coord_offset[j + 1] - coord_offset[j];
+    for (int32_t ring_id = 0; ring_id < n_rings; ring_id++) {
+      int32_t n_coords = coord_offset[ring_id + 1] - coord_offset[ring_id];
       
-      for (int32_t k = 0; k < n_coords; k++) {
-        coord = coords + (coord_size * (coord_offset[j] + k));
+      for (int32_t point_id = 0; point_id < n_coords; point_id++) {
+        coord = coords + (coord_size * (coord_offset[ring_id] + point_id));
         Rprintf(
           "polygon[%d]->ring[%d]->point[%d] (%g %g)\n",
-          i, j, k, coord[0], coord[1]);
+          poly_id, ring_id, point_id, coord[0], coord[1]);
       }
     }
   }
@@ -402,23 +402,23 @@ SEXP c_multipolygon_print(SEXP array_data_xptr) {
   double* coord;
   int32_t* coord_offset;
   int32_t* ring_offset;
-  for (int64_t i = 0; i < array_data->length; i++) {
-    int32_t n_geoms = geom_offsets[i + 1] - geom_offsets[i];
-    ring_offset = ring_offsets + geom_offsets[i];
+  for (int64_t multi_id = 0; multi_id < array_data->length; multi_id++) {
+    int32_t n_geoms = geom_offsets[multi_id + 1] - geom_offsets[multi_id];
+    ring_offset = ring_offsets + geom_offsets[multi_id];
     
-    for (int32_t j = 0; j < n_geoms; j++) {
-      int32_t n_rings = ring_offset[j + 1] - ring_offset[j];
-      coord_offset = coord_offsets + ring_offsets[j];
+    for (int32_t poly_id = 0; poly_id < n_geoms; poly_id++) {
+      int32_t n_rings = ring_offset[poly_id + 1] - ring_offset[poly_id];
+      coord_offset = coord_offsets + ring_offsets[poly_id];
       
       
-      for (int32_t k = 0; k < n_rings; k++) {
-        int32_t n_coords = coord_offset[k + 1] - coord_offset[k];
+      for (int32_t ring_id = 0; ring_id < n_rings; ring_id++) {
+        int32_t n_coords = coord_offset[ring_id + 1] - coord_offset[ring_id];
         
-        for (int32_t l = 0; l < n_coords; l++) {
-          coord = coords + (coord_size * (coord_offset[k] + l));
+        for (int32_t point_id = 0; point_id < n_coords; point_id++) {
+          coord = coords + (coord_size * (coord_offset[ring_id] + point_id));
           Rprintf(
             "multipolygon[%d]->polygon[%d]->ring[%d]->point[%d] (%g %g)\n",
-            i, j, k, l, coord[0], coord[1]);
+            multi_id, poly_id, ring_id, point_id, coord[0], coord[1]);
         }
       }
     } 
@@ -433,11 +433,11 @@ multipolygon_print <- function(x) {
   x <- as_narrow_array(x)
   
   stopifnot(
-    multipolygons$schema$format == "+l",
-    multipolygons$children[[1]]$schema$format == "+l",
-    multipolygons$children[[1]]$schema$children[[1]]$format == "+l",
-    multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$format == "+w:2",
-    multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
+    x$schema$format == "+l",
+    x$children[[1]]$schema$format == "+l",
+    x$children[[1]]$schema$children[[1]]$format == "+l",
+    x$children[[1]]$schema$children[[1]]$children[[1]]$format == "+w:2",
+    x$children[[1]]$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
   )
   
   invisible(.Call("c_multipolygon_print", x$array_data))
