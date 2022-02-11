@@ -4,6 +4,12 @@ title: "C and C++ development guide"
 
 ```{r, include = FALSE}
 library(cpp11)
+Sys.setenv(
+  PKG_CXXFLAGS = paste0(
+    "-I", system.file("include", package = "narrow"),
+    " -I", getwd()
+  )
+)
 
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -162,7 +168,153 @@ geoarrow_metadata(points$schema)
 
 ## Reading geoarrow arrays using geoarrow.hpp
 
-(TODO...write this!)
+Built-in operations in the geoarrow package use the geoarrow.hpp helper file, which defines a few classes and functions to ease dealing with multiple extension types, dimensions, and point storage types. This is currently an evolving library; however, you can copy the file and include it in another R package or project (it requires no dependencies). It is currently located [here](https://github.com/paleolimbot/geoarrow/blob/master/src/internal/geoarrow.hpp).
+
+### Iterating over coordinates
+
+(TODO: Haven't added this to the GeoArrowArrayView yet)
+
+### Using the GeoArrowHandler
+
+The `GeoArrowHandler` is a class with methods corresponding to events that occur when looping over coordinates from top to bottom. This style of iteration was inspired by GeoRust's [geozero](https://github.com/georust/geozero) and SAX-style XML parsers. Writing operations as handlers is a good fit for some operations but can be challenging for others. In R, it powers the `wk::wk_handle()` operation which in turn powers many other operations via wk handlers elsewhere. It is particularly useful for operations that iterate forward through all coordinates.
+
+For example, the following subclass of `GeoArrowHandler` calculates the bounding box of any (arrow array of) geometry it is handed.
+
+```{cpp11}
+#include <cpp11.hpp>
+#include "narrow.h"
+#include "../../src/internal/geoarrow.hpp"
+
+using namespace cpp11;
+using namespace geoarrow;
+
+class BboxHandler: public GeoArrowHandler {
+public:
+  BboxHandler()
+    : xmin(R_PosInf), xmax(R_NegInf), 
+      ymin(R_PosInf), ymax(R_NegInf) {}
+  
+  
+  GeoArrowHandler::Result coord(const double* coord) {
+    xmin = std::min<double>(coord[0], xmin);
+    xmax = std::max<double>(coord[0], xmax);
+    ymin = std::min<double>(coord[1], ymin);
+    ymax = std::max<double>(coord[1], ymax);
+    return Result::CONTINUE;
+  }
+  
+  double xmin;
+  double xmax;
+  double ymin;
+  double ymax;
+};
+
+[[cpp11::register]]
+doubles geoarrow_bbox(sexp schema_xptr, sexp array_data_xptr) {
+  struct ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, "schema");
+  struct ArrowArray* array_data = safe[array_data_from_xptr](array_data_xptr, "array_data");
+  
+  std::unique_ptr<GeoArrowArrayView> view(create_view(schema));
+  view->set_array(array_data);
+  
+  BboxHandler handler;
+  view->read_meta(&handler);
+  view->read_features(&handler);
+  writable::doubles out = {handler.xmin, handler.xmax, handler.ymin, handler.ymax};
+  return out;
+}
+```
+
+```{r}
+geoarrow_bbox(polygons$schema, polygons$array_data)
+```
+
+### Metadata
+
+The geoarrow package uses the `GeoArrowMeta` class to validate and parse both schema and array objects. It is a wrapper around a `struct ArrowSchema` that walks its input and extracts pieces in a reasonable format to build on. In most cases you shouldn't need to extract metadata in compiled code; however, the `GeoArrowMeta` class is the easiest way to do so if you are in this position.
+
+```{cpp11}
+#include <cpp11.hpp>
+#include "narrow.h"
+#include "../../src/internal/geoarrow.hpp"
+
+using namespace cpp11;
+using namespace geoarrow;
+
+[[cpp11::register]]
+void geoarrow_metadata_dump(sexp schema_xptr) {
+  struct ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, "schema");
+  GeoArrowMeta meta;
+  if (!meta.set_schema(schema)) {
+    stop("%s", meta.error_);
+  }
+  
+  switch(meta.extension_) {
+  case GeoArrowMeta::Extension::Point:
+    Rprintf("Extension: 'geoarrow.point'\n");
+    break;
+  case GeoArrowMeta::Extension::Linestring:
+    Rprintf("Extension: 'geoarrow.linestring'\n");
+    break;
+  case GeoArrowMeta::Extension::Polygon:
+    Rprintf("Extension: 'geoarrow.polygon'\n");
+    break;
+  case GeoArrowMeta::Extension::Multi:
+    Rprintf("Extension: 'geoarrow.multi'\n");
+    break;
+    
+  default:
+    Rprintf("Extension: other\n");
+    break;
+  }
+  
+  switch(meta.storage_type_) {
+  case GeoArrowMeta::StorageType::FixedWidthList:
+    Rprintf("Storage type: fixed size list\n");
+    break;
+  case GeoArrowMeta::StorageType::Struct:
+    Rprintf("Storage type: struct\n");
+    break;
+  case GeoArrowMeta::StorageType::List:
+    Rprintf("Storage type: list\n");
+    break;
+    
+  default:
+    Rprintf("Storage type: other\n");
+  }
+  
+  Rprintf("Dimensions: '%s'\n", meta.dim_);
+  
+  if (meta.crs_size_ > 0) {
+    std::string crs(meta.crs_, meta.crs_size_);
+    Rprintf("CRS: '%s'\n", crs.c_str());
+  }
+  
+  if (meta.geodesic_) {
+    Rprintf("Geodesic!\n");
+  }
+}
+
+```
+
+```{r}
+geoarrow_metadata_dump(points$schema)
+geoarrow_metadata_dump(linestrings$schema)
+geoarrow_metadata_dump(
+  geoarrow_create(
+    wk::wkt(crs = "EPSG:1234", geodesic = TRUE),
+    geoarrow_schema_linestring()
+  )$schema
+)
+```
+
+This also will give a reasonable error for invalid objects:
+
+```{r, error=TRUE}
+points_invalid <- points
+points_invalid$schema$children[[1]]$name <- "xyzm"
+geoarrow_metadata_dump(points_invalid$schema)
+```
 
 ## Reading geoarrow arrays in C
 
