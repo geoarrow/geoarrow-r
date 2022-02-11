@@ -103,7 +103,7 @@ This will let you `#include "narrow.h"`, which includes a copy of the Arrow C Da
 #include "narrow.h"
 ```
 
-## Inspecting the data from R
+## Reading geoarrow arrays in R
 
 The easiest way to inspect geoarrow array data is from R using the [wk](https://paleolimbot.github.io/wk/) package. The general structure of an array is available from `wk::wk_vector_meta()`, which is fast (it doesn't iterate over all the points). 
 
@@ -123,6 +123,20 @@ You can access coordinate values as flat arrays using `wk_coords()`:
 ```{r}
 wk::wk_coords(linestrings)
 ```
+
+The geoarrow package implements `wk::wk_handle()`, so you can use any handler or filter defined in any package. For example, you can apply an affine transform and create a `geos::geos_geometry()` vector in one step (with zero intermediary copies):
+
+```{r}
+wk::wk_handle(
+  linestrings,
+  wk::wk_transform_filter(
+    trans = wk::wk_affine_rotate(90),
+    handler = geos::geos_geometry_writer()
+  )
+)
+```
+
+You can use the `wk::sfc_writer()` handler to generate sf objects. Note that when using the `wk::wk_handle()` interface, you will have to propagate the CRS and/or geodesic flags yourself. For a guide on how to write filters and handlers in C and C++, see the [programming vignette](https://paleolimbot.github.io/wk/articles/programming.html) from the wk package.
 
 If you need geoarrow/arrow-specific metadata information, you can inspect the schemas directly using the list-like interface of schem aobjects. The most important thing you will have to check is the extension name, which will tell you which bit of compiled code you will need to safely access the array data.
 
@@ -146,49 +160,17 @@ You may also need to access the extension metadata which contains information li
 geoarrow_metadata(points$schema)
 ```
 
-
-
-## Inspecting the data using geoarrow.hpp
+## Reading geoarrow arrays using geoarrow.hpp
 
 (TODO...write this!)
 
-## Inspecting the data from C
+## Reading geoarrow arrays in C
 
-If you need to deal with arbitrary vectors of that may have different types or different point encodings, you should `#include "geoarrow.hpp"` and use the helper functions provided there; however, the geoarrow format was designed to be accessible from C code without helpers. If you can make some assumptions about the geometry type and storage type of your input but still want the speed of compiled code, using the C structures directly may be a good fit.
-
-The easiest way to inspect the schema, which encodes the storage type and extra geo-specific extension metadata, is to do it before you drop into C. In particular, `wk::wk_vector_meta()` has been implemented for geoarrow arrays in such a way that it will (1) validate the schema to let you make stronger assumptions about the C structures you are given and (2) deserialize and extract the metadata you might need to reduce the number of problems you have to solve in C.
-
-If you really do need to do this in compiled code, you can access the `struct ArrowSchema` directly. For example, to extract the dimensions from C, you can do this:
-
-```{c, results="hide"}
-#include <R.h>
-#include "narrow.h"
-
-SEXP c_point_dimensions(SEXP schema_xptr) {
-  struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
-  return Rf_mkString(schema->children[0]->name);
-}
-```
-
-```{r}
-.Call("c_point_dimensions", points$schema)
-.Call("c_point_dimensions", linestrings$schema$children[[1]])
-```
-
-If you're in R, the preferred approach is to extract the information you need from `wk::wk_vector_meta()`, since this will also validate the schema (making it so that you can write more compact compiled code that assumes a valid structure).
-
-Now that we've inspected the metadata, we can move on to the data! Accessing the coordinates and doing things with them is the whole reason we're all here...so let's get to it! As an example, I'm going to print coordinates with information about the containing structures.
+If you need to deal with arbitrary vectors of that may have different types or different point encodings, you should `#include "geoarrow.hpp"` and use the helper functions provided there; however, the geoarrow format was designed to be accessible from C code without helpers. If you can make some assumptions about the geometry type and storage type of your input but still want the speed of compiled code, using the C structures directly may be a good fit. As an example, I'm going to print coordinates with information about the containing structures.
 
 ### Points
 
-For points encoded as a fixed-size list (the default), you need three pieces of information: the length, the initial offset into the array, and the buffer of `double`s containing the coordinates. You will need to validate at least this much about the schema in advance:
-
-```{r}
-stopifnot(
-  points$schema$format == "+w:2",
-  points$schema$children[[1]]$format == "g"
-)
-```
+For points encoded as a fixed-size list (the default), you need three pieces of information: the length, the initial offset into the array, and the buffer of `double`s containing the coordinates.
 
 ```{c, results="hide"}
 #include <R.h>
@@ -211,24 +193,24 @@ SEXP c_point_print(SEXP array_data_xptr) {
 }
 ```
 
-```{r}
-invisible(.Call("c_point_print", points$array_data))
-```
-
-For points encoded as a struct, the approach is similar but one buffer per dimension is required. You will need to validate at least this much in advance:
+Depending on whether or not you have access to a higher-level runtime, you probably want to validate a few things about the schema before accessing elements of the array.
 
 ```{r}
-points_struct <- geoarrow_create(
-  points,
-  schema = geoarrow_schema_point_struct()
-)
+point_print <- function(x) {
+  x <- as_narrow_array(x)
+  
+  stopifnot(
+    x$schema$format == "+w:2",
+    x$schema$children[[1]]$format == "g"
+  )
+  
+  invisible(.Call("c_point_print", x$array_data))
+}
 
-stopifnot(
-  points_struct$schema$format == "+s",
-  points_struct$schema$children[[1]]$format == "g",
-  points_struct$schema$children[[2]]$format == "g"
-)
+point_print(points)
 ```
+
+For points encoded as a struct, the approach is similar but one buffer per dimension is required.
 
 ```{c, results="hide"}
 #include <R.h>
@@ -251,20 +233,29 @@ SEXP c_point_struct_print(SEXP array_data_xptr) {
 ```
 
 ```{r}
-invisible(.Call("c_point_struct_print", points_struct$array_data))
+point_struct_print <- function(x) {
+  x <- as_narrow_array(x)
+  
+  stopifnot(
+    x$schema$format == "+s",
+    x$schema$children[[1]]$format == "g",
+    x$schema$children[[2]]$format == "g"
+  )
+
+  invisible(.Call("c_point_struct_print", x$array_data))
+}
+
+points_struct <- geoarrow_create(
+  points,
+  schema = geoarrow_schema_point_struct()
+)
+
+point_struct_print(points_struct)
 ```
 
 ### Linestrings
 
-In addition to all the information about a point, you also need the offsets into the point array from the outer linestring. Just like the point, you'll need to validate a few things about the array that you have been handed to avoid a segfault.
-
-```{r}
-stopifnot(
-  linestrings$schema$format == "+l",
-  linestrings$schema$children[[1]]$format == "+w:2",
-  linestrings$schema$children[[1]]$children[[1]]$format == "g"
-)
-```
+In addition to all the information about a point, you also need the offsets into the point array from the outer linestring.
 
 ```{c, results="hide"}
 #include <R.h>
@@ -295,21 +286,24 @@ SEXP c_linestring_print(SEXP array_data_xptr) {
 ```
 
 ```{r}
-invisible(.Call("c_linestring_print", linestrings$array_data))
+linestring_print <- function(x) {
+  x <- as_narrow_array(x)
+  
+  stopifnot(
+    x$schema$format == "+l",
+    x$schema$children[[1]]$format == "+w:2",
+    x$schema$children[[1]]$children[[1]]$format == "g"
+  )
+  
+  invisible(.Call("c_linestring_print", x$array_data))
+}
+
+linestring_print(linestrings)
 ```
 
 ### Polygons
 
-In addition to all the information about a linestring, you also need the offsets into the rings array from the outer polygon You'll need to validate the outer layer in addition to all the bits validated about the inner arrays.
-
-```{r}
-stopifnot(
-  polygons$schema$format == "+l",
-  polygons$schema$children[[1]]$format == "+l",
-  polygons$schema$children[[1]]$children[[1]]$format == "+w:2",
-  polygons$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
-)
-```
+In addition to all the information about a linestring, you also need the offsets into the rings array from the outer polygon.
 
 ```{c, results="hide"}
 #include <R.h>
@@ -351,7 +345,20 @@ SEXP c_polygon_print(SEXP array_data_xptr) {
 ```
 
 ```{r}
-invisible(.Call("c_polygon_print", polygons$array_data))
+polygon_print <- function(x) {
+  x <- as_narrow_array(x)
+  
+  stopifnot(
+    x$schema$format == "+l",
+    x$schema$children[[1]]$format == "+l",
+    x$schema$children[[1]]$children[[1]]$format == "+w:2",
+    x$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
+  )
+  
+  invisible(.Call("c_polygon_print", x$array_data))
+}
+
+polygon_print(polygons)
 ```
 
 ### Multipoints
@@ -359,7 +366,7 @@ invisible(.Call("c_polygon_print", polygons$array_data))
 Iterating over multipoints requires the same code and assertions as for linestrings:
 
 ```{r}
-invisible(.Call("c_linestring_print", multipoints$array_data))
+linestring_print(multipoints)
 ```
 
 ### Multilinestrings
@@ -367,22 +374,12 @@ invisible(.Call("c_linestring_print", multipoints$array_data))
 Iterating over multilinestrings requires the same code and assertions as for polygons:
 
 ```{r}
-invisible(.Call("c_polygon_print", multilinestrings$array_data))
+polygon_print(multilinestrings)
 ```
 
 ### Multipolygons
 
-In addition to all the information about a polygon, you also need the offsets into the geometries array from the outer collection. You'll need to validate the outer layer in addition to all the bits validated about the inner arrays.
-
-```{r}
-stopifnot(
-  multipolygons$schema$format == "+l",
-  multipolygons$children[[1]]$schema$format == "+l",
-  multipolygons$children[[1]]$schema$children[[1]]$format == "+l",
-  multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$format == "+w:2",
-  multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
-)
-```
+In addition to all the information about a polygon, you also need the offsets into the geometries array from the outer collection. 
 
 ```{c, results="hide"}
 #include <R.h>
@@ -432,5 +429,119 @@ SEXP c_multipolygon_print(SEXP array_data_xptr) {
 ```
 
 ```{r}
-invisible(.Call("c_multipolygon_print", multipolygons$array_data))
+multipolygon_print <- function(x) {
+  x <- as_narrow_array(x)
+  
+  stopifnot(
+    multipolygons$schema$format == "+l",
+    multipolygons$children[[1]]$schema$format == "+l",
+    multipolygons$children[[1]]$schema$children[[1]]$format == "+l",
+    multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$format == "+w:2",
+    multipolygons$children[[1]]$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
+  )
+  
+  invisible(.Call("c_multipolygon_print", x$array_data))
+}
+
+multipolygon_print(multipolygons)
 ```
+
+### Metadata
+
+The easiest way to inspect the schema, which encodes the storage type and extra geo-specific extension metadata, is to do it before you drop into C. In particular, `wk::wk_vector_meta()` has been implemented for geoarrow arrays in such a way that it will (1) validate the schema to let you make stronger assumptions about the C structures you are given and (2) deserialize and extract the metadata you might need to reduce the number of problems you have to solve in C.
+
+If you really do need to do this in compiled code, you can access the `struct ArrowSchema` directly. For example, to extract the dimensions from C, you can do this:
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_point_dimensions(SEXP schema_xptr) {
+  struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
+  return Rf_mkString(schema->children[0]->name);
+}
+```
+
+```{r}
+.Call("c_point_dimensions", points$schema)
+.Call("c_point_dimensions", linestrings$schema$children[[1]])
+```
+
+If you need extension metadata from C you will have to iterate over the metadata field AND the extension metadata field. These are both encoded in the same way (by design). This gets verbose quickly, but if you really need to do it you can do so in about 50 lines. The important thing to note is that none of the names or values are null-terminated in the metadata fields.
+
+```{c, results="hide"}
+#include <R.h>
+#include "narrow.h"
+
+SEXP c_dump_metadata(SEXP schema_xptr) {
+  struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
+  
+  const char* metadata = schema->metadata;
+  
+  int64_t pos = 0;
+  int32_t n, m, name_len, value_len;
+  memcpy(&n, metadata + pos, sizeof(int32_t));
+  pos += sizeof(int32_t);
+
+  for (int i = 0; i < n; i++) {
+    memcpy(&name_len, metadata + pos, sizeof(int32_t));
+    pos += sizeof(int32_t);
+
+    const char* name = metadata + pos;
+    pos += name_len;
+
+    memcpy(&value_len, metadata + pos, sizeof(int32_t));
+    pos += sizeof(int32_t);
+
+    if (name_len >= 20 && strncmp(name, "ARROW:extension:name", 20) == 0) {
+        const char* value = metadata + pos;
+        pos += value_len;
+
+        Rprintf("ARROW:extension:name: '%.*s'\n", value_len, value);
+        
+    } else if (name_len >= 24 && strncmp(name, "ARROW:extension:metadata", 24) == 0) {
+      memcpy(&m, metadata + pos, sizeof(int32_t));
+      pos += sizeof(int32_t);
+
+      for (int j = 0; j < m; j++) {
+        memcpy(&name_len, metadata + pos, sizeof(int32_t));
+        pos += sizeof(int32_t);
+
+        const char* ext_name = metadata + pos;
+        pos += name_len;
+
+        memcpy(&value_len, metadata + pos, sizeof(int32_t));
+        pos += sizeof(int32_t);
+
+        const char* ext_value = metadata + pos;
+        pos += value_len;
+
+        if (name_len == 0 || value_len == 0) {
+            continue;
+        }
+
+        Rprintf(
+          "ARROW:extension:metadata/%.*s: '%.*s'\n",
+          name_len, ext_name, value_len, ext_value);
+      }
+    } else {
+      pos += value_len;
+      continue;
+    }
+  }
+  
+  return R_NilValue;
+}
+```
+
+```{r}
+invisible(.Call("c_dump_metadata", points$schema))
+
+with_crs <- geoarrow_create(
+  wk::wkt(crs = "EPSG:1234"),
+  schema = geoarrow_schema_point()
+)
+invisible(.Call("c_dump_metadata", with_crs$schema))
+```
+
+If you're in R or another higher-level runtime, the preferred approach is to extract the information you need before calling low-level compiled code (or to use the geoarrow.hpp helper).
