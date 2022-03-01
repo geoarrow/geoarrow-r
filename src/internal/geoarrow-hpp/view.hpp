@@ -9,30 +9,30 @@ namespace geoarrow {
 
 #define HANDLE_OR_RETURN(expr)                                 \
     result = expr;                                             \
-    if (result != GeoArrowHandler::Result::CONTINUE) return result
+    if (result != Handler::Result::CONTINUE) return result
 
 
 #define HANDLE_CONTINUE_OR_BREAK(expr)                         \
     result = expr;                                             \
-    if (result == GeoArrowHandler::Result::ABORT_FEATURE) \
+    if (result == Handler::Result::ABORT_FEATURE) \
         continue; \
-    else if (result == GeoArrowHandler::Result::ABORT) break
+    else if (result == Handler::Result::ABORT) break
 
 
 namespace {
 
     template <class ArrayView>
-    GeoArrowHandler::Result read_point_geometry(ArrayView& view, GeoArrowHandler* handler, int64_t offset) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_point_geometry(ArrayView& view, Handler* handler, int64_t offset) {
+        Handler::Result result;
         HANDLE_OR_RETURN(handler->geom_start(1));
         HANDLE_OR_RETURN(view.read_coord(handler, offset));
         HANDLE_OR_RETURN(handler->geom_end());
-        return GeoArrowHandler::Result::CONTINUE;
+        return Handler::Result::CONTINUE;
     }
 
     template <class ArrayView>
-    GeoArrowHandler::Result read_feature_templ(ArrayView& view, int64_t offset, GeoArrowHandler* handler) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_feature_templ(ArrayView& view, int64_t offset, Handler* handler) {
+        Handler::Result result;
         HANDLE_OR_RETURN(handler->feat_start());
 
         if (view.is_null(offset)) {
@@ -42,21 +42,21 @@ namespace {
         }
 
         HANDLE_OR_RETURN(handler->feat_end());
-        return GeoArrowHandler::Result::CONTINUE;
+        return Handler::Result::CONTINUE;
     }
 
     template <class ArrayView>
-    GeoArrowHandler::Result read_features_templ(ArrayView& view, GeoArrowHandler* handler) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_features_templ(ArrayView& view, Handler* handler) {
+        Handler::Result result;
 
         for (uint64_t i = 0; i < view.array_->length; i++) {
             HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler, i));
         }
 
-        if (result == GeoArrowHandler::Result::ABORT) {
-            return GeoArrowHandler::Result::ABORT;
+        if (result == Handler::Result::ABORT) {
+            return Handler::Result::ABORT;
         } else {
-            return GeoArrowHandler::Result::CONTINUE;
+            return Handler::Result::CONTINUE;
         }
     }
 
@@ -67,7 +67,7 @@ namespace {
 // it is an abstract class that represents a view of a `struct ArrowSchema` and
 // a sequence of `struct ArrowArray`s, both of which must be valid pointers for the
 // lifetime of the `GeoArrowArrayView`. The `GeoArrowArrayView` supports handler-style
-// iteration using a `GeoArrowHandler` and pull-style iteration using virtual methods.
+// iteration using a `Handler` and pull-style iteration using virtual methods.
 // The handler-style iteration is particularly useful as a way to write general-purpose
 // code without using virtual methods.
 class GeoArrowArrayView {
@@ -78,13 +78,13 @@ class GeoArrowArrayView {
 
     virtual ~GeoArrowArrayView() {}
 
-    void read_meta(GeoArrowHandler* handler) {
+    void read_meta(Handler* handler) {
         handler->schema(schema_);
         handler->new_geometry_type(meta_.geometry_type_);
         handler->new_dimensions(meta_.dimensions_);
     }
 
-    virtual GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
+    virtual Handler::Result read_features(Handler* handler) {
         throw std::runtime_error("GeoArrowArrayView::read_features() not implemented");
     }
 
@@ -122,22 +122,22 @@ class GeoArrowPointView: public GeoArrowArrayView {
         data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
     }
 
-    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
+    Handler::Result read_features(Handler* handler) {
         return read_features_templ<GeoArrowPointView>(*this, handler);
     }
 
-    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
+    Handler::Result read_feature(Handler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowPointView>(*this, offset, handler);
     }
 
-    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
+    Handler::Result read_geometry(Handler* handler, int64_t offset) {
         return read_point_geometry<GeoArrowPointView>(*this, handler, offset);
     }
 
-    GeoArrowHandler::Result read_coord(GeoArrowHandler* handler, int64_t offset) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_coord(Handler* handler, int64_t offset) {
+        Handler::Result result;
         HANDLE_OR_RETURN(handler->coord(data_buffer_ + (offset + array_->offset) * coord_size_));
-        return GeoArrowHandler::Result::CONTINUE;
+        return Handler::Result::CONTINUE;
     }
 
     int coord_size_;
@@ -173,27 +173,27 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
         }
     }
 
-    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
+    Handler::Result read_features(Handler* handler) {
         return read_features_templ<GeoArrowPointStructView>(*this, handler);
     }
 
-    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
+    Handler::Result read_feature(Handler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowPointStructView>(*this, offset, handler);
     }
 
-    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
+    Handler::Result read_geometry(Handler* handler, int64_t offset) {
         return read_point_geometry<GeoArrowPointStructView>(*this, handler, offset);
     }
 
-    GeoArrowHandler::Result read_coord(GeoArrowHandler* handler, int64_t offset) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_coord(Handler* handler, int64_t offset) {
+        Handler::Result result;
 
         for (int i = 0; i < coord_size_; i++) {
             coord_[i] = coord_buffer_[i][array_->offset + offset];
         }
 
         HANDLE_OR_RETURN(handler->coord(coord_));
-        return GeoArrowHandler::Result::CONTINUE;
+        return Handler::Result::CONTINUE;
     }
 
     int coord_size_;
@@ -232,16 +232,16 @@ class GeoArrowLinestringView: public ListView<PointView> {
   public:
     GeoArrowLinestringView(struct ArrowSchema* schema): ListView<PointView>(schema) {}
 
-    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
+    Handler::Result read_features(Handler* handler) {
         return read_features_templ<GeoArrowLinestringView>(*this, handler);
     }
 
-    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
+    Handler::Result read_feature(Handler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowLinestringView>(*this, offset, handler);
     }
 
-    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_geometry(Handler* handler, int64_t offset) {
+        Handler::Result result;
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
@@ -252,7 +252,7 @@ class GeoArrowLinestringView: public ListView<PointView> {
         }
 
         HANDLE_OR_RETURN(handler->geom_end());
-        return GeoArrowHandler::Result::CONTINUE;
+        return Handler::Result::CONTINUE;
     }
 };
 
@@ -262,16 +262,16 @@ class GeoArrowPolygonView: public ListView<ListView<PointView>> {
   public:
     GeoArrowPolygonView(struct ArrowSchema* schema): ListView<ListView<PointView>>(schema) {}
 
-    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
+    Handler::Result read_features(Handler* handler) {
         return read_features_templ<GeoArrowPolygonView>(*this, handler);
     }
 
-    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
+    Handler::Result read_feature(Handler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowPolygonView>(*this, offset, handler);
     }
 
-    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_geometry(Handler* handler, int64_t offset) {
+        Handler::Result result;
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
@@ -290,7 +290,7 @@ class GeoArrowPolygonView: public ListView<ListView<PointView>> {
         }
 
         HANDLE_OR_RETURN(handler->geom_end());
-        return GeoArrowHandler::Result::CONTINUE;
+        return Handler::Result::CONTINUE;
     }
 
 };
@@ -301,16 +301,16 @@ class GeoArrowMultiView: public ListView<ChildView> {
   public:
     GeoArrowMultiView(struct ArrowSchema* schema): ListView<ChildView>(schema) {}
 
-    GeoArrowHandler::Result read_features(GeoArrowHandler* handler) {
+    Handler::Result read_features(Handler* handler) {
         return read_features_templ<GeoArrowMultiView>(*this, handler);
     }
 
-    GeoArrowHandler::Result read_feature(GeoArrowHandler* handler, int64_t offset) {
+    Handler::Result read_feature(Handler* handler, int64_t offset) {
         return read_feature_templ<GeoArrowMultiView>(*this, offset, handler);
     }
 
-    GeoArrowHandler::Result read_geometry(GeoArrowHandler* handler, int64_t offset) {
-        GeoArrowHandler::Result result;
+    Handler::Result read_geometry(Handler* handler, int64_t offset) {
+        Handler::Result result;
 
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
@@ -320,7 +320,7 @@ class GeoArrowMultiView: public ListView<ChildView> {
             HANDLE_OR_RETURN(this->child_.read_geometry(handler, initial_child_offset + i));
         }
         HANDLE_OR_RETURN(handler->geom_end());
-        return GeoArrowHandler::Result::CONTINUE;
+        return Handler::Result::CONTINUE;
     }
 };
 

@@ -19,7 +19,7 @@
     return R_NilValue;
 
 
-class WKGeoArrowHandler: public geoarrow::GeoArrowHandler {
+class WKGeoArrowHandler: public geoarrow::Handler {
 public:
 
     WKGeoArrowHandler(wk_handler_t* handler, R_xlen_t size):

@@ -36,7 +36,7 @@ points <- geoarrow_create(
 linestrings <- geoarrow_create(
   wk::wkt(
     c(
-      "LINESTRING (30 10, 10 30, 40 40)", 
+      "LINESTRING (30 10, 10 30, 40 40)",
       "LINESTRING (0 0, 10 5)"
     )
   )
@@ -45,7 +45,7 @@ linestrings <- geoarrow_create(
 polygons <- geoarrow_create(
   wk::wkt(
     c(
-      "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))", 
+      "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
       "POLYGON (
         (35 10, 45 45, 15 40, 10 20, 35 10),
         (20 30, 35 35, 30 20, 20 30))"
@@ -60,7 +60,7 @@ multipoints <- geoarrow_create(
 multilinestrings <- geoarrow_create(
   wk::wkt(
     c(
-      "MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))", 
+      "MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))",
       "MULTILINESTRING (
         (35 10, 45 45, 15 40, 10 20, 35 10),
         (20 30, 35 35, 30 20, 20 30))"
@@ -73,7 +73,7 @@ multipolygons <- geoarrow_create(
     c(
       "MULTIPOLYGON (
         ((30 20, 45 40, 10 40, 30 20)),
-        ((15 5, 40 10, 10 20, 5 10, 15 5)))", 
+        ((15 5, 40 10, 10 20, 5 10, 15 5)))",
       "MULTIPOLYGON (
         ((40 40, 20 45, 45 30, 40 40)),
         ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),
@@ -111,7 +111,7 @@ This will let you `#include "narrow.h"`, which includes a copy of the Arrow C Da
 
 ## Reading geoarrow arrays in R
 
-The easiest way to inspect geoarrow array data is from R using the [wk](https://paleolimbot.github.io/wk/) package. The general structure of an array is available from `wk::wk_vector_meta()`, which is fast (it doesn't iterate over all the points). 
+The easiest way to inspect geoarrow array data is from R using the [wk](https://paleolimbot.github.io/wk/) package. The general structure of an array is available from `wk::wk_vector_meta()`, which is fast (it doesn't iterate over all the points).
 
 ```{r}
 wk::wk_vector_meta(points)
@@ -174,11 +174,11 @@ Built-in operations in the geoarrow package use the geoarrow.hpp helper file, wh
 
 (TODO: Haven't added this to the GeoArrowArrayView yet)
 
-### Using the GeoArrowHandler
+### Using the Handler
 
-The `GeoArrowHandler` is a class with methods corresponding to events that occur when looping over coordinates from top to bottom. This style of iteration was inspired by GeoRust's [geozero](https://github.com/georust/geozero) and SAX-style XML parsers. Writing operations as handlers is a good fit for some operations but can be challenging for others. In R, it powers the `wk::wk_handle()` operation which in turn powers many other operations via wk handlers elsewhere. It is particularly useful for operations that iterate forward through all coordinates.
+The `Handler` is a class with methods corresponding to events that occur when looping over coordinates from top to bottom. This style of iteration was inspired by GeoRust's [geozero](https://github.com/georust/geozero) and SAX-style XML parsers. Writing operations as handlers is a good fit for some operations but can be challenging for others. In R, it powers the `wk::wk_handle()` operation which in turn powers many other operations via wk handlers elsewhere. It is particularly useful for operations that iterate forward through all coordinates.
 
-For example, the following subclass of `GeoArrowHandler` calculates the bounding box of any (arrow array of) geometry it is handed.
+For example, the following subclass of `Handler` calculates the bounding box of any (arrow array of) geometry it is handed.
 
 ```{cpp11}
 #include <cpp11.hpp>
@@ -188,21 +188,21 @@ For example, the following subclass of `GeoArrowHandler` calculates the bounding
 using namespace cpp11;
 using namespace geoarrow;
 
-class BboxHandler: public GeoArrowHandler {
+class BboxHandler: public Handler {
 public:
   BboxHandler()
-    : xmin(R_PosInf), xmax(R_NegInf), 
+    : xmin(R_PosInf), xmax(R_NegInf),
       ymin(R_PosInf), ymax(R_NegInf) {}
-  
-  
-  GeoArrowHandler::Result coord(const double* coord) {
+
+
+  Handler::Result coord(const double* coord) {
     xmin = std::min<double>(coord[0], xmin);
     xmax = std::max<double>(coord[0], xmax);
     ymin = std::min<double>(coord[1], ymin);
     ymax = std::max<double>(coord[1], ymax);
     return Result::CONTINUE;
   }
-  
+
   double xmin;
   double xmax;
   double ymin;
@@ -213,10 +213,10 @@ public:
 doubles geoarrow_bbox(sexp schema_xptr, sexp array_data_xptr) {
   struct ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, "schema");
   struct ArrowArray* array_data = safe[array_data_from_xptr](array_data_xptr, "array_data");
-  
+
   std::unique_ptr<GeoArrowArrayView> view(create_view(schema));
   view->set_array(array_data);
-  
+
   BboxHandler handler;
   view->read_meta(&handler);
   view->read_features(&handler);
@@ -248,7 +248,7 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   if (!meta.set_schema(schema)) {
     stop("%s", meta.error_);
   }
-  
+
   switch(meta.extension_) {
   case GeoArrowMeta::Extension::Point:
     Rprintf("Extension: 'geoarrow.point'\n");
@@ -262,12 +262,12 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   case GeoArrowMeta::Extension::Multi:
     Rprintf("Extension: 'geoarrow.multi'\n");
     break;
-    
+
   default:
     Rprintf("Extension: other\n");
     break;
   }
-  
+
   switch(meta.storage_type_) {
   case GeoArrowMeta::StorageType::FixedWidthList:
     Rprintf("Storage type: fixed size list\n");
@@ -278,18 +278,18 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   case GeoArrowMeta::StorageType::List:
     Rprintf("Storage type: list\n");
     break;
-    
+
   default:
     Rprintf("Storage type: other\n");
   }
-  
+
   Rprintf("Dimensions: '%s'\n", meta.dim_);
-  
+
   if (meta.crs_size_ > 0) {
     std::string crs(meta.crs_, meta.crs_size_);
     Rprintf("CRS: '%s'\n", crs.c_str());
   }
-  
+
   if (meta.geodesic_) {
     Rprintf("Geodesic!\n");
   }
@@ -330,7 +330,7 @@ For points encoded as a fixed-size list (the default), you need three pieces of 
 
 SEXP c_point_print(SEXP array_data_xptr) {
   struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
-  
+
   int coord_size = 2;
   double* coords = (double*) array_data->children[0]->buffers[1];
   coords = coords + (array_data->offset) * coord_size;
@@ -340,7 +340,7 @@ SEXP c_point_print(SEXP array_data_xptr) {
     coord = coords + (point_id * coord_size);
     Rprintf("point[%d] (%g %g)\n", point_id, coord[0], coord[1]);
   }
-  
+
   return R_NilValue;
 }
 ```
@@ -350,12 +350,12 @@ Depending on whether or not you have access to a higher-level runtime, you proba
 ```{r}
 point_print <- function(x) {
   x <- as_narrow_array(x)
-  
+
   stopifnot(
     x$schema$format == "+w:2",
     x$schema$children[[1]]$format == "g"
   )
-  
+
   invisible(.Call("c_point_print", x$array_data))
 }
 
@@ -370,7 +370,7 @@ For points encoded as a struct, the approach is similar but one buffer per dimen
 
 SEXP c_point_struct_print(SEXP array_data_xptr) {
   struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
-  
+
   double* x = (double*) array_data->children[0]->buffers[1];
   double* y = (double*) array_data->children[1]->buffers[1];
   x = x + array_data->offset;
@@ -379,7 +379,7 @@ SEXP c_point_struct_print(SEXP array_data_xptr) {
   for (int64_t point_id = 0; point_id < array_data->length; point_id++) {
     Rprintf("point[%d] (%g %g)\n", point_id, x[point_id], y[point_id]);
   }
-  
+
   return R_NilValue;
 }
 ```
@@ -387,7 +387,7 @@ SEXP c_point_struct_print(SEXP array_data_xptr) {
 ```{r}
 point_struct_print <- function(x) {
   x <- as_narrow_array(x)
-  
+
   stopifnot(
     x$schema$format == "+s",
     x$schema$children[[1]]$format == "g",
@@ -415,24 +415,24 @@ In addition to all the information about a point, you also need the offsets into
 
 SEXP c_linestring_print(SEXP array_data_xptr) {
   struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
-  
+
   int coord_size = 2;
   double* coords = (double*) array_data->children[0]->children[0]->buffers[1];
   int32_t* coord_offsets = (int32_t*) array_data->buffers[1];
-  
+
   coord_offsets = coord_offsets + array_data->offset;
   coords = coords + coord_offsets[0];
 
   double* coord;
   for (int64_t line_id = 0; line_id < array_data->length; line_id++) {
     int32_t n_coords = coord_offsets[line_id + 1] - coord_offsets[line_id];
-    
+
     for (int32_t point_id = 0; point_id < n_coords; point_id++) {
       coord = coords + coord_size * (coord_offsets[line_id] + point_id);
       Rprintf("linestring[%d]->point[%d] (%g %g)\n", line_id, point_id, coord[0], coord[1]);
     }
   }
-  
+
   return R_NilValue;
 }
 ```
@@ -440,13 +440,13 @@ SEXP c_linestring_print(SEXP array_data_xptr) {
 ```{r}
 linestring_print <- function(x) {
   x <- as_narrow_array(x)
-  
+
   stopifnot(
     x$schema$format == "+l",
     x$schema$children[[1]]$format == "+w:2",
     x$schema$children[[1]]$children[[1]]$format == "g"
   )
-  
+
   invisible(.Call("c_linestring_print", x$array_data))
 }
 
@@ -463,12 +463,12 @@ In addition to all the information about a linestring, you also need the offsets
 
 SEXP c_polygon_print(SEXP array_data_xptr) {
   struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
-  
+
   int coord_size = 2;
   double* coords = (double*) array_data->children[0]->children[0]->children[0]->buffers[1];
   int32_t* coord_offsets = (int32_t*) array_data->children[0]->buffers[1];
   int32_t* ring_offsets = (int32_t*) array_data->buffers[1];
-  
+
   ring_offsets = ring_offsets + array_data->offset;
   coord_offsets = coord_offsets + ring_offsets[0];
   coords = coords + coord_offsets[0];
@@ -478,11 +478,11 @@ SEXP c_polygon_print(SEXP array_data_xptr) {
   for (int64_t poly_id = 0; poly_id < array_data->length; poly_id++) {
     int32_t n_rings = ring_offsets[poly_id + 1] - ring_offsets[poly_id];
     coord_offset = coord_offsets + ring_offsets[poly_id];
-    
-    
+
+
     for (int32_t ring_id = 0; ring_id < n_rings; ring_id++) {
       int32_t n_coords = coord_offset[ring_id + 1] - coord_offset[ring_id];
-      
+
       for (int32_t point_id = 0; point_id < n_coords; point_id++) {
         coord = coords + (coord_size * (coord_offset[ring_id] + point_id));
         Rprintf(
@@ -491,7 +491,7 @@ SEXP c_polygon_print(SEXP array_data_xptr) {
       }
     }
   }
-  
+
   return R_NilValue;
 }
 ```
@@ -499,14 +499,14 @@ SEXP c_polygon_print(SEXP array_data_xptr) {
 ```{r}
 polygon_print <- function(x) {
   x <- as_narrow_array(x)
-  
+
   stopifnot(
     x$schema$format == "+l",
     x$schema$children[[1]]$format == "+l",
     x$schema$children[[1]]$children[[1]]$format == "+w:2",
     x$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
   )
-  
+
   invisible(.Call("c_polygon_print", x$array_data))
 }
 
@@ -531,7 +531,7 @@ polygon_print(multilinestrings)
 
 ### Multipolygons
 
-In addition to all the information about a polygon, you also need the offsets into the geometries array from the outer collection. 
+In addition to all the information about a polygon, you also need the offsets into the geometries array from the outer collection.
 
 ```{c, results="hide"}
 #include <R.h>
@@ -539,13 +539,13 @@ In addition to all the information about a polygon, you also need the offsets in
 
 SEXP c_multipolygon_print(SEXP array_data_xptr) {
   struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
-  
+
   int coord_size = 2;
   double* coords = (double*) array_data->children[0]->children[0]->children[0]->children[0]->buffers[1];
   int32_t* coord_offsets = (int32_t*) array_data->children[0]->children[0]->buffers[1];
   int32_t* ring_offsets = (int32_t*) array_data->children[0]->buffers[1];
   int32_t* geom_offsets = (int32_t*) array_data->buffers[1];
-  
+
   geom_offsets = geom_offsets + array_data->offset;
   ring_offsets = ring_offsets + geom_offsets[0];
   coord_offsets = coord_offsets + ring_offsets[0];
@@ -557,15 +557,15 @@ SEXP c_multipolygon_print(SEXP array_data_xptr) {
   for (int64_t multi_id = 0; multi_id < array_data->length; multi_id++) {
     int32_t n_geoms = geom_offsets[multi_id + 1] - geom_offsets[multi_id];
     ring_offset = ring_offsets + geom_offsets[multi_id];
-    
+
     for (int32_t poly_id = 0; poly_id < n_geoms; poly_id++) {
       int32_t n_rings = ring_offset[poly_id + 1] - ring_offset[poly_id];
       coord_offset = coord_offsets + ring_offsets[poly_id];
-      
-      
+
+
       for (int32_t ring_id = 0; ring_id < n_rings; ring_id++) {
         int32_t n_coords = coord_offset[ring_id + 1] - coord_offset[ring_id];
-        
+
         for (int32_t point_id = 0; point_id < n_coords; point_id++) {
           coord = coords + (coord_size * (coord_offset[ring_id] + point_id));
           Rprintf(
@@ -573,9 +573,9 @@ SEXP c_multipolygon_print(SEXP array_data_xptr) {
             multi_id, poly_id, ring_id, point_id, coord[0], coord[1]);
         }
       }
-    } 
+    }
   }
-  
+
   return R_NilValue;
 }
 ```
@@ -583,7 +583,7 @@ SEXP c_multipolygon_print(SEXP array_data_xptr) {
 ```{r}
 multipolygon_print <- function(x) {
   x <- as_narrow_array(x)
-  
+
   stopifnot(
     x$schema$format == "+l",
     x$children[[1]]$schema$format == "+l",
@@ -591,7 +591,7 @@ multipolygon_print <- function(x) {
     x$children[[1]]$schema$children[[1]]$children[[1]]$format == "+w:2",
     x$children[[1]]$schema$children[[1]]$children[[1]]$children[[1]]$format == "g"
   )
-  
+
   invisible(.Call("c_multipolygon_print", x$array_data))
 }
 
@@ -627,9 +627,9 @@ If you need extension metadata from C you will have to iterate over the metadata
 
 SEXP c_dump_metadata(SEXP schema_xptr) {
   struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
-  
+
   const char* metadata = schema->metadata;
-  
+
   int64_t pos = 0;
   int32_t n, m, name_len, value_len;
   memcpy(&n, metadata + pos, sizeof(int32_t));
@@ -650,7 +650,7 @@ SEXP c_dump_metadata(SEXP schema_xptr) {
         pos += value_len;
 
         Rprintf("ARROW:extension:name: '%.*s'\n", value_len, value);
-        
+
     } else if (name_len >= 24 && strncmp(name, "ARROW:extension:metadata", 24) == 0) {
       memcpy(&m, metadata + pos, sizeof(int32_t));
       pos += sizeof(int32_t);
@@ -681,7 +681,7 @@ SEXP c_dump_metadata(SEXP schema_xptr) {
       continue;
     }
   }
-  
+
   return R_NilValue;
 }
 ```

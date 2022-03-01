@@ -6,12 +6,12 @@
 
 namespace geoarrow {
 
-// A `GeoArrowHandler` is a stateful handler base class that responds to events
+// A `Handler` is a stateful handler base class that responds to events
 // as they are encountered while iterating over a `GeoArrowArrayView`. This
 // style of iteration is useful for certain types of operations, particularly
 // if virtual method calls are a concern. You can also use `GeoArrowArrayView`'s
 // pull-style iterators to iterate over geometries.
-class GeoArrowHandler {
+class Handler {
 public:
     enum Result {
         CONTINUE = 0,
@@ -34,7 +34,7 @@ public:
     virtual Result feat_end() { return Result::CONTINUE; }
     virtual Result array_end() { return Result::CONTINUE; }
 
-    virtual ~GeoArrowHandler() {}
+    virtual ~Handler() {}
 };
 
 }
