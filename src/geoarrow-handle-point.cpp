@@ -3,7 +3,7 @@
 #include <Rinternals.h>
 #include "wk-v1.h"
 #include "narrow.h"
-#include "internal/geoarrow-cpp/geoarrow.hpp"
+#include "internal/geoarrow-hpp/geoarrow.hpp"
 #include "util.h"
 
 #define CPP_START                         \
