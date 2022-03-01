@@ -110,9 +110,9 @@ class ArrayView {
 };
 
 
-class GeoArrowPointView: public ArrayView {
+class PointArrayView: public ArrayView {
   public:
-    GeoArrowPointView(const struct ArrowSchema* schema):
+    PointArrayView(const struct ArrowSchema* schema):
       ArrayView(schema), data_buffer_(nullptr) {
         coord_size_ = meta_.fixed_width_;
     }
@@ -123,15 +123,15 @@ class GeoArrowPointView: public ArrayView {
     }
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<GeoArrowPointView>(*this, handler);
+        return read_features_templ<PointArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<GeoArrowPointView>(*this, offset, handler);
+        return read_feature_templ<PointArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
-        return read_point_geometry<GeoArrowPointView>(*this, handler, offset);
+        return read_point_geometry<PointArrayView>(*this, handler, offset);
     }
 
     Handler::Result read_coord(Handler* handler, int64_t offset) {
@@ -203,9 +203,9 @@ class GeoArrowPointStructView: public ArrayView {
 
 
 template <class ChildView>
-class ListView: public ArrayView {
+class ListArrayView: public ArrayView {
   public:
-    ListView(const struct ArrowSchema* schema):
+    ListArrayView(const struct ArrowSchema* schema):
       ArrayView(schema), child_(schema->children[0]), offset_buffer_(nullptr) {}
 
     void set_array(const struct ArrowArray* array) {
@@ -227,17 +227,17 @@ class ListView: public ArrayView {
 };
 
 
-template <class PointView = GeoArrowPointView>
-class GeoArrowLinestringView: public ListView<PointView> {
+template <class PointView = PointArrayView>
+class LinestringArrayView: public ListArrayView<PointView> {
   public:
-    GeoArrowLinestringView(struct ArrowSchema* schema): ListView<PointView>(schema) {}
+    LinestringArrayView(struct ArrowSchema* schema): ListArrayView<PointView>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<GeoArrowLinestringView>(*this, handler);
+        return read_features_templ<LinestringArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<GeoArrowLinestringView>(*this, offset, handler);
+        return read_feature_templ<LinestringArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
@@ -257,17 +257,17 @@ class GeoArrowLinestringView: public ListView<PointView> {
 };
 
 
-template <class PointView = GeoArrowPointView>
-class GeoArrowPolygonView: public ListView<ListView<PointView>> {
+template <class PointView = PointArrayView>
+class PolygonArrayView: public ListArrayView<ListArrayView<PointView>> {
   public:
-    GeoArrowPolygonView(struct ArrowSchema* schema): ListView<ListView<PointView>>(schema) {}
+    PolygonArrayView(struct ArrowSchema* schema): ListArrayView<ListArrayView<PointView>>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<GeoArrowPolygonView>(*this, handler);
+        return read_features_templ<PolygonArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<GeoArrowPolygonView>(*this, offset, handler);
+        return read_feature_templ<PolygonArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
@@ -297,16 +297,16 @@ class GeoArrowPolygonView: public ListView<ListView<PointView>> {
 
 
 template <class ChildView>
-class GeoArrowMultiView: public ListView<ChildView> {
+class CollectionArrayView: public ListArrayView<ChildView> {
   public:
-    GeoArrowMultiView(struct ArrowSchema* schema): ListView<ChildView>(schema) {}
+    CollectionArrayView(struct ArrowSchema* schema): ListArrayView<ChildView>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<GeoArrowMultiView>(*this, handler);
+        return read_features_templ<CollectionArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<GeoArrowMultiView>(*this, offset, handler);
+        return read_feature_templ<CollectionArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {

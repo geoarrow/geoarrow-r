@@ -8,7 +8,7 @@ point_switch_template <- '
 
 switch (point_meta.storage_type_) {
 case GeoArrowMeta::StorageType::FixedWidthList:
-    return new ${ type("GeoArrowPointView") }(schema);
+    return new ${ type("PointArrayView") }(schema);
 
 case GeoArrowMeta::StorageType::Struct:
     return new ${ type("GeoArrowPointStructView") }(schema);
@@ -24,7 +24,7 @@ nest_switch_template <- '
 
 switch (${ extension }_meta.storage_type_) {
 case GeoArrowMeta::StorageType::List:
-    ${ switch_child("ListView<%s>", indent) }
+    ${ switch_child("ListArrayView<%s>", indent) }
     break;
 
 default:
@@ -39,7 +39,7 @@ point_switch <- function(type = identity, indent = "    ") {
 }
 
 linestring_switch <- function(indent = "    ", extension = "linestring",
-                              name = "GeoArrowLinestringView") {
+                              name = "LinestringArrayView") {
   switch_child <- function(type_format, indent) {
     type <- function(point_type) {
       glue("${ name }<${ point_type }>")
@@ -55,7 +55,7 @@ polygon_switch <- function(indent = "    ", extension = "polygon") {
   switch_child <- function(type_format, indent) {
     linestring_switch(
       indent = paste0(indent, "    "),
-      name = "GeoArrowPolygonView"
+      name = "PolygonArrayView"
     )
   }
 
@@ -67,7 +67,7 @@ multi_switch <- function(switcher, indent = "    ", extension = "multi") {
     child <- switcher(indent = "")
     format <- gsub(
       "new (.*?)\\(",
-      "new GeoArrowMultiView<\\1>(",
+      "new CollectionArrayView<\\1>(",
       child
     )
     glue(format, indent = paste0(indent, "    "))

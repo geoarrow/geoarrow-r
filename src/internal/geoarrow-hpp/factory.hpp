@@ -13,7 +13,7 @@ ArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& point_met
 
     switch (point_meta.storage_type_) {
     case GeoArrowMeta::StorageType::FixedWidthList:
-        return new GeoArrowPointView(schema);
+        return new PointArrayView(schema);
 
     case GeoArrowMeta::StorageType::Struct:
         return new GeoArrowPointStructView(schema);
@@ -35,10 +35,10 @@ ArrayView* create_view_linestring(struct ArrowSchema* schema,
 
             switch (point_meta.storage_type_) {
             case GeoArrowMeta::StorageType::FixedWidthList:
-                return new GeoArrowLinestringView<GeoArrowPointView>(schema);
+                return new LinestringArrayView<PointArrayView>(schema);
 
             case GeoArrowMeta::StorageType::Struct:
-                return new GeoArrowLinestringView<GeoArrowPointStructView>(schema);
+                return new LinestringArrayView<GeoArrowPointStructView>(schema);
 
             default:
                 throw GeoArrowMeta::ValidationError(
@@ -67,10 +67,10 @@ ArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& polygon
 
                         switch (point_meta.storage_type_) {
                         case GeoArrowMeta::StorageType::FixedWidthList:
-                            return new GeoArrowPolygonView<GeoArrowPointView>(schema);
+                            return new PolygonArrayView<PointArrayView>(schema);
 
                         case GeoArrowMeta::StorageType::Struct:
-                            return new GeoArrowPolygonView<GeoArrowPointStructView>(schema);
+                            return new PolygonArrayView<GeoArrowPointStructView>(schema);
 
                         default:
                             throw GeoArrowMeta::ValidationError(
@@ -102,10 +102,10 @@ ArrayView* create_view_multipoint(struct ArrowSchema* schema,
     case GeoArrowMeta::StorageType::List:
         switch (point_meta.storage_type_) {
     case GeoArrowMeta::StorageType::FixedWidthList:
-        return new GeoArrowMultiView<GeoArrowPointView>(schema);
+        return new CollectionArrayView<PointArrayView>(schema);
 
     case GeoArrowMeta::StorageType::Struct:
-        return new GeoArrowMultiView<GeoArrowPointStructView>(schema);
+        return new CollectionArrayView<GeoArrowPointStructView>(schema);
 
     default:
         throw GeoArrowMeta::ValidationError(
@@ -133,10 +133,10 @@ ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
 
         switch (point_meta.storage_type_) {
         case GeoArrowMeta::StorageType::FixedWidthList:
-            return new GeoArrowMultiView<GeoArrowLinestringView<GeoArrowPointView>>(schema);
+            return new CollectionArrayView<LinestringArrayView<PointArrayView>>(schema);
 
         case GeoArrowMeta::StorageType::Struct:
-            return new GeoArrowMultiView<GeoArrowLinestringView<GeoArrowPointStructView>>(schema);
+            return new CollectionArrayView<LinestringArrayView<GeoArrowPointStructView>>(schema);
 
         default:
             throw GeoArrowMeta::ValidationError(
@@ -174,10 +174,10 @@ ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
 
                 switch (point_meta.storage_type_) {
                 case GeoArrowMeta::StorageType::FixedWidthList:
-                    return new GeoArrowMultiView<GeoArrowPolygonView<GeoArrowPointView>>(schema);
+                    return new CollectionArrayView<PolygonArrayView<PointArrayView>>(schema);
 
                 case GeoArrowMeta::StorageType::Struct:
-                    return new GeoArrowMultiView<GeoArrowPolygonView<GeoArrowPointStructView>>(schema);
+                    return new CollectionArrayView<PolygonArrayView<GeoArrowPointStructView>>(schema);
 
                 default:
                     throw GeoArrowMeta::ValidationError(
