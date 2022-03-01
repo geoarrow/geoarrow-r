@@ -1,10 +1,9 @@
 
 #pragma once
 
-#include "view.hpp"
+#include "array-view.hpp"
 
 namespace geoarrow {
-
 
 namespace {
 
