@@ -21,8 +21,8 @@ namespace geoarrow {
 
 namespace {
 
-    template <class ArrayView>
-    Handler::Result read_point_geometry(ArrayView& view, Handler* handler, int64_t offset) {
+    template <class TArrayView>
+    Handler::Result read_point_geometry(TArrayView& view, Handler* handler, int64_t offset) {
         Handler::Result result;
         HANDLE_OR_RETURN(handler->geom_start(1));
         HANDLE_OR_RETURN(view.read_coord(handler, offset));
@@ -30,8 +30,8 @@ namespace {
         return Handler::Result::CONTINUE;
     }
 
-    template <class ArrayView>
-    Handler::Result read_feature_templ(ArrayView& view, int64_t offset, Handler* handler) {
+    template <class TArrayView>
+    Handler::Result read_feature_templ(TArrayView& view, int64_t offset, Handler* handler) {
         Handler::Result result;
         HANDLE_OR_RETURN(handler->feat_start());
 
@@ -45,8 +45,8 @@ namespace {
         return Handler::Result::CONTINUE;
     }
 
-    template <class ArrayView>
-    Handler::Result read_features_templ(ArrayView& view, Handler* handler) {
+    template <class TArrayView>
+    Handler::Result read_features_templ(TArrayView& view, Handler* handler) {
         Handler::Result result;
 
         for (uint64_t i = 0; i < view.array_->length; i++) {
@@ -63,20 +63,20 @@ namespace {
 } // anonymous namespace
 
 
-// The `GeoArrowArrayView` is the main class that uses of the API will interact with.
+// The `ArrayView` is the main class that uses of the API will interact with.
 // it is an abstract class that represents a view of a `struct ArrowSchema` and
 // a sequence of `struct ArrowArray`s, both of which must be valid pointers for the
-// lifetime of the `GeoArrowArrayView`. The `GeoArrowArrayView` supports handler-style
+// lifetime of the `ArrayView`. The `ArrayView` supports handler-style
 // iteration using a `Handler` and pull-style iteration using virtual methods.
 // The handler-style iteration is particularly useful as a way to write general-purpose
 // code without using virtual methods.
-class GeoArrowArrayView {
+class ArrayView {
   public:
-    GeoArrowArrayView(const struct ArrowSchema* schema):
+    ArrayView(const struct ArrowSchema* schema):
       schema_(schema), array_(nullptr), meta_(schema),
       feature_id_(-1), validity_buffer_(nullptr) {}
 
-    virtual ~GeoArrowArrayView() {}
+    virtual ~ArrayView() {}
 
     void read_meta(Handler* handler) {
         handler->schema(schema_);
@@ -85,7 +85,7 @@ class GeoArrowArrayView {
     }
 
     virtual Handler::Result read_features(Handler* handler) {
-        throw std::runtime_error("GeoArrowArrayView::read_features() not implemented");
+        throw std::runtime_error("ArrayView::read_features() not implemented");
     }
 
     virtual void set_array(const struct ArrowArray* array) {
@@ -110,15 +110,15 @@ class GeoArrowArrayView {
 };
 
 
-class GeoArrowPointView: public GeoArrowArrayView {
+class GeoArrowPointView: public ArrayView {
   public:
     GeoArrowPointView(const struct ArrowSchema* schema):
-      GeoArrowArrayView(schema), data_buffer_(nullptr) {
+      ArrayView(schema), data_buffer_(nullptr) {
         coord_size_ = meta_.fixed_width_;
     }
 
     void set_array(const struct ArrowArray* array) {
-        GeoArrowArrayView::set_array(array);
+        ArrayView::set_array(array);
         data_buffer_ = reinterpret_cast<const double*>(array->children[0]->buffers[1]);
     }
 
@@ -145,9 +145,9 @@ class GeoArrowPointView: public GeoArrowArrayView {
 };
 
 
-class GeoArrowPointStructView: public GeoArrowArrayView {
+class GeoArrowPointStructView: public ArrayView {
   public:
-    GeoArrowPointStructView(const struct ArrowSchema* schema): GeoArrowArrayView(schema) {
+    GeoArrowPointStructView(const struct ArrowSchema* schema): ArrayView(schema) {
         switch (meta_.dimensions_) {
         case GeoArrowMeta::Dimensions::XYZ:
         case GeoArrowMeta::Dimensions::XYM:
@@ -165,7 +165,7 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
     }
 
     void set_array(const struct ArrowArray* array) {
-        GeoArrowArrayView::set_array(array);
+        ArrayView::set_array(array);
         memset(coord_buffer_, 0, sizeof(coord_buffer_));
         for (int i = 0; i < coord_size_; i++) {
             const void* buffer_void = array->children[i]->buffers[1];
@@ -203,13 +203,13 @@ class GeoArrowPointStructView: public GeoArrowArrayView {
 
 
 template <class ChildView>
-class ListView: public GeoArrowArrayView {
+class ListView: public ArrayView {
   public:
     ListView(const struct ArrowSchema* schema):
-      GeoArrowArrayView(schema), child_(schema->children[0]), offset_buffer_(nullptr) {}
+      ArrayView(schema), child_(schema->children[0]), offset_buffer_(nullptr) {}
 
     void set_array(const struct ArrowArray* array) {
-        GeoArrowArrayView::set_array(array);
+        ArrayView::set_array(array);
         child_.set_array(array->children[0]);
         offset_buffer_ = reinterpret_cast<const int32_t*>(array->buffers[1]);
     }

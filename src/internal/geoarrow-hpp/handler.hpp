@@ -7,9 +7,9 @@
 namespace geoarrow {
 
 // A `Handler` is a stateful handler base class that responds to events
-// as they are encountered while iterating over a `GeoArrowArrayView`. This
+// as they are encountered while iterating over a `ArrayView`. This
 // style of iteration is useful for certain types of operations, particularly
-// if virtual method calls are a concern. You can also use `GeoArrowArrayView`'s
+// if virtual method calls are a concern. You can also use `ArrayView`'s
 // pull-style iterators to iterate over geometries.
 class Handler {
 public:

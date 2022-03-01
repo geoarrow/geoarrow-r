@@ -79,32 +79,32 @@ multi_switch <- function(switcher, indent = "    ", extension = "multi") {
 
 factory <- glue("
 // autogen factory start
-GeoArrowArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& point_meta) {
+ArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& point_meta) {
 ${point_switch()}
 }
 
-GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema,
+ArrayView* create_view_linestring(struct ArrowSchema* schema,
                                           GeoArrowMeta& linestring_meta) {
     GeoArrowMeta point_meta(schema->children[0]);
 
 ${linestring_switch()}
 }
 
-GeoArrowArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& polygon_meta) {
+ArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& polygon_meta) {
     GeoArrowMeta linestring_meta(schema->children[0]);
     GeoArrowMeta point_meta(schema->children[0]->children[0]);
 
 ${polygon_switch()}
 }
 
-GeoArrowArrayView* create_view_multipoint(struct ArrowSchema* schema,
+ArrayView* create_view_multipoint(struct ArrowSchema* schema,
                                           GeoArrowMeta& multi_meta, GeoArrowMeta& point_meta) {
 
 
 ${multi_switch(point_switch)}
 }
 
-GeoArrowArrayView* create_view_multilinestring(struct ArrowSchema* schema,
+ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
                                                GeoArrowMeta& multi_meta,
                                                GeoArrowMeta& linestring_meta) {
     GeoArrowMeta point_meta(schema->children[0]->children[0]);
@@ -112,7 +112,7 @@ GeoArrowArrayView* create_view_multilinestring(struct ArrowSchema* schema,
 ${multi_switch(linestring_switch)}
 }
 
-GeoArrowArrayView* create_view_multipolygon(struct ArrowSchema* schema,
+ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
                                             GeoArrowMeta& multi_meta, GeoArrowMeta& polygon_meta) {
     GeoArrowMeta linestring_meta(schema->children[0]->children[0]);
     GeoArrowMeta point_meta(schema->children[0]->children[0]->children[0]);

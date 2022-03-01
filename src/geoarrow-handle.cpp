@@ -133,8 +133,8 @@ private:
 
 
 void delete_array_view_xptr(SEXP array_view_xptr) {
-    geoarrow::GeoArrowArrayView* array_view =
-        reinterpret_cast<geoarrow::GeoArrowArrayView*>(R_ExternalPtrAddr(array_view_xptr));
+    geoarrow::ArrayView* array_view =
+        reinterpret_cast<geoarrow::ArrayView*>(R_ExternalPtrAddr(array_view_xptr));
 
     if (array_view != nullptr) {
         delete array_view;
@@ -152,7 +152,7 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
     // and we can't rely on the deleter to run because one of the handler
     // calls could longjmp. We use the same trick for making sure the array_data is
     // released for each array in the stream.
-    geoarrow::GeoArrowArrayView* view = geoarrow::create_view(schema);
+    geoarrow::ArrayView* view = geoarrow::create_view(schema);
     SEXP view_xptr = PROTECT(R_MakeExternalPtr(view, R_NilValue, R_NilValue));
     R_RegisterCFinalizer(view_xptr, &delete_array_view_xptr);
 

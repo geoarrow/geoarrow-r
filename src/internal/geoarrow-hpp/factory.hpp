@@ -9,7 +9,7 @@ namespace geoarrow {
 namespace {
 
 // autogen factory start
-GeoArrowArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& point_meta) {
+ArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& point_meta) {
 
     switch (point_meta.storage_type_) {
     case GeoArrowMeta::StorageType::FixedWidthList:
@@ -25,7 +25,7 @@ GeoArrowArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& p
 
 }
 
-GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema,
+ArrayView* create_view_linestring(struct ArrowSchema* schema,
                                           GeoArrowMeta& linestring_meta) {
     GeoArrowMeta point_meta(schema->children[0]);
 
@@ -54,7 +54,7 @@ GeoArrowArrayView* create_view_linestring(struct ArrowSchema* schema,
 
 }
 
-GeoArrowArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& polygon_meta) {
+ArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& polygon_meta) {
     GeoArrowMeta linestring_meta(schema->children[0]);
     GeoArrowMeta point_meta(schema->children[0]->children[0]);
 
@@ -93,7 +93,7 @@ GeoArrowArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta&
 
 }
 
-GeoArrowArrayView* create_view_multipoint(struct ArrowSchema* schema,
+ArrayView* create_view_multipoint(struct ArrowSchema* schema,
                                           GeoArrowMeta& multi_meta, GeoArrowMeta& point_meta) {
 
 
@@ -120,7 +120,7 @@ GeoArrowArrayView* create_view_multipoint(struct ArrowSchema* schema,
 
 }
 
-GeoArrowArrayView* create_view_multilinestring(struct ArrowSchema* schema,
+ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
                                                GeoArrowMeta& multi_meta,
                                                GeoArrowMeta& linestring_meta) {
     GeoArrowMeta point_meta(schema->children[0]->children[0]);
@@ -158,7 +158,7 @@ GeoArrowArrayView* create_view_multilinestring(struct ArrowSchema* schema,
 
 }
 
-GeoArrowArrayView* create_view_multipolygon(struct ArrowSchema* schema,
+ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
                                             GeoArrowMeta& multi_meta, GeoArrowMeta& polygon_meta) {
     GeoArrowMeta linestring_meta(schema->children[0]->children[0]);
     GeoArrowMeta point_meta(schema->children[0]->children[0]->children[0]);
@@ -208,7 +208,7 @@ GeoArrowArrayView* create_view_multipolygon(struct ArrowSchema* schema,
 // autogen factory end
 
 
-GeoArrowArrayView* create_view_multi(struct ArrowSchema* schema, GeoArrowMeta& multi_meta) {
+ArrayView* create_view_multi(struct ArrowSchema* schema, GeoArrowMeta& multi_meta) {
     GeoArrowMeta child_meta(schema->children[0]);
 
     switch (child_meta.extension_) {
@@ -227,7 +227,7 @@ GeoArrowArrayView* create_view_multi(struct ArrowSchema* schema, GeoArrowMeta& m
 
 } // anonymous namespace
 
-GeoArrowArrayView* create_view(struct ArrowSchema* schema) {
+ArrayView* create_view(struct ArrowSchema* schema) {
     // parse the schema and check that the structure is not unexpected
     // (e.g., the extension type and storage type are compatible and
     // there are not an unexpected number of children)
