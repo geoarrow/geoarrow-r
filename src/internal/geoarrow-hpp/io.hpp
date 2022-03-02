@@ -14,11 +14,11 @@ public:
     memset(error_, 0, sizeof(error_));
     va_list args;
     va_start(args, fmt);
-    int result = vsnprintf(error_, sizeof(error_) - 1, fmt, args);
+    vsnprintf(error_, sizeof(error_) - 1, fmt, args);
     va_end(args);
   }
 
-  const char* what() {
+  const char* what() const _NOEXCEPT {
     return error_;
   }
 
@@ -43,7 +43,7 @@ public:
     int64_t copy_size = std::min<int64_t>(size_ - offset_, max_size);
     if (copy_size > 0) {
       memcpy(buffer, data_ + offset_, copy_size);
-      offset += copy_size;
+      offset_ += copy_size;
       return copy_size;
     } else {
       return 0;
@@ -62,7 +62,7 @@ private:
 class SimpleBufferSink {
 public:
   SimpleBufferSink(int64_t size): data_(nullptr), size_(size), offset_(0) {
-    data_ = (uint8_t) malloc(size);
+    data_ = reinterpret_cast<uint8_t*>(malloc(size));
     if (data_ == nullptr) {
       throw std::runtime_error("Failed to allocate SimpleBufferSink::data_");
     }
@@ -70,14 +70,14 @@ public:
 
   ~SimpleBufferSink() {
     if (data_ != nullptr) {
-      free(data_)
+      free(data_);
     }
   }
 
   void write(uint8_t* buffer, int64_t size) {
     while ((offset_ + size) >= size_) {
       int64_t new_size = (size_ + 1) * 1.5;
-      uint8_t* new_str = realloc(data_, new_size);
+      uint8_t* new_str = reinterpret_cast<uint8_t*>(realloc(data_, new_size));
       if (new_str == nullptr) {
         throw std::runtime_error("Failed to reallocate SimpleBufferSink::data_");
       }
@@ -95,7 +95,7 @@ public:
   }
 
   uint8_t* release() {
-    uint8_t out = data_;
+    uint8_t* out = data_;
     data_ = nullptr;
     return out;
   }

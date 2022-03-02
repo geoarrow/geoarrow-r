@@ -43,6 +43,10 @@ namespace {
         return Handler::Result::CONTINUE;
     }
 
+} // anonymous namespace
+
+namespace internal {
+
     template <class TArrayView>
     Handler::Result read_features_templ(TArrayView& view, Handler* handler) {
         Handler::Result result;
@@ -58,7 +62,7 @@ namespace {
         }
     }
 
-} // anonymous namespace
+}
 
 
 class PointArrayView: public ArrayView {
@@ -74,7 +78,7 @@ class PointArrayView: public ArrayView {
     }
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<PointArrayView>(*this, handler);
+        return internal::read_features_templ<PointArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
@@ -125,7 +129,7 @@ class GeoArrowPointStructView: public ArrayView {
     }
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<GeoArrowPointStructView>(*this, handler);
+        return internal::read_features_templ<GeoArrowPointStructView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
@@ -184,7 +188,7 @@ class LinestringArrayView: public ListArrayView<PointView> {
     LinestringArrayView(struct ArrowSchema* schema): ListArrayView<PointView>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<LinestringArrayView>(*this, handler);
+        return internal::read_features_templ<LinestringArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
@@ -214,7 +218,7 @@ class PolygonArrayView: public ListArrayView<ListArrayView<PointView>> {
     PolygonArrayView(struct ArrowSchema* schema): ListArrayView<ListArrayView<PointView>>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<PolygonArrayView>(*this, handler);
+        return internal::read_features_templ<PolygonArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
@@ -253,7 +257,7 @@ class CollectionArrayView: public ListArrayView<ChildView> {
     CollectionArrayView(struct ArrowSchema* schema): ListArrayView<ChildView>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
-        return read_features_templ<CollectionArrayView>(*this, handler);
+        return internal::read_features_templ<CollectionArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {

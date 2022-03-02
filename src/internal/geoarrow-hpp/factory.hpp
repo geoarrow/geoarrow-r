@@ -2,6 +2,7 @@
 #pragma once
 
 #include "array-view.hpp"
+#include "wkb-array-view.hpp"
 
 namespace geoarrow {
 
@@ -224,6 +225,20 @@ ArrayView* create_view_multi(struct ArrowSchema* schema, Meta& multi_meta) {
     }
 }
 
+ArrayView* create_view_wkb(struct ArrowSchema* schema, Meta& geoarrow_meta) {
+    switch (geoarrow_meta.storage_type_) {
+    case Meta::StorageType::Binary:
+        return new WKBArrayView(schema);
+    case Meta::StorageType::LargeBinary:
+        return new LargeWKBArrayView(schema);
+    case Meta::StorageType::FixedWidthBinary:
+        return new FixedWidthWKBArrayView(schema);
+    default:
+        throw Meta::ValidationError(
+            "Unsupported storage type for extension geoarrow.wkb");
+    }
+}
+
 } // anonymous namespace
 
 ArrayView* create_view(struct ArrowSchema* schema) {
@@ -244,6 +259,9 @@ ArrayView* create_view(struct ArrowSchema* schema) {
 
     case Meta::Extension::Multi:
         return create_view_multi(schema, geoarrow_meta);
+
+    case Meta::Extension::WKB:
+        return create_view_wkb(schema, geoarrow_meta);
 
     default:
         throw Meta::ValidationError("Unsupported extension type");

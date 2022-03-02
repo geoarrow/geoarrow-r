@@ -99,6 +99,7 @@ class Meta {
         Linestring,
         Polygon,
         Multi,
+        WKB,
         Unknown,
         ExtensionNone
     };
@@ -493,6 +494,8 @@ class Meta {
                     extension_ = Extension::Polygon;
                 } else if (value_len >= 14 && strncmp(value, "geoarrow.multi", 14) == 0) {
                     extension_ = Extension::Multi;
+                } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 14) == 0) {
+                    extension_ = Extension::WKB;
                 }
 
             } else if (name_len >= 24 && strncmp(name, "ARROW:extension:metadata", 24) == 0) {

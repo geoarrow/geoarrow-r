@@ -59,9 +59,10 @@ public:
       }
     }
 
-    void read_buffer(const uint8_t* data, int64_t size) {
+    Handler::Result read_buffer(Handler* handler, const uint8_t* data, int64_t size) {
       data_ = data;
       size_ = size;
+      return read_geometry(handler);
     }
 
 private:
@@ -107,10 +108,7 @@ private:
       } else if (geometry_type >= 1000) {
         geometry_type = geometry_type - 1000;
         has_m = true;
-      } else {
-        geometry_type = geometry_type;
       }
-
 
       uint32_t geometry_size;
       if (geometry_type == Meta::GeometryType::POINT) {
@@ -195,6 +193,8 @@ private:
           HANDLE_OR_RETURN(handler->coord(coord_));
         }
       }
+
+      return Handler::Result::CONTINUE;
     }
 
     void read_endian() {
