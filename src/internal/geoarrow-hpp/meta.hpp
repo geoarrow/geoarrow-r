@@ -377,6 +377,19 @@ class Meta {
 
             break;
 
+        case Extension::WKB:
+            switch (storage_type_) {
+            case StorageType::Binary:
+            case StorageType::LargeBinary:
+            case StorageType::FixedWidthBinary:
+                break;
+            default:
+                set_error(
+                    "Expected geoarrow.wkb to be a binary, large binary, or fixed-width binary but found '%s'",
+                    schema->format);
+            }
+            break;
+
         default:
             break;
         }
@@ -494,7 +507,7 @@ class Meta {
                     extension_ = Extension::Polygon;
                 } else if (value_len >= 14 && strncmp(value, "geoarrow.multi", 14) == 0) {
                     extension_ = Extension::Multi;
-                } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 14) == 0) {
+                } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 12) == 0) {
                     extension_ = Extension::WKB;
                 }
 

@@ -62,6 +62,7 @@ public:
     Handler::Result read_buffer(Handler* handler, const uint8_t* data, int64_t size) {
       data_ = data;
       size_ = size;
+      offset_ = 0;
       return read_geometry(handler);
     }
 
@@ -224,7 +225,7 @@ private:
     }
 
     void check_buffer(int64_t n) {
-      if (offset_ + n >= size_) {
+      if ((offset_ + n) >= size_) {
         throw io::IOException(
             "Unexpected end of buffer at %lld + %lld / %lld",
              offset_, n, size_);
