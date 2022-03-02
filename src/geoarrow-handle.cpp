@@ -35,16 +35,16 @@ public:
         part_id_[1] = -1;
     }
 
-    void new_geometry_type(geoarrow::GeoArrowMeta::GeometryType geometry_type) {
+    void new_geometry_type(geoarrow::Meta::GeometryType geometry_type) {
         vector_meta_.geometry_type = geometry_type;
         meta_[0].geometry_type = geometry_type;
         meta_[1].geometry_type = geometry_type - 3;
     }
 
-    void new_dimensions(geoarrow::GeoArrowMeta::Dimensions dimensions) {
+    void new_dimensions(geoarrow::Meta::Dimensions dimensions) {
         switch (dimensions) {
-        case geoarrow::GeoArrowMeta::Dimensions::XYZ:
-        case geoarrow::GeoArrowMeta::Dimensions::XYZM:
+        case geoarrow::Meta::Dimensions::XYZ:
+        case geoarrow::Meta::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_Z;
             meta_[0].flags |= WK_FLAG_HAS_Z;
             meta_[1].flags |= WK_FLAG_HAS_Z;
@@ -54,8 +54,8 @@ public:
         }
 
         switch (dimensions) {
-        case geoarrow::GeoArrowMeta::Dimensions::XYM:
-        case geoarrow::GeoArrowMeta::Dimensions::XYZM:
+        case geoarrow::Meta::Dimensions::XYM:
+        case geoarrow::Meta::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_M;
             meta_[0].flags |= WK_FLAG_HAS_M;
             meta_[1].flags |= WK_FLAG_HAS_M;

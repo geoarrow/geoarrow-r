@@ -33,7 +33,7 @@ class ArrayView {
 
     virtual void set_array(const struct ArrowArray* array) {
         if (!meta_.array_valid(array)) {
-            throw GeoArrowMeta::ValidationError(meta_.error_);
+            throw Meta::ValidationError(meta_.error_);
         }
 
         array_ = array;
@@ -47,7 +47,7 @@ class ArrayView {
 
     const struct ArrowSchema* schema_;
     const struct ArrowArray* array_;
-    GeoArrowMeta meta_;
+    Meta meta_;
     int64_t feature_id_;
     const uint8_t* validity_buffer_;
 };

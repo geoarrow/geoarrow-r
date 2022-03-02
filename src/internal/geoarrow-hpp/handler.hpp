@@ -20,8 +20,8 @@ public:
     };
 
     virtual void schema(const struct ArrowSchema* schema) {}
-    virtual void new_geometry_type(GeoArrowMeta::GeometryType geometry_type) {}
-    virtual void new_dimensions(GeoArrowMeta::Dimensions geometry_type) {}
+    virtual void new_geometry_type(Meta::GeometryType geometry_type) {}
+    virtual void new_dimensions(Meta::Dimensions geometry_type) {}
 
     virtual Result array_start(const struct ArrowArray* array_data) { return Result::CONTINUE; }
     virtual Result feat_start() { return Result::CONTINUE; }

@@ -231,7 +231,7 @@ geoarrow_bbox(polygons$schema, polygons$array_data)
 
 ### Metadata
 
-The geoarrow package uses the `GeoArrowMeta` class to validate and parse both schema and array objects. It is a wrapper around a `struct ArrowSchema` that walks its input and extracts pieces in a reasonable format to build on. In most cases you shouldn't need to extract metadata in compiled code; however, the `GeoArrowMeta` class is the easiest way to do so if you are in this position.
+The geoarrow package uses the `Meta` class to validate and parse both schema and array objects. It is a wrapper around a `struct ArrowSchema` that walks its input and extracts pieces in a reasonable format to build on. In most cases you shouldn't need to extract metadata in compiled code; however, the `Meta` class is the easiest way to do so if you are in this position.
 
 ```{cpp11}
 #include <cpp11.hpp>
@@ -244,22 +244,22 @@ using namespace geoarrow;
 [[cpp11::register]]
 void geoarrow_metadata_dump(sexp schema_xptr) {
   struct ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, "schema");
-  GeoArrowMeta meta;
+  Meta meta;
   if (!meta.set_schema(schema)) {
     stop("%s", meta.error_);
   }
 
   switch(meta.extension_) {
-  case GeoArrowMeta::Extension::Point:
+  case Meta::Extension::Point:
     Rprintf("Extension: 'geoarrow.point'\n");
     break;
-  case GeoArrowMeta::Extension::Linestring:
+  case Meta::Extension::Linestring:
     Rprintf("Extension: 'geoarrow.linestring'\n");
     break;
-  case GeoArrowMeta::Extension::Polygon:
+  case Meta::Extension::Polygon:
     Rprintf("Extension: 'geoarrow.polygon'\n");
     break;
-  case GeoArrowMeta::Extension::Multi:
+  case Meta::Extension::Multi:
     Rprintf("Extension: 'geoarrow.multi'\n");
     break;
 
@@ -269,13 +269,13 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   }
 
   switch(meta.storage_type_) {
-  case GeoArrowMeta::StorageType::FixedWidthList:
+  case Meta::StorageType::FixedWidthList:
     Rprintf("Storage type: fixed size list\n");
     break;
-  case GeoArrowMeta::StorageType::Struct:
+  case Meta::StorageType::Struct:
     Rprintf("Storage type: struct\n");
     break;
-  case GeoArrowMeta::StorageType::List:
+  case Meta::StorageType::List:
     Rprintf("Storage type: list\n");
     break;
 

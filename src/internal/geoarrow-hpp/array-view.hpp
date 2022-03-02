@@ -100,11 +100,11 @@ class GeoArrowPointStructView: public ArrayView {
   public:
     GeoArrowPointStructView(const struct ArrowSchema* schema): ArrayView(schema) {
         switch (meta_.dimensions_) {
-        case GeoArrowMeta::Dimensions::XYZ:
-        case GeoArrowMeta::Dimensions::XYM:
+        case Meta::Dimensions::XYZ:
+        case Meta::Dimensions::XYM:
             coord_size_ = 3;
             break;
-        case GeoArrowMeta::Dimensions::XYZM:
+        case Meta::Dimensions::XYZM:
             coord_size_ = 4;
             break;
         default:

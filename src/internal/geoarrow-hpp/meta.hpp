@@ -91,7 +91,7 @@ struct ArrowArrayStream {
 
 namespace geoarrow {
 
-class GeoArrowMeta {
+class Meta {
   public:
 
     enum Extension {
@@ -136,7 +136,7 @@ class GeoArrowMeta {
         ValidationError(const char* what): std::runtime_error(what) {}
     };
 
-    GeoArrowMeta(const struct ArrowSchema* schema = nullptr) {
+    Meta(const struct ArrowSchema* schema = nullptr) {
         if (!set_schema(schema) && schema != nullptr) {
             throw ValidationError(error_);
         }
@@ -194,7 +194,7 @@ class GeoArrowMeta {
         }
 
 
-        GeoArrowMeta child;
+        Meta child;
 
         switch (extension_) {
         case Extension::Point:

@@ -7,14 +7,14 @@ glue <- function(..., .envir = parent.frame(), .indent = "") {
 point_switch_template <- '
 
 switch (point_meta.storage_type_) {
-case GeoArrowMeta::StorageType::FixedWidthList:
+case Meta::StorageType::FixedWidthList:
     return new ${ type("PointArrayView") }(schema);
 
-case GeoArrowMeta::StorageType::Struct:
+case Meta::StorageType::Struct:
     return new ${ type("GeoArrowPointStructView") }(schema);
 
 default:
-    throw GeoArrowMeta::ValidationError(
+    throw Meta::ValidationError(
         "Unsupported storage type for extension geoarrow.point");
 }
 
@@ -23,12 +23,12 @@ default:
 nest_switch_template <- '
 
 switch (${ extension }_meta.storage_type_) {
-case GeoArrowMeta::StorageType::List:
+case Meta::StorageType::List:
     ${ switch_child("ListArrayView<%s>", indent) }
     break;
 
 default:
-    throw GeoArrowMeta::ValidationError(
+    throw Meta::ValidationError(
         "Unsupported storage type for extension geoarrow.${ extension }");
 }
 
@@ -79,43 +79,43 @@ multi_switch <- function(switcher, indent = "    ", extension = "multi") {
 
 factory <- glue("
 // autogen factory start
-ArrayView* create_view_point(struct ArrowSchema* schema, GeoArrowMeta& point_meta) {
+ArrayView* create_view_point(struct ArrowSchema* schema, Meta& point_meta) {
 ${point_switch()}
 }
 
 ArrayView* create_view_linestring(struct ArrowSchema* schema,
-                                          GeoArrowMeta& linestring_meta) {
-    GeoArrowMeta point_meta(schema->children[0]);
+                                          Meta& linestring_meta) {
+    Meta point_meta(schema->children[0]);
 
 ${linestring_switch()}
 }
 
-ArrayView* create_view_polygon(struct ArrowSchema* schema, GeoArrowMeta& polygon_meta) {
-    GeoArrowMeta linestring_meta(schema->children[0]);
-    GeoArrowMeta point_meta(schema->children[0]->children[0]);
+ArrayView* create_view_polygon(struct ArrowSchema* schema, Meta& polygon_meta) {
+    Meta linestring_meta(schema->children[0]);
+    Meta point_meta(schema->children[0]->children[0]);
 
 ${polygon_switch()}
 }
 
 ArrayView* create_view_multipoint(struct ArrowSchema* schema,
-                                          GeoArrowMeta& multi_meta, GeoArrowMeta& point_meta) {
+                                          Meta& multi_meta, Meta& point_meta) {
 
 
 ${multi_switch(point_switch)}
 }
 
 ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
-                                               GeoArrowMeta& multi_meta,
-                                               GeoArrowMeta& linestring_meta) {
-    GeoArrowMeta point_meta(schema->children[0]->children[0]);
+                                               Meta& multi_meta,
+                                               Meta& linestring_meta) {
+    Meta point_meta(schema->children[0]->children[0]);
 
 ${multi_switch(linestring_switch)}
 }
 
 ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
-                                            GeoArrowMeta& multi_meta, GeoArrowMeta& polygon_meta) {
-    GeoArrowMeta linestring_meta(schema->children[0]->children[0]);
-    GeoArrowMeta point_meta(schema->children[0]->children[0]->children[0]);
+                                            Meta& multi_meta, Meta& polygon_meta) {
+    Meta linestring_meta(schema->children[0]->children[0]);
+    Meta point_meta(schema->children[0]->children[0]->children[0]);
 
 ${multi_switch(polygon_switch)}
 }
