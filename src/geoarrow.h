@@ -8,9 +8,9 @@
 #define GEOARROW_ENDIAN 0x00
 #endif
 
-#include "internal/geoarrow-cpp/meta.hpp"
-#include "internal/geoarrow-cpp/handler.hpp"
-#include "internal/geoarrow-cpp/array-view-base.hpp"
+#include "internal/geoarrow-hpp/meta.hpp"
+#include "internal/geoarrow-hpp/handler.hpp"
+#include "internal/geoarrow-hpp/array-view-base.hpp"
 
 namespace geoarrow {
 

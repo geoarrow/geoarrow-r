@@ -1,2 +1,2 @@
 
-#include "internal/geoarrow-cpp/factory.hpp"
+#include "internal/geoarrow-hpp/factory.hpp"
