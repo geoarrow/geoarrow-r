@@ -52,4 +52,38 @@ class ArrayView {
     const uint8_t* validity_buffer_;
 };
 
+namespace internal {
+
+template <class TArrayView>
+Handler::Result read_features_templ(TArrayView& view, Handler* handler) {
+    Handler::Result result;
+
+    for (uint64_t i = 0; i < view.array_->length; i++) {
+        HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler, i));
+    }
+
+    if (result == Handler::Result::ABORT) {
+        return Handler::Result::ABORT;
+    } else {
+        return Handler::Result::CONTINUE;
+    }
+}
+
+template <class TArrayView>
+Handler::Result read_feature_templ(TArrayView& view, int64_t offset, Handler* handler) {
+    Handler::Result result;
+    HANDLE_OR_RETURN(handler->feat_start());
+
+    if (view.is_null(offset)) {
+        HANDLE_OR_RETURN(handler->null_feat());
+    } else {
+        HANDLE_OR_RETURN(view.read_geometry(handler, offset));
+    }
+
+    HANDLE_OR_RETURN(handler->feat_end());
+    return Handler::Result::CONTINUE;
+}
+
+}
+
 }

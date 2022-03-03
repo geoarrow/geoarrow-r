@@ -6,10 +6,6 @@
 #include "io.hpp"
 #include "handler.hpp"
 
-#define HANDLE_OR_RETURN(expr)                                 \
-    result = expr;                                             \
-    if (result != Handler::Result::CONTINUE) return result
-
 #define EWKB_Z_BIT 0x80000000
 #define EWKB_M_BIT 0x40000000
 #define EWKB_SRID_BIT 0x20000000
@@ -186,6 +182,8 @@ private:
             tmp = bswap_64(read<uint64_t>());
             memcpy(coord_ + j, &tmp, sizeof(uint64_t));
           }
+
+          HANDLE_OR_RETURN(handler->coord(coord_));
         }
       } else {
         for (uint32_t i = 0; i < n; i++) {
@@ -204,7 +202,7 @@ private:
 
     template<typename T> T read() {
       T result;
-      memcpy(&result, data_, sizeof(T));
+      memcpy(&result, data_ + offset_, sizeof(T));
       offset_ += sizeof(T);
       return result;
     }
@@ -225,7 +223,7 @@ private:
     }
 
     void check_buffer(int64_t n) {
-      if ((offset_ + n) >= size_) {
+      if ((offset_ + n) > size_) {
         throw io::IOException(
             "Unexpected end of buffer at %lld + %lld / %lld",
              offset_, n, size_);
@@ -236,7 +234,6 @@ private:
 }
 
 #undef _GEOARROW_ENDIAN
-#undef HANDLE_OR_RETURN
 #undef EWKB_Z_BIT
 #undef EWKB_M_BIT
 #undef EWKB_SRID_BIT

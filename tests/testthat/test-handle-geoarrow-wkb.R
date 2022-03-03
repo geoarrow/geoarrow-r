@@ -84,8 +84,8 @@ test_that("geoarrow.wkb works with ND points and SRID", {
     wk::wkt(
       c(
         "POINT (30 10)", "POINT Z (30 10 2)", "POINT M (30 10 2)",
-        "POINT ZM (30 10 2 1)", "SRID=199;POINT (30 10)",
-        "SRID=4326;POINT ZM (30 10 12 14)"
+        "POINT ZM (30 10 2 1)", "POINT (30 10)",
+        "POINT ZM (30 10 12 14)"
       )
     )
   )
@@ -270,7 +270,7 @@ test_that("invalid geometry type code errors", {
     schema = geoarrow_schema_wkb()
   )
 
-  expect_error(wk::wk_void(arr_wkb), "Unrecognized geometry type code")
+  expect_error(wk::wk_void(arr_wkb), "Unrecognized geometry type")
 
   arr_wkb <- geoarrow_create(
     wk::new_wk_wkb(list(as.raw(0x01))),
@@ -293,14 +293,14 @@ test_that("bad arrays error", {
     narrow::narrow_array_data(buffers = list(raw(1), raw(1))),
     validate = FALSE
   )
-  expect_error(wk::wk_void(arr_wkb), "width must be >= 0")
+  expect_error(wk::wk_void(arr_wkb), "Expected fixed-width binary to have width > 0")
 
   arr_wkb <- narrow::narrow_array(
     narrow::narrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkb")),
     narrow::narrow_array_data(buffers = list(NULL, integer())),
     validate = FALSE
   )
-  expect_error(wk::wk_void(arr_wkb), "Can't handle schema format 'i'")
+  expect_error(wk::wk_void(arr_wkb), "Unsupported storage type for extension geoarrow.wkb")
 })
 
 test_that("Early returns are supported from the WKB reader", {

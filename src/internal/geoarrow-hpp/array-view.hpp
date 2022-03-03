@@ -5,16 +5,6 @@
 #include "handler.hpp"
 #include "array-view-base.hpp"
 
-#define HANDLE_OR_RETURN(expr)                                 \
-    result = expr;                                             \
-    if (result != Handler::Result::CONTINUE) return result
-
-#define HANDLE_CONTINUE_OR_BREAK(expr)                         \
-    result = expr;                                             \
-    if (result == Handler::Result::ABORT_FEATURE) \
-        continue; \
-    else if (result == Handler::Result::ABORT) break
-
 namespace geoarrow {
 
 namespace {
@@ -28,41 +18,7 @@ namespace {
         return Handler::Result::CONTINUE;
     }
 
-    template <class TArrayView>
-    Handler::Result read_feature_templ(TArrayView& view, int64_t offset, Handler* handler) {
-        Handler::Result result;
-        HANDLE_OR_RETURN(handler->feat_start());
-
-        if (view.is_null(offset)) {
-            HANDLE_OR_RETURN(handler->null_feat());
-        } else {
-            HANDLE_OR_RETURN(view.read_geometry(handler, offset));
-        }
-
-        HANDLE_OR_RETURN(handler->feat_end());
-        return Handler::Result::CONTINUE;
-    }
-
 } // anonymous namespace
-
-namespace internal {
-
-    template <class TArrayView>
-    Handler::Result read_features_templ(TArrayView& view, Handler* handler) {
-        Handler::Result result;
-
-        for (uint64_t i = 0; i < view.array_->length; i++) {
-            HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler, i));
-        }
-
-        if (result == Handler::Result::ABORT) {
-            return Handler::Result::ABORT;
-        } else {
-            return Handler::Result::CONTINUE;
-        }
-    }
-
-}
 
 
 class PointArrayView: public ArrayView {
@@ -82,7 +38,7 @@ class PointArrayView: public ArrayView {
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<PointArrayView>(*this, offset, handler);
+        return internal::read_feature_templ<PointArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
@@ -133,7 +89,7 @@ class GeoArrowPointStructView: public ArrayView {
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<GeoArrowPointStructView>(*this, offset, handler);
+        return internal::read_feature_templ<GeoArrowPointStructView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
@@ -192,7 +148,7 @@ class LinestringArrayView: public ListArrayView<PointView> {
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<LinestringArrayView>(*this, offset, handler);
+        return internal::read_feature_templ<LinestringArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
@@ -222,7 +178,7 @@ class PolygonArrayView: public ListArrayView<ListArrayView<PointView>> {
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<PolygonArrayView>(*this, offset, handler);
+        return internal::read_feature_templ<PolygonArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
@@ -261,7 +217,7 @@ class CollectionArrayView: public ListArrayView<ChildView> {
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return read_feature_templ<CollectionArrayView>(*this, offset, handler);
+        return internal::read_feature_templ<CollectionArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
@@ -280,6 +236,3 @@ class CollectionArrayView: public ListArrayView<ChildView> {
 };
 
 }
-
-#undef HANDLE_OR_RETURN
-#undef HANDLE_CONTINUE_OR_BREAK

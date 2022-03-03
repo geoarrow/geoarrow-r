@@ -183,6 +183,10 @@ class Meta {
     bool schema_valid(const struct ArrowSchema* schema) {
         switch (storage_type_) {
         case StorageType::FixedWidthList:
+            if (fixed_width_ <= 0) {
+                set_error("Expected fixed-size list to have size > 0 but got %lld", fixed_width_);
+                return false;
+            }
         case StorageType::List:
         case StorageType::LargeList:
             if (schema->n_children != 1) {
@@ -190,6 +194,11 @@ class Meta {
                 return false;
             }
             break;
+        case StorageType::FixedWidthBinary:
+            if (fixed_width_ <= 0) {
+                set_error("Expected fixed-width binary to have width > 0 but got %lld", fixed_width_);
+                return false;
+            }
         default:
             break;
         }

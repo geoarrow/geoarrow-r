@@ -38,3 +38,13 @@ public:
 };
 
 }
+
+#define HANDLE_OR_RETURN(expr)                                 \
+    result = expr;                                             \
+    if (result != Handler::Result::CONTINUE) return result
+
+#define HANDLE_CONTINUE_OR_BREAK(expr)                         \
+    result = expr;                                             \
+    if (result == Handler::Result::ABORT_FEATURE) \
+        continue; \
+    else if (result == Handler::Result::ABORT) break
