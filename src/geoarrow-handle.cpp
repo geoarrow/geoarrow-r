@@ -32,6 +32,13 @@ public:
         WK_META_RESET(meta_, WK_GEOMETRY);
 
         vector_meta_.size = size;
+
+        // This is to keep vectors from being reallocated, since some
+        // wk handlers assume that the meta pointers will stay valid between
+        // the start and end geometry methods (this will get fixed in a
+        // wk release soon)
+        part_id_stack_.reserve(32);
+        meta_stack_.reserve(32);
     }
 
     void new_meta(const geoarrow::Meta* meta) {
@@ -122,8 +129,8 @@ public:
     }
 
     Result geom_end() {
-        int result = handler_->geometry_end(meta(), part_id(), handler_->handler_data);
         if (part_id_stack_.size() > 0) part_id_stack_.pop_back();
+        int result = handler_->geometry_end(meta(), part_id(), handler_->handler_data);
         if (meta_stack_.size() > 0) meta_stack_.pop_back();
         return (Result) result;
     }
@@ -159,8 +166,7 @@ private:
         if (meta_stack_.size() == 0) {
             throw std::runtime_error("geom_start()/geom_end() stack imbalance <meta>");
         }
-
-        return &(meta_stack_[meta_stack_.size() - 1]);
+        return meta_stack_.data() + meta_stack_.size() - 1;
     }
 };
 
