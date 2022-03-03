@@ -20,13 +20,13 @@ wk_handle.narrow_array <- function(handleable, handler, ...) {
 
   switch(
     extension,
-    "geoarrow.wkb" = handle_geoarrow_wkb(handleable, handler),
     "geoarrow.wkt" = handle_geoarrow_wkt(handleable, handler),
     "geoarrow.geojson" = {
       assert_geos_with_geojson()
       chr <- narrow::from_narrow_array(handleable, character())
       wk::wk_handle(geos::geos_read_geojson(chr, crs = geo_metadata$crs), handler)
     },
+    "geoarrow.wkb" = ,
     "geoarrow.point" = ,
     "geoarrow.linestring" = ,
     "geoarrow.polygon" = ,
@@ -47,9 +47,9 @@ wk_handle.narrow_array_stream <- function(handleable, handler, ...,
 
   switch(
     extension,
-    "geoarrow.wkb" = handle_geoarrow_wkb_stream(handleable, handler),
-    "geoarrow.wkt" = handle_geoarrow_wkt_stream(handleable, handler),
+    "geoarrow.wkt" = handle_geoarrow_wkt_stream(handleable, handler, schema = geoarrow_schema),
     "geoarrow.point" = ,
+    "geoarrow.wkb" = ,
     "geoarrow.linestring" = ,
     "geoarrow.polygon" = ,
     "geoarrow.multi" = handle_geoarrow_point_stream(handleable, handler, geoarrow_schema, geoarrow_n_features),

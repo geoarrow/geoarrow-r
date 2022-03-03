@@ -8,7 +8,6 @@ SEXP geoarrow_c_handle_wkt(SEXP data, SEXP handler_xptr);
 SEXP geoarrow_c_handle_point(SEXP data, SEXP handler_xptr);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"geoarrow_c_handle_wkb", (DL_FUNC) &geoarrow_c_handle_wkb, 2},
     {"geoarrow_c_handle_wkt", (DL_FUNC) &geoarrow_c_handle_wkt, 2},
     {"geoarrow_c_handle_point", (DL_FUNC) &geoarrow_c_handle_point, 2},
     {NULL, NULL, 0}
