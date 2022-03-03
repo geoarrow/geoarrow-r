@@ -2,7 +2,7 @@
 #pragma once
 
 #include "array-view.hpp"
-#include "wkb-array-view.hpp"
+#include "array-view-wkb.hpp"
 
 namespace geoarrow {
 

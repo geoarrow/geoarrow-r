@@ -49,7 +49,8 @@ static inline uint64_t bswap_64(uint64_t x) {
 
 class WKBReader {
 public:
-    WKBReader(): data_(nullptr), size_(0), swapping_(false) {
+    WKBReader(): data_(nullptr), offset_(0), size_(0), swapping_(false),
+        dim_(Meta::Dimensions::DIMENSIONS_UNKNOWN), geometry_type_(Meta::GEOMETRY_TYPE_UNKNOWN) {
       for (int i = 0; i < 4; i++) {
         coord_[i] = NAN;
       }
@@ -101,10 +102,10 @@ private:
         has_m = true;
       } else  if (geometry_type >= 2000) {
         geometry_type = geometry_type - 2000;
-        has_z = true;
+        has_m = true;
       } else if (geometry_type >= 1000) {
         geometry_type = geometry_type - 1000;
-        has_m = true;
+        has_z = true;
       }
 
       uint32_t geometry_size;

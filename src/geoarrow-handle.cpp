@@ -42,6 +42,13 @@ public:
     }
 
     void new_dimensions(geoarrow::Meta::Dimensions dimensions) {
+        vector_meta_.flags &= ~WK_FLAG_HAS_Z;
+        vector_meta_.flags &= ~WK_FLAG_HAS_M;
+        meta_[0].flags &= ~WK_FLAG_HAS_Z;
+        meta_[0].flags &= ~WK_FLAG_HAS_M;
+        meta_[1].flags &= ~WK_FLAG_HAS_Z;
+        meta_[1].flags &= ~WK_FLAG_HAS_M;
+
         switch (dimensions) {
         case geoarrow::Meta::Dimensions::XYZ:
         case geoarrow::Meta::Dimensions::XYZM:
