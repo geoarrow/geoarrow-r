@@ -115,7 +115,7 @@ public:
         int result;
         for (int64_t i = 0; i < n; i++) {
             coord_id_++;
-            result = handler_->coord(meta(), coord, coord_id_, handler_->handler_data);
+            result = handler_->coord(meta(), coord + (i * coord_size), coord_id_, handler_->handler_data);
             if (result != WK_CONTINUE) {
                 return (Result) result;
             }
