@@ -116,7 +116,7 @@ private:
       }
 
       int32_t coord_size = 2 + has_z + has_m;
-      auto new_geometry_type = static_cast<Meta::GeometryType>(geometry_type);
+      geometry_type_ = static_cast<Meta::GeometryType>(geometry_type);
 
       Meta::Dimensions new_dim;
       if (has_z && has_m) {
@@ -129,11 +129,6 @@ private:
         new_dim = Meta::Dimensions::XY;
       }
 
-      if (new_geometry_type != geometry_type_) {
-        handler->new_geometry_type(new_geometry_type);
-        geometry_type_ = new_geometry_type;
-      }
-
       if (new_dim != dim_) {
         handler->new_dimensions(new_dim);
         dim_ = new_dim;
@@ -141,7 +136,7 @@ private:
 
       Handler::Result result;
 
-      HANDLE_OR_RETURN(handler->geom_start(geometry_size));
+      HANDLE_OR_RETURN(handler->geom_start(geometry_type_, geometry_size));
 
       switch (geometry_type_) {
       case Meta::GeometryType::POINT:
@@ -184,13 +179,13 @@ private:
             memcpy(coord_ + j, &tmp, sizeof(uint64_t));
           }
 
-          HANDLE_OR_RETURN(handler->coord(coord_));
+          HANDLE_OR_RETURN(handler->coords(coord_, 1, coord_size));
         }
       } else {
         for (uint32_t i = 0; i < n; i++) {
           memcpy(coord_, data_ + offset_, sizeof(double) * coord_size);
           offset_ += sizeof(double) * coord_size;
-          HANDLE_OR_RETURN(handler->coord(coord_));
+          HANDLE_OR_RETURN(handler->coords(coord_, 1, coord_size));
         }
       }
 

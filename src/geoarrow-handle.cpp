@@ -1,6 +1,9 @@
 #define R_NO_REMAP
 #include <R.h>
 #include <Rinternals.h>
+
+#include <vector>
+
 #include "wk-v1.h"
 #include "narrow.h"
 #include "geoarrow.h"
@@ -23,38 +26,33 @@ class WKGeoArrowHandler: public geoarrow::Handler {
 public:
 
     WKGeoArrowHandler(wk_handler_t* handler, R_xlen_t size):
-      handler_(handler), feat_id_(-1), nest_level_(-1), ring_id_(-1),
+      handler_(handler), feat_id_(-1), ring_id_(-1),
       coord_id_(-1) {
         WK_VECTOR_META_RESET(vector_meta_, WK_GEOMETRY);
-        WK_META_RESET(meta_[0], WK_GEOMETRY);
-        WK_META_RESET(meta_[1], WK_GEOMETRY);
+        WK_META_RESET(meta_, WK_GEOMETRY);
 
         vector_meta_.size = size;
-
-        part_id_[0] = WK_PART_ID_NONE;
-        part_id_[1] = -1;
     }
 
-    void new_geometry_type(geoarrow::Meta::GeometryType geometry_type) {
-        vector_meta_.geometry_type = geometry_type;
-        meta_[0].geometry_type = geometry_type;
-        meta_[1].geometry_type = geometry_type - 3;
+    void new_meta(const geoarrow::Meta* meta) {
+        if (meta->geometry_type_ == geoarrow::Meta::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
+            vector_meta_.geometry_type = WK_GEOMETRY;
+        } else {
+            vector_meta_.geometry_type = meta->geometry_type_;
+        }
     }
 
     void new_dimensions(geoarrow::Meta::Dimensions dimensions) {
         vector_meta_.flags &= ~WK_FLAG_HAS_Z;
         vector_meta_.flags &= ~WK_FLAG_HAS_M;
-        meta_[0].flags &= ~WK_FLAG_HAS_Z;
-        meta_[0].flags &= ~WK_FLAG_HAS_M;
-        meta_[1].flags &= ~WK_FLAG_HAS_Z;
-        meta_[1].flags &= ~WK_FLAG_HAS_M;
+        meta_.flags &= ~WK_FLAG_HAS_Z;
+        meta_.flags &= ~WK_FLAG_HAS_M;
 
         switch (dimensions) {
         case geoarrow::Meta::Dimensions::XYZ:
         case geoarrow::Meta::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_Z;
-            meta_[0].flags |= WK_FLAG_HAS_Z;
-            meta_[1].flags |= WK_FLAG_HAS_Z;
+            meta_.flags |= WK_FLAG_HAS_Z;
             break;
         default:
             break;
@@ -64,8 +62,7 @@ public:
         case geoarrow::Meta::Dimensions::XYM:
         case geoarrow::Meta::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_M;
-            meta_[0].flags |= WK_FLAG_HAS_M;
-            meta_[1].flags |= WK_FLAG_HAS_M;
+            meta_.flags |= WK_FLAG_HAS_M;
             break;
         default:
             break;
@@ -74,8 +71,8 @@ public:
 
     Result feat_start() {
         feat_id_++;
-        nest_level_ = -1;
-        part_id_[1] = -1;
+        part_id_stack_.clear();
+        meta_stack_.clear();
         return (Result) handler_->feature_start(&vector_meta_, feat_id_, handler_->handler_data);
     }
 
@@ -83,38 +80,51 @@ public:
         return (Result) handler_->null_feature(handler_->handler_data);
     }
 
-    Result geom_start(int32_t size) {
-        nest_level_++;
+    Result geom_start(geoarrow::Meta::GeometryType geometry_type, int32_t size) {
         ring_id_ = -1;
         coord_id_ = -1;
 
-        if (nest_level_ > 0) {
-            part_id_[nest_level_]++;
+        if (part_id_stack_.size() > 0) {
+            part_id_stack_[part_id_stack_.size() - 1]++;
         }
-        meta_[nest_level_].size = size;
 
-        return (Result) handler_->geometry_start(&(meta_[nest_level_]), part_id_[nest_level_], handler_->handler_data);
+        meta_.geometry_type = geometry_type;
+        meta_.size = size;
+        meta_stack_.push_back(meta_);
+
+        Result result = (Result) handler_->geometry_start(meta(), part_id(), handler_->handler_data);
+        part_id_stack_.push_back(-1);
+        return result;
     }
 
     Result ring_start(int32_t size) {
         ring_id_++;
         coord_id_ = -1;
         ring_size_ = size;
-        return (Result) handler_->ring_start(&(meta_[nest_level_]), ring_size_, ring_id_, handler_->handler_data);
+        return (Result) handler_->ring_start(meta(), ring_size_, ring_id_, handler_->handler_data);
     }
 
-    Result coord(const double* coord) {
-        coord_id_++;
-        return (Result) handler_->coord(&(meta_[nest_level_]), coord, coord_id_, handler_->handler_data);
+    Result coords(const double* coord, int64_t n, int32_t coord_size) {
+        int result;
+        for (int64_t i = 0; i < n; i++) {
+            coord_id_++;
+            result = handler_->coord(meta(), coord, coord_id_, handler_->handler_data);
+            if (result != WK_CONTINUE) {
+                return (Result) result;
+            }
+        }
+
+        return Result::CONTINUE;
     }
 
     Result ring_end() {
-        return (Result) handler_->ring_end(&(meta_[nest_level_]), ring_size_, ring_id_, handler_->handler_data);
+        return (Result) handler_->ring_end(meta(), ring_size_, ring_id_, handler_->handler_data);
     }
 
     Result geom_end() {
-        int result = handler_->geometry_end(&(meta_[nest_level_]), part_id_[nest_level_], handler_->handler_data);
-        nest_level_--;
+        int result = handler_->geometry_end(meta(), part_id(), handler_->handler_data);
+        if (part_id_stack_.size() > 0) part_id_stack_.pop_back();
+        if (meta_stack_.size() > 0) meta_stack_.pop_back();
         return (Result) result;
     }
 
@@ -127,15 +137,31 @@ public:
 private:
     wk_handler_t* handler_;
 
-    wk_meta_t meta_[2];
-    int32_t part_id_[2];
-    int32_t ring_size_;
+    std::vector<wk_meta_t> meta_stack_;
+    std::vector<int32_t> part_id_stack_;
+    wk_meta_t meta_;
 
+    int32_t ring_size_;
     int64_t feat_id_;
-    int32_t nest_level_;
 
     int32_t ring_id_;
     int32_t coord_id_;
+
+    int32_t part_id() {
+        if (part_id_stack_.size() == 0) {
+            return WK_PART_ID_NONE;
+        } else {
+            return part_id_stack_[part_id_stack_.size() - 1];
+        }
+    }
+
+    const wk_meta_t* meta() {
+        if (meta_stack_.size() == 0) {
+            throw std::runtime_error("geom_start()/geom_end() stack imbalance <meta>");
+        }
+
+        return &(meta_stack_[meta_stack_.size() - 1]);
+    }
 };
 
 

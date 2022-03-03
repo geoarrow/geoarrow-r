@@ -22,8 +22,7 @@ class ArrayView {
     virtual ~ArrayView() {}
 
     void read_meta(Handler* handler) {
-        handler->schema(schema_);
-        handler->new_geometry_type(meta_.geometry_type_);
+        handler->new_meta(&meta_);
         handler->new_dimensions(meta_.dimensions_);
     }
 
