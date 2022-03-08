@@ -266,6 +266,8 @@ class Meta {
             break;
 
         case util::Extension::WKB:
+            geometry_type_ = util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
+
             switch (storage_type_) {
             case util::StorageType::Binary:
             case util::StorageType::LargeBinary:
@@ -279,6 +281,8 @@ class Meta {
             break;
 
         case util::Extension::WKT:
+            geometry_type_ = util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
+
             switch (storage_type_) {
             case util::StorageType::Binary:
             case util::StorageType::LargeBinary:

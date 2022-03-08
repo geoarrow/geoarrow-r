@@ -2,7 +2,7 @@
 #pragma once
 
 #include <cstdint>
-#include "meta.hpp"
+#include "common.hpp"
 
 namespace geoarrow {
 
@@ -20,7 +20,8 @@ public:
         ABORT_ARRAY = 3
     };
 
-    virtual void new_meta(const Meta* meta) {}
+    virtual void new_schema(const ArrowSchema* schema) {}
+    virtual void new_geometry_type(util::GeometryType geometry_type) {}
     virtual void new_dimensions(util::Dimensions geometry_type) {}
 
     virtual Result array_start(const struct ArrowArray* array_data) { return Result::CONTINUE; }

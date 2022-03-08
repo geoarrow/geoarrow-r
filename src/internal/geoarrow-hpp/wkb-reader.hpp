@@ -17,7 +17,7 @@ namespace {
 #ifndef GEOARROW_ENDIAN
 #define _GEOARROW_ENDIAN 0x01
 #else
-#define _GEOARROW_ENDIAN 0x00
+#define _GEOARROW_ENDIAN GEOARROW_ENDIAN
 #endif
 
 #ifndef bswap_32

@@ -41,11 +41,11 @@ public:
         meta_stack_.reserve(32);
     }
 
-    void new_meta(const geoarrow::Meta* meta) {
-        if (meta->geometry_type_ == geoarrow::util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
+    void new_geometry_type(geoarrow::util::GeometryType geometry_type) {
+        if (geometry_type == geoarrow::util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
             vector_meta_.geometry_type = WK_GEOMETRY;
         } else {
-            vector_meta_.geometry_type = meta->geometry_type_;
+            vector_meta_.geometry_type = geometry_type;
         }
     }
 

@@ -22,7 +22,8 @@ class ArrayView {
     virtual ~ArrayView() {}
 
     void read_meta(Handler* handler) {
-        handler->new_meta(&meta_);
+        handler->new_schema(schema_);
+        handler->new_geometry_type(meta_.geometry_type_);
         handler->new_dimensions(meta_.dimensions_);
     }
 
@@ -57,6 +58,11 @@ template <class TArrayView>
 Handler::Result read_features_templ(TArrayView& view, Handler* handler) {
     Handler::Result result;
 
+    result = handler->array_start(view.array_);
+    if (result == Handler::Result::ABORT) {
+        return result;
+    }
+
     for (uint64_t i = 0; i < view.array_->length; i++) {
         HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler, i));
     }
@@ -66,6 +72,8 @@ Handler::Result read_features_templ(TArrayView& view, Handler* handler) {
     } else {
         return Handler::Result::CONTINUE;
     }
+
+    return handler->array_end();
 }
 
 template <class TArrayView>
