@@ -250,16 +250,16 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   }
 
   switch(meta.extension_) {
-  case Meta::Extension::Point:
+  case util::Extension::Point:
     Rprintf("Extension: 'geoarrow.point'\n");
     break;
-  case Meta::Extension::Linestring:
+  case util::Extension::Linestring:
     Rprintf("Extension: 'geoarrow.linestring'\n");
     break;
-  case Meta::Extension::Polygon:
+  case util::Extension::Polygon:
     Rprintf("Extension: 'geoarrow.polygon'\n");
     break;
-  case Meta::Extension::Multi:
+  case util::Extension::Multi:
     Rprintf("Extension: 'geoarrow.multi'\n");
     break;
 
@@ -269,13 +269,13 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   }
 
   switch(meta.storage_type_) {
-  case Meta::StorageType::FixedWidthList:
+  case util::StorageType::FixedWidthList:
     Rprintf("Storage type: fixed size list\n");
     break;
-  case Meta::StorageType::Struct:
+  case util::StorageType::Struct:
     Rprintf("Storage type: struct\n");
     break;
-  case Meta::StorageType::List:
+  case util::StorageType::List:
     Rprintf("Storage type: list\n");
     break;
 

@@ -1,138 +1,15 @@
 
 #pragma once
 
-#include <cstdint>
 #include <cstring>
 #include <stdexcept>
 
-// prevent one-definition rule violations if the Arrow ABI header
-// has already been loaded
-#ifndef ARROW_FLAG_DICTIONARY_ORDERED
-extern "C" {
-
-#define ARROW_FLAG_DICTIONARY_ORDERED 1
-#define ARROW_FLAG_NULLABLE 2
-#define ARROW_FLAG_MAP_KEYS_SORTED 4
-
-struct ArrowSchema {
-  // Array type description
-  const char* format;
-  const char* name;
-  const char* metadata;
-  int64_t flags;
-  int64_t n_children;
-  struct ArrowSchema** children;
-  struct ArrowSchema* dictionary;
-
-  // Release callback
-  void (*release)(struct ArrowSchema*);
-  // Opaque producer-specific data
-  void* private_data;
-};
-
-struct ArrowArray {
-  // Array data description
-  int64_t length;
-  int64_t null_count;
-  int64_t offset;
-  int64_t n_buffers;
-  int64_t n_children;
-  const void** buffers;
-  struct ArrowArray** children;
-  struct ArrowArray* dictionary;
-
-  // Release callback
-  void (*release)(struct ArrowArray*);
-  // Opaque producer-specific data
-  void* private_data;
-};
-
-// EXPERIMENTAL: C stream interface
-
-struct ArrowArrayStream {
-  // Callback to get the stream type
-  // (will be the same for all arrays in the stream).
-  //
-  // Return value: 0 if successful, an `errno`-compatible error code otherwise.
-  //
-  // If successful, the ArrowSchema must be released independently from the stream.
-  int (*get_schema)(struct ArrowArrayStream*, struct ArrowSchema* out);
-
-  // Callback to get the next array
-  // (if no error and the array is released, the stream has ended)
-  //
-  // Return value: 0 if successful, an `errno`-compatible error code otherwise.
-  //
-  // If successful, the ArrowArray must be released independently from the stream.
-  int (*get_next)(struct ArrowArrayStream*, struct ArrowArray* out);
-
-  // Callback to get optional detailed error information.
-  // This must only be called if the last stream operation failed
-  // with a non-0 return code.
-  //
-  // Return value: pointer to a null-terminated character array describing
-  // the last error, or NULL if no description is available.
-  //
-  // The returned pointer is only valid until the next operation on this stream
-  // (including release).
-  const char* (*get_last_error)(struct ArrowArrayStream*);
-
-  // Release callback: release the stream's own resources.
-  // Note that arrays returned by `get_next` must be individually released.
-  void (*release)(struct ArrowArrayStream*);
-
-  // Opaque producer-specific data
-  void* private_data;
-};
-
-}
-#endif
-
+#include "common.hpp"
 
 namespace geoarrow {
 
 class Meta {
   public:
-
-    enum Extension {
-        Point,
-        Linestring,
-        Polygon,
-        Multi,
-        WKB,
-        WKT,
-        ExtensionOther,
-        ExtensionNone
-    };
-
-    enum StorageType {
-        Float32,
-        Float64,
-        String,
-        LargeString,
-        FixedWidthBinary,
-        Binary,
-        LargeBinary,
-        FixedWidthList,
-        Struct,
-        List,
-        LargeList,
-        StorageTypeOther,
-        StorageTypeNone
-    };
-
-    enum GeometryType {
-        GEOMETRY_TYPE_UNKNOWN = 0,
-        POINT = 1,
-        LINESTRING = 2,
-        POLYGON = 3,
-        MULTIPOINT = 4,
-        MULTILINESTRING = 5,
-        MULTIPOLYGON = 6,
-        GEOMETRYCOLLECTION = 7
-    };
-
-    enum Dimensions {DIMENSIONS_UNKNOWN = 0, XY = 1, XYZ = 2, XYM = 3, XYZM = 4};
 
     class ValidationError: public std::runtime_error {
       public:
@@ -150,16 +27,16 @@ class Meta {
     }
 
     void reset() {
-        storage_type_ = StorageType::StorageTypeOther;
+        storage_type_ = util::StorageType::StorageTypeOther;
         fixed_width_ = 0;
         expected_buffers_ = -1;
         nullable_ = false;
-        extension_ = Extension::ExtensionNone;
+        extension_ = util::Extension::ExtensionNone;
         geodesic_ = false;
         crs_size_ = false;
         crs_ = nullptr;
-        geometry_type_ = GeometryType::GEOMETRY_TYPE_UNKNOWN;
-        dimensions_ = Dimensions::DIMENSIONS_UNKNOWN;
+        geometry_type_ = util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
+        dimensions_ = util::Dimensions::DIMENSIONS_UNKNOWN;
         reset_error();
 
         memset(dim_, 0, sizeof(dim_));
@@ -170,8 +47,8 @@ class Meta {
     bool set_schema(const struct ArrowSchema* schema = nullptr) {
         reset();
         if (schema == nullptr) {
-            storage_type_ = StorageType::StorageTypeNone;
-            extension_ = Extension::ExtensionNone;
+            storage_type_ = util::StorageType::StorageTypeNone;
+            extension_ = util::Extension::ExtensionNone;
             set_error("schema is NULL");
             return false;
         }
@@ -184,19 +61,19 @@ class Meta {
 
     bool schema_valid(const struct ArrowSchema* schema) {
         switch (storage_type_) {
-        case StorageType::FixedWidthList:
+        case util::StorageType::FixedWidthList:
             if (fixed_width_ <= 0) {
                 set_error("Expected fixed-size list to have size > 0 but got %lld", fixed_width_);
                 return false;
             }
-        case StorageType::List:
-        case StorageType::LargeList:
+        case util::StorageType::List:
+        case util::StorageType::LargeList:
             if (schema->n_children != 1) {
                 set_error("Expected container schema to have one child but found %lld", schema->n_children);
                 return false;
             }
             break;
-        case StorageType::FixedWidthBinary:
+        case util::StorageType::FixedWidthBinary:
             if (fixed_width_ <= 0) {
                 set_error("Expected fixed-width binary to have width > 0 but got %lld", fixed_width_);
                 return false;
@@ -209,11 +86,11 @@ class Meta {
         Meta child;
 
         switch (extension_) {
-        case Extension::Point:
-            geometry_type_ = GeometryType::POINT;
+        case util::Extension::Point:
+            geometry_type_ = util::GeometryType::POINT;
 
             switch (storage_type_) {
-            case StorageType::FixedWidthList:
+            case util::StorageType::FixedWidthList:
                 strncpy(dim_, schema->children[0]->name, 4);
                 dimensions_ = dimensions_from_dim(dim_);
                 if (fixed_width_ != strlen(dim_)) {
@@ -228,12 +105,12 @@ class Meta {
                         "geoarrow.point has an invalid child schema");
                     return false;
                 }
-                if (child.storage_type_ != Float64) {
+                if (child.storage_type_ != util::StorageType::Float64) {
                     set_error("Expected child of fixed-width list geoarrow.point to have type Float64");
                     return false;
                 }
                 break;
-            case StorageType::Struct:
+            case util::StorageType::Struct:
                 for (uint64_t i = 0; i < schema->n_children; i++) {
                     if (!child.set_schema(schema->children[i])) {
                         set_child_error(
@@ -242,7 +119,7 @@ class Meta {
                         return false;
                     }
 
-                    if (child.storage_type_ != StorageType::Float64) {
+                    if (child.storage_type_ != util::StorageType::Float64) {
                         set_error(
                             "Struct geoarrow.point child %lld had an unsupported storage type '%s'",
                             i, schema->children[i]->format);
@@ -259,7 +136,7 @@ class Meta {
                 }
 
                 dimensions_ = dimensions_from_dim(dim_);
-                if (dimensions_ == Dimensions::DIMENSIONS_UNKNOWN) {
+                if (dimensions_ == util::Dimensions::DIMENSIONS_UNKNOWN) {
                     set_error(
                         "Struct geoarrow.point child names must be 'xy', 'xyz', 'xym', or 'xyzm'");
                     return false;
@@ -273,10 +150,10 @@ class Meta {
                 return false;
             }
             break;
-        case Extension::Linestring:
-            geometry_type_ = GeometryType::LINESTRING;
+        case util::Extension::Linestring:
+            geometry_type_ = util::GeometryType::LINESTRING;
             switch (storage_type_) {
-            case StorageType::List:
+            case util::StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
                     set_child_error(
                         child.error_,
@@ -284,7 +161,7 @@ class Meta {
                     return false;
                 }
 
-                if (child.extension_ != Extension::Point) {
+                if (child.extension_ != util::Extension::Point) {
                     set_error("Child of geoarrow.linestring must be a geoarrow.point");
                     return false;
                 }
@@ -303,10 +180,10 @@ class Meta {
 
             break;
 
-        case Extension::Polygon:
-            geometry_type_ = GeometryType::POLYGON;
+        case util::Extension::Polygon:
+            geometry_type_ = util::GeometryType::POLYGON;
             switch (storage_type_) {
-            case StorageType::List:
+            case util::StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
                     set_child_error(
                         child.error_,
@@ -314,7 +191,7 @@ class Meta {
                     return false;
                 }
 
-                if (child.storage_type_ != StorageType::List) {
+                if (child.storage_type_ != util::StorageType::List) {
                     set_error(
                         "Expected child of a geoarrow.polygon to be a list but found '%s'",
                         schema->children[0]->format);
@@ -328,7 +205,7 @@ class Meta {
                     return false;
                 }
 
-                if (child.extension_ != Extension::Point) {
+                if (child.extension_ != util::Extension::Point) {
                     set_error("Grandchild of geoarrow.polygon must be a geoarrow.point");
                     return false;
                 }
@@ -347,9 +224,9 @@ class Meta {
 
             break;
 
-        case Extension::Multi:
+        case util::Extension::Multi:
         switch (storage_type_) {
-            case StorageType::List:
+            case util::StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
                     set_child_error(
                         child.error_,
@@ -358,14 +235,14 @@ class Meta {
                 }
 
                 switch (child.extension_) {
-                case Extension::Point:
-                    geometry_type_ = GeometryType::MULTIPOINT;
+                case util::Extension::Point:
+                    geometry_type_ = util::GeometryType::MULTIPOINT;
                     break;
-                case Extension::Linestring:
-                    geometry_type_ = GeometryType::MULTILINESTRING;
+                case util::Extension::Linestring:
+                    geometry_type_ = util::GeometryType::MULTILINESTRING;
                     break;
-                case Extension::Polygon:
-                    geometry_type_ = GeometryType::MULTIPOLYGON;
+                case util::Extension::Polygon:
+                    geometry_type_ = util::GeometryType::MULTIPOLYGON;
                     break;
                 default:
                     set_error(
@@ -388,11 +265,11 @@ class Meta {
 
             break;
 
-        case Extension::WKB:
+        case util::Extension::WKB:
             switch (storage_type_) {
-            case StorageType::Binary:
-            case StorageType::LargeBinary:
-            case StorageType::FixedWidthBinary:
+            case util::StorageType::Binary:
+            case util::StorageType::LargeBinary:
+            case util::StorageType::FixedWidthBinary:
                 break;
             default:
                 set_error(
@@ -401,12 +278,12 @@ class Meta {
             }
             break;
 
-        case Extension::WKT:
+        case util::Extension::WKT:
             switch (storage_type_) {
-            case StorageType::Binary:
-            case StorageType::LargeBinary:
-            case StorageType::String:
-            case StorageType::LargeString:
+            case util::StorageType::Binary:
+            case util::StorageType::LargeBinary:
+            case util::StorageType::String:
+            case util::StorageType::LargeString:
                 break;
             default:
                 set_error(
@@ -431,9 +308,9 @@ class Meta {
         }
 
         switch (storage_type_) {
-        case StorageType::FixedWidthList:
-        case StorageType::List:
-        case StorageType::LargeList:
+        case util::StorageType::FixedWidthList:
+        case util::StorageType::List:
+        case util::StorageType::LargeList:
             if (array->n_children != 1) {
                 set_error(
                     "Expected container array to have one child but found %lld",
@@ -451,51 +328,51 @@ class Meta {
     void walk_format(const char* format) {
         switch (format[0]) {
         case 'f':
-            storage_type_ = StorageType::Float32;
+            storage_type_ = util::StorageType::Float32;
             expected_buffers_ = 2;
             break;
         case 'g':
-            storage_type_ = StorageType::Float64;
+            storage_type_ = util::StorageType::Float64;
             expected_buffers_ = 2;
             break;
         case 'u':
-            storage_type_ = StorageType::String;
+            storage_type_ = util::StorageType::String;
             expected_buffers_ = 3;
             break;
         case 'U':
-            storage_type_ = StorageType::LargeString;
+            storage_type_ = util::StorageType::LargeString;
             expected_buffers_ = 3;
             break;
         case 'z':
-            storage_type_ = StorageType::Binary;
+            storage_type_ = util::StorageType::Binary;
             expected_buffers_ = 3;
             break;
         case 'Z':
-            storage_type_ = StorageType::LargeBinary;
+            storage_type_ = util::StorageType::LargeBinary;
             expected_buffers_ = 3;
             break;
         case 'w':
-            storage_type_ = StorageType::FixedWidthBinary;
+            storage_type_ = util::StorageType::FixedWidthBinary;
             fixed_width_ = atol(format + 2);
             expected_buffers_ = 2;
             break;
         case '+':
             switch (format[1]) {
             case 'l':
-                storage_type_ = StorageType::List;
+                storage_type_ = util::StorageType::List;
                 expected_buffers_ = 2;
                 break;
             case 'L':
-                storage_type_ = StorageType::LargeList;
+                storage_type_ = util::StorageType::LargeList;
                 expected_buffers_ = 2;
                 break;
             case 'w':
-                storage_type_ = StorageType::FixedWidthList;
+                storage_type_ = util::StorageType::FixedWidthList;
                 fixed_width_ = atol(format + 3);
                 expected_buffers_ = 1;
                 break;
             case 's':
-                storage_type_ = StorageType::Struct;
+                storage_type_ = util::StorageType::Struct;
                 expected_buffers_ = 1;
                 break;
             }
@@ -529,19 +406,19 @@ class Meta {
                 pos += value_len;
 
                 if (value_len >= 14 && strncmp(value, "geoarrow.point", 14) == 0) {
-                    extension_ = Extension::Point;
+                    extension_ = util::Extension::Point;
                 } else if (value_len >= 19 && strncmp(value, "geoarrow.linestring", 19) == 0) {
-                    extension_ = Extension::Linestring;
+                    extension_ = util::Extension::Linestring;
                 } else if (value_len >= 16 && strncmp(value, "geoarrow.polygon", 16) == 0) {
-                    extension_ = Extension::Polygon;
+                    extension_ = util::Extension::Polygon;
                 } else if (value_len >= 14 && strncmp(value, "geoarrow.multi", 14) == 0) {
-                    extension_ = Extension::Multi;
+                    extension_ = util::Extension::Multi;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 12) == 0) {
-                    extension_ = Extension::WKB;
+                    extension_ = util::Extension::WKB;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkt", 12) == 0) {
-                    extension_ = Extension::WKT;
+                    extension_ = util::Extension::WKT;
                 } else {
-                    extension_ = Extension::ExtensionOther;
+                    extension_ = util::Extension::ExtensionOther;
                 }
 
             } else if (name_len >= 24 && strncmp(name, "ARROW:extension:metadata", 24) == 0) {
@@ -583,33 +460,33 @@ class Meta {
         }
     }
 
-    Dimensions dimensions_from_dim(const char* dim) {
+    util::Dimensions dimensions_from_dim(const char* dim) {
         if (strcmp(dim, "xy") == 0) {
-            return Dimensions::XY;
+            return util::Dimensions::XY;
         } else if (strcmp(dim, "xyz") == 0) {
-            return Dimensions::XYZ;
+            return util::Dimensions::XYZ;
         } else if (strcmp(dim, "xym") == 0) {
-            return Dimensions::XYM;
+            return util::Dimensions::XYM;
         } else if (strcmp(dim, "xyzm") == 0) {
-            return Dimensions::XYZM;
+            return util::Dimensions::XYZM;
         } else {
-            return Dimensions::DIMENSIONS_UNKNOWN;
+            return util::Dimensions::DIMENSIONS_UNKNOWN;
         }
     }
 
-    StorageType storage_type_;
+    util::StorageType storage_type_;
     int64_t fixed_width_;
     int32_t expected_buffers_;
     bool nullable_;
 
-    Extension extension_;
+    util::Extension extension_;
     char dim_[5];
     bool geodesic_;
     int32_t crs_size_;
     const char* crs_;
 
-    GeometryType geometry_type_;
-    Dimensions dimensions_;
+    util::GeometryType geometry_type_;
+    util::Dimensions dimensions_;
 
     char error_[1024];
 

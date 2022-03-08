@@ -7,10 +7,10 @@ glue <- function(..., .envir = parent.frame(), .indent = "") {
 point_switch_template <- '
 
 switch (point_meta.storage_type_) {
-case Meta::StorageType::FixedWidthList:
+case util::StorageType::FixedWidthList:
     return new ${ type("PointArrayView") }(schema);
 
-case Meta::StorageType::Struct:
+case util::StorageType::Struct:
     return new ${ type("GeoArrowPointStructView") }(schema);
 
 default:
@@ -23,7 +23,7 @@ default:
 nest_switch_template <- '
 
 switch (${ extension }_meta.storage_type_) {
-case Meta::StorageType::List:
+case util::StorageType::List:
     ${ switch_child("ListArrayView<%s>", indent) }
     break;
 

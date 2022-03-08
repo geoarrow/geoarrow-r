@@ -379,8 +379,8 @@ public:
 
   class WKTMeta {
   public:
-    Meta::GeometryType geometry_type;
-    Meta::Dimensions dimensions;
+    util::GeometryType geometry_type;
+    util::Dimensions dimensions;
     bool is_empty;
   };
 
@@ -414,31 +414,31 @@ public:
     meta->geometry_type = this->geometry_typeFromString(geometry_type);
     meta->is_empty = this->isEMPTY();
     if (has_z && has_m) {
-      meta->dimensions = Meta::Dimensions::XYZM;
+      meta->dimensions = util::Dimensions::XYZM;
     } else if (has_z) {
-      meta->dimensions = Meta::Dimensions::XYZ;
+      meta->dimensions = util::Dimensions::XYZ;
     } else if (has_m) {
-      meta->dimensions = Meta::Dimensions::XYM;
+      meta->dimensions = util::Dimensions::XYM;
     } else {
-      meta->dimensions = Meta::Dimensions::XY;
+      meta->dimensions = util::Dimensions::XY;
     }
   }
 
-  Meta::GeometryType geometry_typeFromString(std::string geometry_type) {
+  util::GeometryType geometry_typeFromString(std::string geometry_type) {
     if (geometry_type == "POINT") {
-      return Meta::GeometryType::POINT;
+      return util::GeometryType::POINT;
     } else if(geometry_type == "LINESTRING") {
-      return Meta::GeometryType::LINESTRING;
+      return util::GeometryType::LINESTRING;
     } else if(geometry_type == "POLYGON") {
-      return Meta::GeometryType::POLYGON;
+      return util::GeometryType::POLYGON;
     } else if(geometry_type == "MULTIPOINT") {
-      return Meta::GeometryType::MULTIPOINT;
+      return util::GeometryType::MULTIPOINT;
     } else if(geometry_type == "MULTILINESTRING") {
-      return Meta::GeometryType::MULTILINESTRING;
+      return util::GeometryType::MULTILINESTRING;
     } else if(geometry_type == "MULTIPOLYGON") {
-      return Meta::GeometryType::MULTIPOLYGON;
+      return util::GeometryType::MULTIPOLYGON;
     } else if(geometry_type == "GEOMETRYCOLLECTION") {
-      return Meta::GeometryType::GEOMETRYCOLLECTION;
+      return util::GeometryType::GEOMETRYCOLLECTION;
     } else {
       this->errorBefore("geometry type or 'SRID='", geometry_type);
     }
@@ -490,7 +490,7 @@ private:
   int32_t coord_size_;
 
   Handler::Result readGeometryWithType(Handler* handler) {
-    Meta::Dimensions old_dim = meta_.dimensions;
+    util::Dimensions old_dim = meta_.dimensions;
     s.assertGeometryMeta(&meta_);
 
     if (meta_.dimensions != old_dim) {
@@ -498,11 +498,11 @@ private:
     }
 
     switch (meta_.dimensions) {
-    case Meta::Dimensions::XYM:
-    case Meta::Dimensions::XYZ:
+    case util::Dimensions::XYM:
+    case util::Dimensions::XYZ:
       coord_size_ = 3;
       break;
-    case Meta::Dimensions::XYZM:
+    case util::Dimensions::XYZM:
       coord_size_ = 4;
       break;
     default:
@@ -519,31 +519,31 @@ private:
 
     switch (meta_.geometry_type) {
 
-    case Meta::GeometryType::POINT:
+    case util::GeometryType::POINT:
       HANDLE_OR_RETURN(this->readPoint(handler));
       break;
 
-    case Meta::GeometryType::LINESTRING:
+    case util::GeometryType::LINESTRING:
       HANDLE_OR_RETURN(this->readLineString(handler));
       break;
 
-    case Meta::GeometryType::POLYGON:
+    case util::GeometryType::POLYGON:
       HANDLE_OR_RETURN(this->readPolygon(handler));
       break;
 
-    case Meta::GeometryType::MULTIPOINT:
+    case util::GeometryType::MULTIPOINT:
       HANDLE_OR_RETURN(this->readMultiPoint(handler));
       break;
 
-    case Meta::GeometryType::MULTILINESTRING:
+    case util::GeometryType::MULTILINESTRING:
       HANDLE_OR_RETURN(this->readMultiLineString(handler));
       break;
 
-    case Meta::GeometryType::MULTIPOLYGON:
+    case util::GeometryType::MULTIPOLYGON:
       HANDLE_OR_RETURN(this->readMultiPolygon(handler));
       break;
 
-    case Meta::GeometryType::GEOMETRYCOLLECTION:
+    case util::GeometryType::GEOMETRYCOLLECTION:
       HANDLE_OR_RETURN(this->readGeometryCollection(handler));
       break;
 
@@ -582,10 +582,10 @@ private:
     if (s.isNumber()) { // (0 0, 1 1)
       do {
         if (s.isEMPTY()) {
-          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 0));
+          HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POINT, 0));
           s.assertWord();
         } else {
-          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 1));
+          HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POINT, 1));
           HANDLE_OR_RETURN(this->readPointCoordinate(handler));
         }
         HANDLE_OR_RETURN(handler->geom_end());
@@ -594,9 +594,9 @@ private:
     } else { // ((0 0), (1 1))
       do {
         if (s.isEMPTY()) {
-          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 0));
+          HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POINT, 0));
         } else {
-          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 1));
+          HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POINT, 1));
         }
         HANDLE_OR_RETURN(this->readPoint(handler));
         HANDLE_OR_RETURN(handler->geom_end());
@@ -615,9 +615,9 @@ private:
 
     do {
       if (s.isEMPTY()) {
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::LINESTRING, 0));
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::LINESTRING, 0));
       } else {
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::LINESTRING, -1));
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::LINESTRING, -1));
       }
       HANDLE_OR_RETURN(this->readLineString(handler));
       HANDLE_OR_RETURN(handler->geom_end());
@@ -635,9 +635,9 @@ private:
 
     do {
       if (s.isEMPTY()) {
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POLYGON, 0));
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POLYGON, 0));
       } else {
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POLYGON, -1));
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POLYGON, -1));
       }
       HANDLE_OR_RETURN(this->readPolygon(handler));
       HANDLE_OR_RETURN(handler->geom_end());

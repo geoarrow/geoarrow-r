@@ -42,22 +42,22 @@ public:
     }
 
     void new_meta(const geoarrow::Meta* meta) {
-        if (meta->geometry_type_ == geoarrow::Meta::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
+        if (meta->geometry_type_ == geoarrow::util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
             vector_meta_.geometry_type = WK_GEOMETRY;
         } else {
             vector_meta_.geometry_type = meta->geometry_type_;
         }
     }
 
-    void new_dimensions(geoarrow::Meta::Dimensions dimensions) {
+    void new_dimensions(geoarrow::util::Dimensions dimensions) {
         vector_meta_.flags &= ~WK_FLAG_HAS_Z;
         vector_meta_.flags &= ~WK_FLAG_HAS_M;
         meta_.flags &= ~WK_FLAG_HAS_Z;
         meta_.flags &= ~WK_FLAG_HAS_M;
 
         switch (dimensions) {
-        case geoarrow::Meta::Dimensions::XYZ:
-        case geoarrow::Meta::Dimensions::XYZM:
+        case geoarrow::util::Dimensions::XYZ:
+        case geoarrow::util::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_Z;
             meta_.flags |= WK_FLAG_HAS_Z;
             break;
@@ -66,8 +66,8 @@ public:
         }
 
         switch (dimensions) {
-        case geoarrow::Meta::Dimensions::XYM:
-        case geoarrow::Meta::Dimensions::XYZM:
+        case geoarrow::util::Dimensions::XYM:
+        case geoarrow::util::Dimensions::XYZM:
             vector_meta_.flags |= WK_FLAG_HAS_M;
             meta_.flags |= WK_FLAG_HAS_M;
             break;
@@ -87,7 +87,7 @@ public:
         return (Result) handler_->null_feature(handler_->handler_data);
     }
 
-    Result geom_start(geoarrow::Meta::GeometryType geometry_type, int32_t size) {
+    Result geom_start(geoarrow::util::GeometryType geometry_type, int32_t size) {
         ring_id_ = -1;
         coord_id_ = -1;
 

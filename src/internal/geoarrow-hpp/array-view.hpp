@@ -12,7 +12,7 @@ namespace {
     template <class TArrayView>
     Handler::Result read_point_geometry(TArrayView& view, Handler* handler, int64_t offset) {
         Handler::Result result;
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 1));
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POINT, 1));
         HANDLE_OR_RETURN(view.read_coords(handler, offset, 1));
         HANDLE_OR_RETURN(handler->geom_end());
         return Handler::Result::CONTINUE;
@@ -60,11 +60,11 @@ class GeoArrowPointStructView: public ArrayView {
   public:
     GeoArrowPointStructView(const struct ArrowSchema* schema): ArrayView(schema) {
         switch (meta_.dimensions_) {
-        case Meta::Dimensions::XYZ:
-        case Meta::Dimensions::XYM:
+        case util::Dimensions::XYZ:
+        case util::Dimensions::XYM:
             coord_size_ = 3;
             break;
-        case Meta::Dimensions::XYZM:
+        case util::Dimensions::XYZM:
             coord_size_ = 4;
             break;
         default:
@@ -160,7 +160,7 @@ class LinestringArrayView: public ListArrayView<PointView> {
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
 
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::LINESTRING, size));
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::LINESTRING, size));
         HANDLE_OR_RETURN(this->child_.read_coords(handler, initial_child_offset, size));
         HANDLE_OR_RETURN(handler->geom_end());
         return Handler::Result::CONTINUE;
@@ -187,7 +187,7 @@ class PolygonArrayView: public ListArrayView<ListArrayView<PointView>> {
         int64_t initial_child_offset = this->child_offset(offset);
         int64_t size = this->child_size(offset);
 
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POLYGON, size));
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POLYGON, size));
         for (int64_t i = 0; i < size; i++) {
 
             int64_t initial_coord_offset = this->child_.child_offset(initial_child_offset + i);

@@ -50,7 +50,8 @@ static inline uint64_t bswap_64(uint64_t x) {
 class WKBReader {
 public:
     WKBReader(): data_(nullptr), offset_(0), size_(0), swapping_(false),
-        dim_(Meta::Dimensions::DIMENSIONS_UNKNOWN), geometry_type_(Meta::GEOMETRY_TYPE_UNKNOWN) {
+        dim_(util::Dimensions::DIMENSIONS_UNKNOWN),
+        geometry_type_(util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
       for (int i = 0; i < 4; i++) {
         coord_[i] = NAN;
       }
@@ -68,8 +69,8 @@ private:
     int64_t offset_;
     int64_t size_;
     bool swapping_;
-    Meta::Dimensions dim_;
-    Meta::GeometryType geometry_type_;
+    util::Dimensions dim_;
+    util::GeometryType geometry_type_;
     double coord_[4];
 
     Handler::Result read_geometry(Handler* handler) {
@@ -109,24 +110,24 @@ private:
       }
 
       uint32_t geometry_size;
-      if (geometry_type == Meta::GeometryType::POINT) {
+      if (geometry_type == util::GeometryType::POINT) {
         geometry_size = 1;
       } else {
         geometry_size = read_uint32();
       }
 
       int32_t coord_size = 2 + has_z + has_m;
-      geometry_type_ = static_cast<Meta::GeometryType>(geometry_type);
+      geometry_type_ = static_cast<util::GeometryType>(geometry_type);
 
-      Meta::Dimensions new_dim;
+      util::Dimensions new_dim;
       if (has_z && has_m) {
-        new_dim = Meta::Dimensions::XYZM;
+        new_dim = util::Dimensions::XYZM;
       } else if (has_z) {
-        new_dim = Meta::Dimensions::XYZ;
+        new_dim = util::Dimensions::XYZ;
       } else if (has_m) {
-        new_dim = Meta::Dimensions::XYM;
+        new_dim = util::Dimensions::XYM;
       } else {
-        new_dim = Meta::Dimensions::XY;
+        new_dim = util::Dimensions::XY;
       }
 
       if (new_dim != dim_) {
@@ -139,11 +140,11 @@ private:
       HANDLE_OR_RETURN(handler->geom_start(geometry_type_, geometry_size));
 
       switch (geometry_type_) {
-      case Meta::GeometryType::POINT:
-      case Meta::GeometryType::LINESTRING:
+      case util::GeometryType::POINT:
+      case util::GeometryType::LINESTRING:
         HANDLE_OR_RETURN(read_coords(handler, geometry_size, coord_size));
         break;
-      case Meta::GeometryType::POLYGON:
+      case util::GeometryType::POLYGON:
         for (uint32_t i = 0; i < geometry_size; i++) {
           uint32_t n_coords = read_uint32();
           HANDLE_OR_RETURN(handler->ring_start(n_coords));
@@ -151,10 +152,10 @@ private:
           HANDLE_OR_RETURN(handler->ring_end());
         }
         break;
-      case Meta::GeometryType::MULTIPOINT:
-      case Meta::GeometryType::MULTILINESTRING:
-      case Meta::GeometryType::MULTIPOLYGON:
-      case Meta::GeometryType::GEOMETRYCOLLECTION:
+      case util::GeometryType::MULTIPOINT:
+      case util::GeometryType::MULTILINESTRING:
+      case util::GeometryType::MULTIPOLYGON:
+      case util::GeometryType::GEOMETRYCOLLECTION:
         for (uint32_t i = 0; i < geometry_size; i++) {
           HANDLE_OR_RETURN(read_geometry(handler));
         }

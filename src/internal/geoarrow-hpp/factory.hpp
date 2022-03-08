@@ -13,10 +13,10 @@ namespace {
 ArrayView* create_view_point(struct ArrowSchema* schema, Meta& point_meta) {
 
     switch (point_meta.storage_type_) {
-    case Meta::StorageType::FixedWidthList:
+    case util::StorageType::FixedWidthList:
         return new PointArrayView(schema);
 
-    case Meta::StorageType::Struct:
+    case util::StorageType::Struct:
         return new GeoArrowPointStructView(schema);
 
     default:
@@ -32,13 +32,13 @@ ArrayView* create_view_linestring(struct ArrowSchema* schema,
 
 
     switch (linestring_meta.storage_type_) {
-    case Meta::StorageType::List:
+    case util::StorageType::List:
 
             switch (point_meta.storage_type_) {
-            case Meta::StorageType::FixedWidthList:
+            case util::StorageType::FixedWidthList:
                 return new LinestringArrayView<PointArrayView>(schema);
 
-            case Meta::StorageType::Struct:
+            case util::StorageType::Struct:
                 return new LinestringArrayView<GeoArrowPointStructView>(schema);
 
             default:
@@ -61,16 +61,16 @@ ArrayView* create_view_polygon(struct ArrowSchema* schema, Meta& polygon_meta) {
 
 
     switch (polygon_meta.storage_type_) {
-    case Meta::StorageType::List:
+    case util::StorageType::List:
 
             switch (linestring_meta.storage_type_) {
-            case Meta::StorageType::List:
+            case util::StorageType::List:
 
                         switch (point_meta.storage_type_) {
-                        case Meta::StorageType::FixedWidthList:
+                        case util::StorageType::FixedWidthList:
                             return new PolygonArrayView<PointArrayView>(schema);
 
-                        case Meta::StorageType::Struct:
+                        case util::StorageType::Struct:
                             return new PolygonArrayView<GeoArrowPointStructView>(schema);
 
                         default:
@@ -100,12 +100,12 @@ ArrayView* create_view_multipoint(struct ArrowSchema* schema,
 
 
     switch (multi_meta.storage_type_) {
-    case Meta::StorageType::List:
+    case util::StorageType::List:
         switch (point_meta.storage_type_) {
-    case Meta::StorageType::FixedWidthList:
+    case util::StorageType::FixedWidthList:
         return new CollectionArrayView<PointArrayView>(schema);
 
-    case Meta::StorageType::Struct:
+    case util::StorageType::Struct:
         return new CollectionArrayView<GeoArrowPointStructView>(schema);
 
     default:
@@ -128,15 +128,15 @@ ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
 
 
     switch (multi_meta.storage_type_) {
-    case Meta::StorageType::List:
+    case util::StorageType::List:
         switch (linestring_meta.storage_type_) {
-    case Meta::StorageType::List:
+    case util::StorageType::List:
 
         switch (point_meta.storage_type_) {
-        case Meta::StorageType::FixedWidthList:
+        case util::StorageType::FixedWidthList:
             return new CollectionArrayView<LinestringArrayView<PointArrayView>>(schema);
 
-        case Meta::StorageType::Struct:
+        case util::StorageType::Struct:
             return new CollectionArrayView<LinestringArrayView<GeoArrowPointStructView>>(schema);
 
         default:
@@ -166,18 +166,18 @@ ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
 
 
     switch (multi_meta.storage_type_) {
-    case Meta::StorageType::List:
+    case util::StorageType::List:
         switch (polygon_meta.storage_type_) {
-    case Meta::StorageType::List:
+    case util::StorageType::List:
 
         switch (linestring_meta.storage_type_) {
-        case Meta::StorageType::List:
+        case util::StorageType::List:
 
                 switch (point_meta.storage_type_) {
-                case Meta::StorageType::FixedWidthList:
+                case util::StorageType::FixedWidthList:
                     return new CollectionArrayView<PolygonArrayView<PointArrayView>>(schema);
 
-                case Meta::StorageType::Struct:
+                case util::StorageType::Struct:
                     return new CollectionArrayView<PolygonArrayView<GeoArrowPointStructView>>(schema);
 
                 default:
@@ -213,13 +213,13 @@ ArrayView* create_view_multi(struct ArrowSchema* schema, Meta& multi_meta) {
     Meta child_meta(schema->children[0]);
 
     switch (child_meta.extension_) {
-    case Meta::Extension::Point:
+    case util::Extension::Point:
         return create_view_multipoint(schema, multi_meta, child_meta);
 
-    case Meta::Extension::Linestring:
+    case util::Extension::Linestring:
         return create_view_multilinestring(schema, multi_meta, child_meta);
 
-    case Meta::Extension::Polygon:
+    case util::Extension::Polygon:
         return create_view_multipolygon(schema, multi_meta, child_meta);
     default:
         throw Meta::ValidationError("Unsupported extension type for child of geoarrow.multi");
@@ -228,11 +228,11 @@ ArrayView* create_view_multi(struct ArrowSchema* schema, Meta& multi_meta) {
 
 ArrayView* create_view_wkb(struct ArrowSchema* schema, Meta& geoarrow_meta) {
     switch (geoarrow_meta.storage_type_) {
-    case Meta::StorageType::Binary:
+    case util::StorageType::Binary:
         return new WKBArrayView(schema);
-    case Meta::StorageType::LargeBinary:
+    case util::StorageType::LargeBinary:
         return new LargeWKBArrayView(schema);
-    case Meta::StorageType::FixedWidthBinary:
+    case util::StorageType::FixedWidthBinary:
         return new FixedWidthWKBArrayView(schema);
     default:
         throw Meta::ValidationError(
@@ -242,11 +242,11 @@ ArrayView* create_view_wkb(struct ArrowSchema* schema, Meta& geoarrow_meta) {
 
 ArrayView* create_view_wkt(struct ArrowSchema* schema, Meta& geoarrow_meta) {
     switch (geoarrow_meta.storage_type_) {
-    case Meta::StorageType::Binary:
-    case Meta::StorageType::String:
+    case util::StorageType::Binary:
+    case util::StorageType::String:
         return new WKTArrayView(schema);
-    case Meta::StorageType::LargeBinary:
-    case Meta::StorageType::LargeString:
+    case util::StorageType::LargeBinary:
+    case util::StorageType::LargeString:
         return new LargeWKTArrayView(schema);
     default:
         throw Meta::ValidationError(
@@ -263,22 +263,22 @@ ArrayView* create_view(struct ArrowSchema* schema) {
     Meta geoarrow_meta(schema);
 
     switch (geoarrow_meta.extension_) {
-    case Meta::Extension::Point:
+    case util::Extension::Point:
         return create_view_point(schema, geoarrow_meta);
 
-    case Meta::Extension::Linestring:
+    case util::Extension::Linestring:
         return create_view_linestring(schema, geoarrow_meta);
 
-    case Meta::Extension::Polygon:
+    case util::Extension::Polygon:
         return create_view_polygon(schema, geoarrow_meta);
 
-    case Meta::Extension::Multi:
+    case util::Extension::Multi:
         return create_view_multi(schema, geoarrow_meta);
 
-    case Meta::Extension::WKB:
+    case util::Extension::WKB:
         return create_view_wkb(schema, geoarrow_meta);
 
-    case Meta::Extension::WKT:
+    case util::Extension::WKT:
         return create_view_wkt(schema, geoarrow_meta);
 
     default:
