@@ -30,7 +30,7 @@ wk_handle.narrow_array <- function(handleable, handler, ...) {
     "geoarrow.point" = ,
     "geoarrow.linestring" = ,
     "geoarrow.polygon" = ,
-    "geoarrow.multi" = handle_geoarrow_wk(handleable, handler),
+    "geoarrow.collection" = handle_geoarrow_wk(handleable, handler),
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }
@@ -52,7 +52,7 @@ wk_handle.narrow_array_stream <- function(handleable, handler, ...,
     "geoarrow.wkt" = ,
     "geoarrow.linestring" = ,
     "geoarrow.polygon" = ,
-    "geoarrow.multi" = handle_geoarrow_stream_wk(handleable, handler, geoarrow_schema, geoarrow_n_features),
+    "geoarrow.collection" = handle_geoarrow_stream_wk(handleable, handler, geoarrow_schema, geoarrow_n_features),
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }

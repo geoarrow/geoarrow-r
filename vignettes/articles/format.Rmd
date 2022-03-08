@@ -193,9 +193,9 @@ carray$array_data$children[[1]]$children[[1]]$children[[1]]$buffers[[2]]
 
 Just like WKB, multipoints, multilinestrings, multipolygons, and geometrycollections share a common encoding but have different identifiers.
 
-- Multipoint geometries have an `ARROW:extension:name` of "geoarrow.multipoint" and must contain a child named "points" with the "geoarrow.point" extension type.
-- Multilinestring geometries have an `ARROW:extension:name` of "geoarrow.multilinestring" and must contain a child named "linestrings" with the "geoarrow.linestring" extension type.
-- Multipolygon geometries have an `ARROW:extension:name` of "geoarrow.multipolygon" and must contain a child named "polygons" with the "geoarrow.polygon" extension type.
+- Multipoint geometries have an `ARROW:extension:name` of "geoarrow.collectionpoint" and must contain a child named "points" with the "geoarrow.point" extension type.
+- Multilinestring geometries have an `ARROW:extension:name` of "geoarrow.collectionlinestring" and must contain a child named "linestrings" with the "geoarrow.linestring" extension type.
+- Multipolygon geometries have an `ARROW:extension:name` of "geoarrow.collectionpolygon" and must contain a child named "polygons" with the "geoarrow.polygon" extension type.
 - Geometry collections (i.e., mixed arrays of points, lines, polygons, multipoints, multipolygons, and/or geometry collections) are not currently supported. For those who need to communicate these objects, use the "geoarrow.wkb" extension type. In the future, support for these will be added as unions (i.e., the child array will be a sparse or dense union of points, lines, polygons, multipoints, multilinestrings, and/or multipolygons).
 
 Collections do not carry extension metadata of their own (i.e., the CRS and geodesic flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).

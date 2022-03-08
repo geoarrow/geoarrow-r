@@ -54,7 +54,7 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = "polygon"
     ),
-    "geoarrow.multi" = {
+    "geoarrow.collection" = {
       child <- geoarrow_metadata_column(schema$children[[1]], include_crs = TRUE)
       crs <- child$crs
       geodesic <- child$geodesic
@@ -245,7 +245,7 @@ guess_column_encoding <- function(schema) {
       "geoarrow.point" = return("point"),
       "geoarrow.linestring" = return("linestring"),
       "geoarrow.polygon" = return("polygon"),
-      "geoarrow.multi" = {
+      "geoarrow.collection" = {
         child_encoding <- guess_column_encoding(schema$children[[1]])
         switch(
           child_encoding,

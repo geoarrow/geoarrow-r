@@ -176,7 +176,7 @@ geoarrow_schema_multi <- function(child, name = "") {
     name = scalar_chr(name),
     format = "+l",
     metadata = list(
-      "ARROW:extension:name" = "geoarrow.multi",
+      "ARROW:extension:name" = "geoarrow.collection",
       "ARROW:extension:metadata" = geoarrow_metadata_serialize()
     ),
     children = list(child)

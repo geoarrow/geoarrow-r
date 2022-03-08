@@ -231,7 +231,7 @@ class Meta {
                 if (!child.set_schema(schema->children[0])) {
                     set_child_error(
                         child.error_,
-                        "geoarrow.multi child has an invalid schema");
+                        "geoarrow.collection child has an invalid schema");
                     return false;
                 }
 
@@ -247,7 +247,7 @@ class Meta {
                     break;
                 default:
                     set_error(
-                        "Child of geoarrow.multi must be a geoarrow.point, geoarrow.linestring, or geoarrow.polygon");
+                        "Child of geoarrow.collection must be a geoarrow.point, geoarrow.linestring, or geoarrow.polygon");
                     return false;
                 }
 
@@ -259,7 +259,7 @@ class Meta {
 
             default:
                 set_error(
-                    "Expected geoarrow.multi to be a list but found '%s'",
+                    "Expected geoarrow.collection to be a list but found '%s'",
                     schema->format);
                 return false;
             }
@@ -416,7 +416,7 @@ class Meta {
                     extension_ = util::Extension::Linestring;
                 } else if (value_len >= 16 && strncmp(value, "geoarrow.polygon", 16) == 0) {
                     extension_ = util::Extension::Polygon;
-                } else if (value_len >= 14 && strncmp(value, "geoarrow.multi", 14) == 0) {
+                } else if (value_len >= 14 && strncmp(value, "geoarrow.collection", 14) == 0) {
                     extension_ = util::Extension::Multi;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 12) == 0) {
                     extension_ = util::Extension::WKB;

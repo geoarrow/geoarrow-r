@@ -116,7 +116,7 @@ ArrayView* create_view_multipoint(struct ArrowSchema* schema,
 
     default:
         throw Meta::ValidationError(
-            "Unsupported storage type for extension geoarrow.multi");
+            "Unsupported storage type for extension geoarrow.collection");
     }
 
 }
@@ -154,7 +154,7 @@ ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
 
     default:
         throw Meta::ValidationError(
-            "Unsupported storage type for extension geoarrow.multi");
+            "Unsupported storage type for extension geoarrow.collection");
     }
 
 }
@@ -202,7 +202,7 @@ ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
 
     default:
         throw Meta::ValidationError(
-            "Unsupported storage type for extension geoarrow.multi");
+            "Unsupported storage type for extension geoarrow.collection");
     }
 
 }
@@ -222,7 +222,7 @@ ArrayView* create_view_multi(struct ArrowSchema* schema, Meta& multi_meta) {
     case util::Extension::Polygon:
         return create_view_multipolygon(schema, multi_meta, child_meta);
     default:
-        throw Meta::ValidationError("Unsupported extension type for child of geoarrow.multi");
+        throw Meta::ValidationError("Unsupported extension type for child of geoarrow.collection");
     }
 }
 

@@ -111,7 +111,7 @@ test_that("vctrs support works for all extensions", {
   expect_true(vctrs::vec_is(vctr))
   expect_s3_class(
     vctrs::vec_restore(vctrs::vec_proxy(vctr), vctr),
-    "narrow_vctr_geoarrow_multi"
+    "narrow_vctr_geoarrow_collection"
   )
 })
 
