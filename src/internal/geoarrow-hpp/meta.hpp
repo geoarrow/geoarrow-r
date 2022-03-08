@@ -100,7 +100,8 @@ class Meta {
         Polygon,
         Multi,
         WKB,
-        Unknown,
+        WKT,
+        ExtensionOther,
         ExtensionNone
     };
 
@@ -108,6 +109,7 @@ class Meta {
         Float32,
         Float64,
         String,
+        LargeString,
         FixedWidthBinary,
         Binary,
         LargeBinary,
@@ -115,7 +117,7 @@ class Meta {
         Struct,
         List,
         LargeList,
-        Other,
+        StorageTypeOther,
         StorageTypeNone
     };
 
@@ -148,11 +150,11 @@ class Meta {
     }
 
     void reset() {
-        storage_type_ = StorageType::Other;
+        storage_type_ = StorageType::StorageTypeOther;
         fixed_width_ = 0;
         expected_buffers_ = -1;
         nullable_ = false;
-        extension_ = Extension::Unknown;
+        extension_ = Extension::ExtensionNone;
         geodesic_ = false;
         crs_size_ = false;
         crs_ = nullptr;
@@ -446,6 +448,10 @@ class Meta {
             storage_type_ = StorageType::String;
             expected_buffers_ = 3;
             break;
+        case 'U':
+            storage_type_ = StorageType::LargeString;
+            expected_buffers_ = 3;
+            break;
         case 'z':
             storage_type_ = StorageType::Binary;
             expected_buffers_ = 3;
@@ -518,6 +524,10 @@ class Meta {
                     extension_ = Extension::Multi;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 12) == 0) {
                     extension_ = Extension::WKB;
+                } else if (value_len >= 12 && strncmp(value, "geoarrow.wkt", 12) == 0) {
+                    extension_ = Extension::WKT;
+                } else {
+                    extension_ = Extension::ExtensionOther;
                 }
 
             } else if (name_len >= 24 && strncmp(name, "ARROW:extension:metadata", 24) == 0) {
