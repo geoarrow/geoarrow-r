@@ -18,7 +18,7 @@
 #if defined(_WIN32)
 
 #ifdef __cplusplus
-#include <cstdlib.h>
+#include <cstdlib>
 #else
 #include <stdlib.h>
 #endif
