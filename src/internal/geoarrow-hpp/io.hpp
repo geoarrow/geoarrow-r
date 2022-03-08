@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <algorithm>
+#include <cstdarg>
 
 namespace geoarrow {
 
@@ -18,7 +19,7 @@ public:
     va_end(args);
   }
 
-  const char* what() const _NOEXCEPT {
+  const char* what() const noexcept {
     return error_;
   }
 

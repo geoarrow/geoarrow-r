@@ -39,7 +39,7 @@ from_chars_output_type from_chars_internal(const char* first, const char* last, 
 
 namespace geoarrow {
 
-namespace {
+namespace util {
 
 class ParserException: public std::runtime_error {
 public:
@@ -478,14 +478,14 @@ public:
       HANDLE_OR_RETURN(readGeometryWithType(handler));
       s.assertFinished();
       return Handler::Result::CONTINUE;
-    } catch(ParserException& e) {
+    } catch(util::ParserException& e) {
       throw io::IOException("%s", e.what());
     }
   }
 
 private:
-  WKTParser s;
-  WKTParser::WKTMeta meta_;
+  util::WKTParser s;
+  util::WKTParser::WKTMeta meta_;
   double coord_[4];
   int32_t coord_size_;
 

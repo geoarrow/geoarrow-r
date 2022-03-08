@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <stdexcept>
+#include <cstdarg>
 
 #include "common.hpp"
 
