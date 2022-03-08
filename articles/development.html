@@ -87,7 +87,7 @@
 <span class="va">linestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-      <span class="st">"LINESTRING (30 10, 10 30, 40 40)"</span>, 
+      <span class="st">"LINESTRING (30 10, 10 30, 40 40)"</span>,
       <span class="st">"LINESTRING (0 0, 10 5)"</span>
     <span class="op">)</span>
   <span class="op">)</span>
@@ -96,7 +96,7 @@
 <span class="va">polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-      <span class="st">"POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>, 
+      <span class="st">"POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,
       <span class="st">"POLYGON (
         (35 10, 45 45, 15 40, 10 20, 35 10),
         (20 30, 35 35, 30 20, 20 30))"</span>
@@ -111,7 +111,7 @@
 <span class="va">multilinestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-      <span class="st">"MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>, 
+      <span class="st">"MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,
       <span class="st">"MULTILINESTRING (
         (35 10, 45 45, 15 40, 10 20, 35 10),
         (20 30, 35 35, 30 20, 20 30))"</span>
@@ -124,7 +124,7 @@
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
       <span class="st">"MULTIPOLYGON (
         ((30 20, 45 40, 10 40, 30 20)),
-        ((15 5, 40 10, 10 20, 5 10, 15 5)))"</span>, 
+        ((15 5, 40 10, 10 20, 5 10, 15 5)))"</span>,
       <span class="st">"MULTIPOLYGON (
         ((40 40, 20 45, 45 30, 40 40)),
         ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),
@@ -203,32 +203,32 @@
 <p>(TODO: Haven’t added this to the GeoArrowArrayView yet)</p>
 </div>
 <div class="section level3">
-<h3 id="using-the-geoarrowhandler">Using the GeoArrowHandler<a class="anchor" aria-label="anchor" href="#using-the-geoarrowhandler"></a>
+<h3 id="using-the-handler">Using the Handler<a class="anchor" aria-label="anchor" href="#using-the-handler"></a>
 </h3>
-<p>The <code>GeoArrowHandler</code> is a class with methods corresponding to events that occur when looping over coordinates from top to bottom. This style of iteration was inspired by GeoRust’s <a href="https://github.com/georust/geozero" class="external-link">geozero</a> and SAX-style XML parsers. Writing operations as handlers is a good fit for some operations but can be challenging for others. In R, it powers the <code><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk::wk_handle()</a></code> operation which in turn powers many other operations via wk handlers elsewhere. It is particularly useful for operations that iterate forward through all coordinates.</p>
-<p>For example, the following subclass of <code>GeoArrowHandler</code> calculates the bounding box of any (arrow array of) geometry it is handed.</p>
+<p>The <code>Handler</code> is a class with methods corresponding to events that occur when looping over coordinates from top to bottom. This style of iteration was inspired by GeoRust’s <a href="https://github.com/georust/geozero" class="external-link">geozero</a> and SAX-style XML parsers. Writing operations as handlers is a good fit for some operations but can be challenging for others. In R, it powers the <code><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk::wk_handle()</a></code> operation which in turn powers many other operations via wk handlers elsewhere. It is particularly useful for operations that iterate forward through all coordinates.</p>
+<p>For example, the following subclass of <code>Handler</code> calculates the bounding box of any (arrow array of) geometry it is handed.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1"></a><span class="pp">#include </span><span class="im">&lt;cpp11.hpp&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2"></a><span class="pp">#include </span><span class="im">"narrow.h"</span></span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow.hpp"</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow-hpp/factory.hpp"</span></span>
 <span id="cb12-4"><a href="#cb12-4"></a></span>
 <span id="cb12-5"><a href="#cb12-5"></a><span class="kw">using</span> <span class="kw">namespace</span> cpp11;</span>
 <span id="cb12-6"><a href="#cb12-6"></a><span class="kw">using</span> <span class="kw">namespace</span> geoarrow;</span>
 <span id="cb12-7"><a href="#cb12-7"></a></span>
-<span id="cb12-8"><a href="#cb12-8"></a><span class="kw">class</span> BboxHandler: <span class="kw">public</span> GeoArrowHandler {</span>
+<span id="cb12-8"><a href="#cb12-8"></a><span class="kw">class</span> BboxHandler: <span class="kw">public</span> Handler {</span>
 <span id="cb12-9"><a href="#cb12-9"></a><span class="kw">public</span>:</span>
 <span id="cb12-10"><a href="#cb12-10"></a>  BboxHandler()</span>
-<span id="cb12-11"><a href="#cb12-11"></a>    : xmin(R_PosInf), xmax(R_NegInf), </span>
+<span id="cb12-11"><a href="#cb12-11"></a>    : xmin(R_PosInf), xmax(R_NegInf),</span>
 <span id="cb12-12"><a href="#cb12-12"></a>      ymin(R_PosInf), ymax(R_NegInf) {}</span>
-<span id="cb12-13"><a href="#cb12-13"></a>  </span>
-<span id="cb12-14"><a href="#cb12-14"></a>  </span>
-<span id="cb12-15"><a href="#cb12-15"></a>  GeoArrowHandler::Result coord(<span class="at">const</span> <span class="dt">double</span>* coord) {</span>
+<span id="cb12-13"><a href="#cb12-13"></a></span>
+<span id="cb12-14"><a href="#cb12-14"></a></span>
+<span id="cb12-15"><a href="#cb12-15"></a>  Handler::Result coord(<span class="at">const</span> <span class="dt">double</span>* coord) {</span>
 <span id="cb12-16"><a href="#cb12-16"></a>    xmin = <span class="bu">std::</span>min&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">0</span>], xmin);</span>
 <span id="cb12-17"><a href="#cb12-17"></a>    xmax = <span class="bu">std::</span>max&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">0</span>], xmax);</span>
 <span id="cb12-18"><a href="#cb12-18"></a>    ymin = <span class="bu">std::</span>min&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">1</span>], ymin);</span>
 <span id="cb12-19"><a href="#cb12-19"></a>    ymax = <span class="bu">std::</span>max&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">1</span>], ymax);</span>
 <span id="cb12-20"><a href="#cb12-20"></a>    <span class="cf">return</span> Result::CONTINUE;</span>
 <span id="cb12-21"><a href="#cb12-21"></a>  }</span>
-<span id="cb12-22"><a href="#cb12-22"></a>  </span>
+<span id="cb12-22"><a href="#cb12-22"></a></span>
 <span id="cb12-23"><a href="#cb12-23"></a>  <span class="dt">double</span> xmin;</span>
 <span id="cb12-24"><a href="#cb12-24"></a>  <span class="dt">double</span> xmax;</span>
 <span id="cb12-25"><a href="#cb12-25"></a>  <span class="dt">double</span> ymin;</span>
@@ -239,10 +239,10 @@
 <span id="cb12-30"><a href="#cb12-30"></a>doubles geoarrow_bbox(sexp schema_xptr, sexp array_data_xptr) {</span>
 <span id="cb12-31"><a href="#cb12-31"></a>  <span class="kw">struct</span> ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, <span class="st">"schema"</span>);</span>
 <span id="cb12-32"><a href="#cb12-32"></a>  <span class="kw">struct</span> ArrowArray* array_data = safe[array_data_from_xptr](array_data_xptr, <span class="st">"array_data"</span>);</span>
-<span id="cb12-33"><a href="#cb12-33"></a>  </span>
-<span id="cb12-34"><a href="#cb12-34"></a>  <span class="bu">std::</span>unique_ptr&lt;GeoArrowArrayView&gt; view(create_view(schema));</span>
+<span id="cb12-33"><a href="#cb12-33"></a></span>
+<span id="cb12-34"><a href="#cb12-34"></a>  <span class="bu">std::</span>unique_ptr&lt;ArrayView&gt; view(create_view(schema));</span>
 <span id="cb12-35"><a href="#cb12-35"></a>  view-&gt;set_array(array_data);</span>
-<span id="cb12-36"><a href="#cb12-36"></a>  </span>
+<span id="cb12-36"><a href="#cb12-36"></a></span>
 <span id="cb12-37"><a href="#cb12-37"></a>  BboxHandler handler;</span>
 <span id="cb12-38"><a href="#cb12-38"></a>  view-&gt;read_meta(&amp;handler);</span>
 <span id="cb12-39"><a href="#cb12-39"></a>  view-&gt;read_features(&amp;handler);</span>
@@ -251,15 +251,15 @@
 <span id="cb12-42"><a href="#cb12-42"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">geoarrow_bbox</span><span class="op">(</span><span class="va">polygons</span><span class="op">$</span><span class="va">schema</span>, <span class="va">polygons</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span>
-<span class="co">#&gt; [1] 10 45 10 45</span></code></pre></div>
+<span class="co">#&gt; [1]  Inf -Inf  Inf -Inf</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="metadata">Metadata<a class="anchor" aria-label="anchor" href="#metadata"></a>
 </h3>
-<p>The geoarrow package uses the <code>GeoArrowMeta</code> class to validate and parse both schema and array objects. It is a wrapper around a <code>struct ArrowSchema</code> that walks its input and extracts pieces in a reasonable format to build on. In most cases you shouldn’t need to extract metadata in compiled code; however, the <code>GeoArrowMeta</code> class is the easiest way to do so if you are in this position.</p>
+<p>The geoarrow package uses the <code>Meta</code> class to validate and parse both schema and array objects. It is a wrapper around a <code>struct ArrowSchema</code> that walks its input and extracts pieces in a reasonable format to build on. In most cases you shouldn’t need to extract metadata in compiled code; however, the <code>Meta</code> class is the easiest way to do so if you are in this position.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1"></a><span class="pp">#include </span><span class="im">&lt;cpp11.hpp&gt;</span></span>
 <span id="cb14-2"><a href="#cb14-2"></a><span class="pp">#include </span><span class="im">"narrow.h"</span></span>
-<span id="cb14-3"><a href="#cb14-3"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow.hpp"</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow-hpp/meta.hpp"</span></span>
 <span id="cb14-4"><a href="#cb14-4"></a></span>
 <span id="cb14-5"><a href="#cb14-5"></a><span class="kw">using</span> <span class="kw">namespace</span> cpp11;</span>
 <span id="cb14-6"><a href="#cb14-6"></a><span class="kw">using</span> <span class="kw">namespace</span> geoarrow;</span>
@@ -267,52 +267,52 @@
 <span id="cb14-8"><a href="#cb14-8"></a>[[<span class="at">cpp11</span>::<span class="at">register</span>]]</span>
 <span id="cb14-9"><a href="#cb14-9"></a><span class="dt">void</span> geoarrow_metadata_dump(sexp schema_xptr) {</span>
 <span id="cb14-10"><a href="#cb14-10"></a>  <span class="kw">struct</span> ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, <span class="st">"schema"</span>);</span>
-<span id="cb14-11"><a href="#cb14-11"></a>  GeoArrowMeta meta;</span>
+<span id="cb14-11"><a href="#cb14-11"></a>  Meta meta;</span>
 <span id="cb14-12"><a href="#cb14-12"></a>  <span class="cf">if</span> (!meta.set_schema(schema)) {</span>
 <span id="cb14-13"><a href="#cb14-13"></a>    stop(<span class="st">"</span><span class="sc">%s</span><span class="st">"</span>, meta.<span class="va">error_</span>);</span>
 <span id="cb14-14"><a href="#cb14-14"></a>  }</span>
-<span id="cb14-15"><a href="#cb14-15"></a>  </span>
+<span id="cb14-15"><a href="#cb14-15"></a></span>
 <span id="cb14-16"><a href="#cb14-16"></a>  <span class="cf">switch</span>(meta.<span class="va">extension_</span>) {</span>
-<span id="cb14-17"><a href="#cb14-17"></a>  <span class="cf">case</span> GeoArrowMeta::Extension::Point:</span>
+<span id="cb14-17"><a href="#cb14-17"></a>  <span class="cf">case</span> util::Extension::Point:</span>
 <span id="cb14-18"><a href="#cb14-18"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.point'</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-19"><a href="#cb14-19"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-20"><a href="#cb14-20"></a>  <span class="cf">case</span> GeoArrowMeta::Extension::Linestring:</span>
+<span id="cb14-20"><a href="#cb14-20"></a>  <span class="cf">case</span> util::Extension::Linestring:</span>
 <span id="cb14-21"><a href="#cb14-21"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.linestring'</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-22"><a href="#cb14-22"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-23"><a href="#cb14-23"></a>  <span class="cf">case</span> GeoArrowMeta::Extension::Polygon:</span>
+<span id="cb14-23"><a href="#cb14-23"></a>  <span class="cf">case</span> util::Extension::Polygon:</span>
 <span id="cb14-24"><a href="#cb14-24"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.polygon'</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-25"><a href="#cb14-25"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-26"><a href="#cb14-26"></a>  <span class="cf">case</span> GeoArrowMeta::Extension::Multi:</span>
+<span id="cb14-26"><a href="#cb14-26"></a>  <span class="cf">case</span> util::Extension::Multi:</span>
 <span id="cb14-27"><a href="#cb14-27"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.multi'</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-28"><a href="#cb14-28"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-29"><a href="#cb14-29"></a>    </span>
+<span id="cb14-29"><a href="#cb14-29"></a></span>
 <span id="cb14-30"><a href="#cb14-30"></a>  <span class="cf">default</span>:</span>
 <span id="cb14-31"><a href="#cb14-31"></a>    Rprintf(<span class="st">"Extension: other</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-32"><a href="#cb14-32"></a>    <span class="cf">break</span>;</span>
 <span id="cb14-33"><a href="#cb14-33"></a>  }</span>
-<span id="cb14-34"><a href="#cb14-34"></a>  </span>
+<span id="cb14-34"><a href="#cb14-34"></a></span>
 <span id="cb14-35"><a href="#cb14-35"></a>  <span class="cf">switch</span>(meta.<span class="va">storage_type_</span>) {</span>
-<span id="cb14-36"><a href="#cb14-36"></a>  <span class="cf">case</span> GeoArrowMeta::StorageType::FixedWidthList:</span>
+<span id="cb14-36"><a href="#cb14-36"></a>  <span class="cf">case</span> util::StorageType::FixedWidthList:</span>
 <span id="cb14-37"><a href="#cb14-37"></a>    Rprintf(<span class="st">"Storage type: fixed size list</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-38"><a href="#cb14-38"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-39"><a href="#cb14-39"></a>  <span class="cf">case</span> GeoArrowMeta::StorageType::Struct:</span>
+<span id="cb14-39"><a href="#cb14-39"></a>  <span class="cf">case</span> util::StorageType::Struct:</span>
 <span id="cb14-40"><a href="#cb14-40"></a>    Rprintf(<span class="st">"Storage type: struct</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-41"><a href="#cb14-41"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-42"><a href="#cb14-42"></a>  <span class="cf">case</span> GeoArrowMeta::StorageType::List:</span>
+<span id="cb14-42"><a href="#cb14-42"></a>  <span class="cf">case</span> util::StorageType::List:</span>
 <span id="cb14-43"><a href="#cb14-43"></a>    Rprintf(<span class="st">"Storage type: list</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-44"><a href="#cb14-44"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-45"><a href="#cb14-45"></a>    </span>
+<span id="cb14-45"><a href="#cb14-45"></a></span>
 <span id="cb14-46"><a href="#cb14-46"></a>  <span class="cf">default</span>:</span>
 <span id="cb14-47"><a href="#cb14-47"></a>    Rprintf(<span class="st">"Storage type: other</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-48"><a href="#cb14-48"></a>  }</span>
-<span id="cb14-49"><a href="#cb14-49"></a>  </span>
+<span id="cb14-49"><a href="#cb14-49"></a></span>
 <span id="cb14-50"><a href="#cb14-50"></a>  Rprintf(<span class="st">"Dimensions: '</span><span class="sc">%s</span><span class="st">'</span><span class="sc">\n</span><span class="st">"</span>, meta.<span class="va">dim_</span>);</span>
-<span id="cb14-51"><a href="#cb14-51"></a>  </span>
+<span id="cb14-51"><a href="#cb14-51"></a></span>
 <span id="cb14-52"><a href="#cb14-52"></a>  <span class="cf">if</span> (meta.<span class="va">crs_size_</span> &gt; <span class="dv">0</span>) {</span>
 <span id="cb14-53"><a href="#cb14-53"></a>    <span class="bu">std::</span>string crs(meta.<span class="va">crs_</span>, meta.<span class="va">crs_size_</span>);</span>
 <span id="cb14-54"><a href="#cb14-54"></a>    Rprintf(<span class="st">"CRS: '</span><span class="sc">%s</span><span class="st">'</span><span class="sc">\n</span><span class="st">"</span>, crs.c_str());</span>
 <span id="cb14-55"><a href="#cb14-55"></a>  }</span>
-<span id="cb14-56"><a href="#cb14-56"></a>  </span>
+<span id="cb14-56"><a href="#cb14-56"></a></span>
 <span id="cb14-57"><a href="#cb14-57"></a>  <span class="cf">if</span> (meta.<span class="va">geodesic_</span>) {</span>
 <span id="cb14-58"><a href="#cb14-58"></a>    Rprintf(<span class="st">"Geodesic!</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-59"><a href="#cb14-59"></a>  }</span>
@@ -358,7 +358,7 @@
 <span id="cb17-3"><a href="#cb17-3"></a></span>
 <span id="cb17-4"><a href="#cb17-4"></a>SEXP c_point_print(SEXP array_data_xptr) {</span>
 <span id="cb17-5"><a href="#cb17-5"></a>  <span class="kw">struct</span> ArrowArray* array_data = array_data_from_xptr(array_data_xptr, <span class="st">"array_data"</span>);</span>
-<span id="cb17-6"><a href="#cb17-6"></a>  </span>
+<span id="cb17-6"><a href="#cb17-6"></a></span>
 <span id="cb17-7"><a href="#cb17-7"></a>  <span class="dt">int</span> coord_size = <span class="dv">2</span>;</span>
 <span id="cb17-8"><a href="#cb17-8"></a>  <span class="dt">double</span>* coords = (<span class="dt">double</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb17-9"><a href="#cb17-9"></a>  coords = coords + (array_data-&gt;offset) * coord_size;</span>
@@ -368,19 +368,19 @@
 <span id="cb17-13"><a href="#cb17-13"></a>    coord = coords + (point_id * coord_size);</span>
 <span id="cb17-14"><a href="#cb17-14"></a>    Rprintf(<span class="st">"point[%d] (%g %g)</span><span class="sc">\n</span><span class="st">"</span>, point_id, coord[<span class="dv">0</span>], coord[<span class="dv">1</span>]);</span>
 <span id="cb17-15"><a href="#cb17-15"></a>  }</span>
-<span id="cb17-16"><a href="#cb17-16"></a>  </span>
+<span id="cb17-16"><a href="#cb17-16"></a></span>
 <span id="cb17-17"><a href="#cb17-17"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb17-18"><a href="#cb17-18"></a>}</span></code></pre></div>
 <p>Depending on whether or not you have access to a higher-level runtime, you probably want to validate a few things about the schema before accessing elements of the array.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">point_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
   <span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 
@@ -393,7 +393,7 @@
 <span id="cb19-3"><a href="#cb19-3"></a></span>
 <span id="cb19-4"><a href="#cb19-4"></a>SEXP c_point_struct_print(SEXP array_data_xptr) {</span>
 <span id="cb19-5"><a href="#cb19-5"></a>  <span class="kw">struct</span> ArrowArray* array_data = array_data_from_xptr(array_data_xptr, <span class="st">"array_data"</span>);</span>
-<span id="cb19-6"><a href="#cb19-6"></a>  </span>
+<span id="cb19-6"><a href="#cb19-6"></a></span>
 <span id="cb19-7"><a href="#cb19-7"></a>  <span class="dt">double</span>* x = (<span class="dt">double</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb19-8"><a href="#cb19-8"></a>  <span class="dt">double</span>* y = (<span class="dt">double</span>*) array_data-&gt;children[<span class="dv">1</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb19-9"><a href="#cb19-9"></a>  x = x + array_data-&gt;offset;</span>
@@ -402,13 +402,13 @@
 <span id="cb19-12"><a href="#cb19-12"></a>  <span class="cf">for</span> (<span class="dt">int64_t</span> point_id = <span class="dv">0</span>; point_id &lt; array_data-&gt;length; point_id++) {</span>
 <span id="cb19-13"><a href="#cb19-13"></a>    Rprintf(<span class="st">"point[%d] (%g %g)</span><span class="sc">\n</span><span class="st">"</span>, point_id, x[point_id], y[point_id]);</span>
 <span id="cb19-14"><a href="#cb19-14"></a>  }</span>
-<span id="cb19-15"><a href="#cb19-15"></a>  </span>
+<span id="cb19-15"><a href="#cb19-15"></a></span>
 <span id="cb19-16"><a href="#cb19-16"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb19-17"><a href="#cb19-17"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">point_struct_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+s"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>,
@@ -436,36 +436,36 @@
 <span id="cb21-3"><a href="#cb21-3"></a></span>
 <span id="cb21-4"><a href="#cb21-4"></a>SEXP c_linestring_print(SEXP array_data_xptr) {</span>
 <span id="cb21-5"><a href="#cb21-5"></a>  <span class="kw">struct</span> ArrowArray* array_data = array_data_from_xptr(array_data_xptr, <span class="st">"array_data"</span>);</span>
-<span id="cb21-6"><a href="#cb21-6"></a>  </span>
+<span id="cb21-6"><a href="#cb21-6"></a></span>
 <span id="cb21-7"><a href="#cb21-7"></a>  <span class="dt">int</span> coord_size = <span class="dv">2</span>;</span>
 <span id="cb21-8"><a href="#cb21-8"></a>  <span class="dt">double</span>* coords = (<span class="dt">double</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb21-9"><a href="#cb21-9"></a>  <span class="dt">int32_t</span>* coord_offsets = (<span class="dt">int32_t</span>*) array_data-&gt;buffers[<span class="dv">1</span>];</span>
-<span id="cb21-10"><a href="#cb21-10"></a>  </span>
+<span id="cb21-10"><a href="#cb21-10"></a></span>
 <span id="cb21-11"><a href="#cb21-11"></a>  coord_offsets = coord_offsets + array_data-&gt;offset;</span>
 <span id="cb21-12"><a href="#cb21-12"></a>  coords = coords + coord_offsets[<span class="dv">0</span>];</span>
 <span id="cb21-13"><a href="#cb21-13"></a></span>
 <span id="cb21-14"><a href="#cb21-14"></a>  <span class="dt">double</span>* coord;</span>
 <span id="cb21-15"><a href="#cb21-15"></a>  <span class="cf">for</span> (<span class="dt">int64_t</span> line_id = <span class="dv">0</span>; line_id &lt; array_data-&gt;length; line_id++) {</span>
 <span id="cb21-16"><a href="#cb21-16"></a>    <span class="dt">int32_t</span> n_coords = coord_offsets[line_id + <span class="dv">1</span>] - coord_offsets[line_id];</span>
-<span id="cb21-17"><a href="#cb21-17"></a>    </span>
+<span id="cb21-17"><a href="#cb21-17"></a></span>
 <span id="cb21-18"><a href="#cb21-18"></a>    <span class="cf">for</span> (<span class="dt">int32_t</span> point_id = <span class="dv">0</span>; point_id &lt; n_coords; point_id++) {</span>
 <span id="cb21-19"><a href="#cb21-19"></a>      coord = coords + coord_size * (coord_offsets[line_id] + point_id);</span>
 <span id="cb21-20"><a href="#cb21-20"></a>      Rprintf(<span class="st">"linestring[%d]-&gt;point[%d] (%g %g)</span><span class="sc">\n</span><span class="st">"</span>, line_id, point_id, coord[<span class="dv">0</span>], coord[<span class="dv">1</span>]);</span>
 <span id="cb21-21"><a href="#cb21-21"></a>    }</span>
 <span id="cb21-22"><a href="#cb21-22"></a>  }</span>
-<span id="cb21-23"><a href="#cb21-23"></a>  </span>
+<span id="cb21-23"><a href="#cb21-23"></a></span>
 <span id="cb21-24"><a href="#cb21-24"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb21-25"><a href="#cb21-25"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">linestring_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
   <span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_linestring_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 
@@ -485,12 +485,12 @@
 <span id="cb23-3"><a href="#cb23-3"></a></span>
 <span id="cb23-4"><a href="#cb23-4"></a>SEXP c_polygon_print(SEXP array_data_xptr) {</span>
 <span id="cb23-5"><a href="#cb23-5"></a>  <span class="kw">struct</span> ArrowArray* array_data = array_data_from_xptr(array_data_xptr, <span class="st">"array_data"</span>);</span>
-<span id="cb23-6"><a href="#cb23-6"></a>  </span>
+<span id="cb23-6"><a href="#cb23-6"></a></span>
 <span id="cb23-7"><a href="#cb23-7"></a>  <span class="dt">int</span> coord_size = <span class="dv">2</span>;</span>
 <span id="cb23-8"><a href="#cb23-8"></a>  <span class="dt">double</span>* coords = (<span class="dt">double</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;children[<span class="dv">0</span>]-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb23-9"><a href="#cb23-9"></a>  <span class="dt">int32_t</span>* coord_offsets = (<span class="dt">int32_t</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb23-10"><a href="#cb23-10"></a>  <span class="dt">int32_t</span>* ring_offsets = (<span class="dt">int32_t</span>*) array_data-&gt;buffers[<span class="dv">1</span>];</span>
-<span id="cb23-11"><a href="#cb23-11"></a>  </span>
+<span id="cb23-11"><a href="#cb23-11"></a></span>
 <span id="cb23-12"><a href="#cb23-12"></a>  ring_offsets = ring_offsets + array_data-&gt;offset;</span>
 <span id="cb23-13"><a href="#cb23-13"></a>  coord_offsets = coord_offsets + ring_offsets[<span class="dv">0</span>];</span>
 <span id="cb23-14"><a href="#cb23-14"></a>  coords = coords + coord_offsets[<span class="dv">0</span>];</span>
@@ -500,33 +500,32 @@
 <span id="cb23-18"><a href="#cb23-18"></a>  <span class="cf">for</span> (<span class="dt">int64_t</span> poly_id = <span class="dv">0</span>; poly_id &lt; array_data-&gt;length; poly_id++) {</span>
 <span id="cb23-19"><a href="#cb23-19"></a>    <span class="dt">int32_t</span> n_rings = ring_offsets[poly_id + <span class="dv">1</span>] - ring_offsets[poly_id];</span>
 <span id="cb23-20"><a href="#cb23-20"></a>    coord_offset = coord_offsets + ring_offsets[poly_id];</span>
-<span id="cb23-21"><a href="#cb23-21"></a>    </span>
-<span id="cb23-22"><a href="#cb23-22"></a>    </span>
-<span id="cb23-23"><a href="#cb23-23"></a>    <span class="cf">for</span> (<span class="dt">int32_t</span> ring_id = <span class="dv">0</span>; ring_id &lt; n_rings; ring_id++) {</span>
-<span id="cb23-24"><a href="#cb23-24"></a>      <span class="dt">int32_t</span> n_coords = coord_offset[ring_id + <span class="dv">1</span>] - coord_offset[ring_id];</span>
-<span id="cb23-25"><a href="#cb23-25"></a>      </span>
-<span id="cb23-26"><a href="#cb23-26"></a>      <span class="cf">for</span> (<span class="dt">int32_t</span> point_id = <span class="dv">0</span>; point_id &lt; n_coords; point_id++) {</span>
-<span id="cb23-27"><a href="#cb23-27"></a>        coord = coords + (coord_size * (coord_offset[ring_id] + point_id));</span>
-<span id="cb23-28"><a href="#cb23-28"></a>        Rprintf(</span>
-<span id="cb23-29"><a href="#cb23-29"></a>          <span class="st">"polygon[%d]-&gt;ring[%d]-&gt;point[%d] (%g %g)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb23-30"><a href="#cb23-30"></a>          poly_id, ring_id, point_id, coord[<span class="dv">0</span>], coord[<span class="dv">1</span>]);</span>
-<span id="cb23-31"><a href="#cb23-31"></a>      }</span>
-<span id="cb23-32"><a href="#cb23-32"></a>    }</span>
-<span id="cb23-33"><a href="#cb23-33"></a>  }</span>
-<span id="cb23-34"><a href="#cb23-34"></a>  </span>
-<span id="cb23-35"><a href="#cb23-35"></a>  <span class="cf">return</span> R_NilValue;</span>
-<span id="cb23-36"><a href="#cb23-36"></a>}</span></code></pre></div>
+<span id="cb23-21"><a href="#cb23-21"></a></span>
+<span id="cb23-22"><a href="#cb23-22"></a>    <span class="cf">for</span> (<span class="dt">int32_t</span> ring_id = <span class="dv">0</span>; ring_id &lt; n_rings; ring_id++) {</span>
+<span id="cb23-23"><a href="#cb23-23"></a>      <span class="dt">int32_t</span> n_coords = coord_offset[ring_id + <span class="dv">1</span>] - coord_offset[ring_id];</span>
+<span id="cb23-24"><a href="#cb23-24"></a></span>
+<span id="cb23-25"><a href="#cb23-25"></a>      <span class="cf">for</span> (<span class="dt">int32_t</span> point_id = <span class="dv">0</span>; point_id &lt; n_coords; point_id++) {</span>
+<span id="cb23-26"><a href="#cb23-26"></a>        coord = coords + (coord_size * (coord_offset[ring_id] + point_id));</span>
+<span id="cb23-27"><a href="#cb23-27"></a>        Rprintf(</span>
+<span id="cb23-28"><a href="#cb23-28"></a>          <span class="st">"polygon[%d]-&gt;ring[%d]-&gt;point[%d] (%g %g)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb23-29"><a href="#cb23-29"></a>          poly_id, ring_id, point_id, coord[<span class="dv">0</span>], coord[<span class="dv">1</span>]);</span>
+<span id="cb23-30"><a href="#cb23-30"></a>      }</span>
+<span id="cb23-31"><a href="#cb23-31"></a>    }</span>
+<span id="cb23-32"><a href="#cb23-32"></a>  }</span>
+<span id="cb23-33"><a href="#cb23-33"></a></span>
+<span id="cb23-34"><a href="#cb23-34"></a>  <span class="cf">return</span> R_NilValue;</span>
+<span id="cb23-35"><a href="#cb23-35"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">polygon_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
   <span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_polygon_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 
@@ -587,13 +586,13 @@
 <span id="cb27-3"><a href="#cb27-3"></a></span>
 <span id="cb27-4"><a href="#cb27-4"></a>SEXP c_multipolygon_print(SEXP array_data_xptr) {</span>
 <span id="cb27-5"><a href="#cb27-5"></a>  <span class="kw">struct</span> ArrowArray* array_data = array_data_from_xptr(array_data_xptr, <span class="st">"array_data"</span>);</span>
-<span id="cb27-6"><a href="#cb27-6"></a>  </span>
+<span id="cb27-6"><a href="#cb27-6"></a></span>
 <span id="cb27-7"><a href="#cb27-7"></a>  <span class="dt">int</span> coord_size = <span class="dv">2</span>;</span>
 <span id="cb27-8"><a href="#cb27-8"></a>  <span class="dt">double</span>* coords = (<span class="dt">double</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;children[<span class="dv">0</span>]-&gt;children[<span class="dv">0</span>]-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb27-9"><a href="#cb27-9"></a>  <span class="dt">int32_t</span>* coord_offsets = (<span class="dt">int32_t</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb27-10"><a href="#cb27-10"></a>  <span class="dt">int32_t</span>* ring_offsets = (<span class="dt">int32_t</span>*) array_data-&gt;children[<span class="dv">0</span>]-&gt;buffers[<span class="dv">1</span>];</span>
 <span id="cb27-11"><a href="#cb27-11"></a>  <span class="dt">int32_t</span>* geom_offsets = (<span class="dt">int32_t</span>*) array_data-&gt;buffers[<span class="dv">1</span>];</span>
-<span id="cb27-12"><a href="#cb27-12"></a>  </span>
+<span id="cb27-12"><a href="#cb27-12"></a></span>
 <span id="cb27-13"><a href="#cb27-13"></a>  geom_offsets = geom_offsets + array_data-&gt;offset;</span>
 <span id="cb27-14"><a href="#cb27-14"></a>  ring_offsets = ring_offsets + geom_offsets[<span class="dv">0</span>];</span>
 <span id="cb27-15"><a href="#cb27-15"></a>  coord_offsets = coord_offsets + ring_offsets[<span class="dv">0</span>];</span>
@@ -605,31 +604,30 @@
 <span id="cb27-21"><a href="#cb27-21"></a>  <span class="cf">for</span> (<span class="dt">int64_t</span> multi_id = <span class="dv">0</span>; multi_id &lt; array_data-&gt;length; multi_id++) {</span>
 <span id="cb27-22"><a href="#cb27-22"></a>    <span class="dt">int32_t</span> n_geoms = geom_offsets[multi_id + <span class="dv">1</span>] - geom_offsets[multi_id];</span>
 <span id="cb27-23"><a href="#cb27-23"></a>    ring_offset = ring_offsets + geom_offsets[multi_id];</span>
-<span id="cb27-24"><a href="#cb27-24"></a>    </span>
+<span id="cb27-24"><a href="#cb27-24"></a></span>
 <span id="cb27-25"><a href="#cb27-25"></a>    <span class="cf">for</span> (<span class="dt">int32_t</span> poly_id = <span class="dv">0</span>; poly_id &lt; n_geoms; poly_id++) {</span>
 <span id="cb27-26"><a href="#cb27-26"></a>      <span class="dt">int32_t</span> n_rings = ring_offset[poly_id + <span class="dv">1</span>] - ring_offset[poly_id];</span>
 <span id="cb27-27"><a href="#cb27-27"></a>      coord_offset = coord_offsets + ring_offsets[poly_id];</span>
-<span id="cb27-28"><a href="#cb27-28"></a>      </span>
-<span id="cb27-29"><a href="#cb27-29"></a>      </span>
-<span id="cb27-30"><a href="#cb27-30"></a>      <span class="cf">for</span> (<span class="dt">int32_t</span> ring_id = <span class="dv">0</span>; ring_id &lt; n_rings; ring_id++) {</span>
-<span id="cb27-31"><a href="#cb27-31"></a>        <span class="dt">int32_t</span> n_coords = coord_offset[ring_id + <span class="dv">1</span>] - coord_offset[ring_id];</span>
-<span id="cb27-32"><a href="#cb27-32"></a>        </span>
-<span id="cb27-33"><a href="#cb27-33"></a>        <span class="cf">for</span> (<span class="dt">int32_t</span> point_id = <span class="dv">0</span>; point_id &lt; n_coords; point_id++) {</span>
-<span id="cb27-34"><a href="#cb27-34"></a>          coord = coords + (coord_size * (coord_offset[ring_id] + point_id));</span>
-<span id="cb27-35"><a href="#cb27-35"></a>          Rprintf(</span>
-<span id="cb27-36"><a href="#cb27-36"></a>            <span class="st">"multipolygon[%d]-&gt;polygon[%d]-&gt;ring[%d]-&gt;point[%d] (%g %g)</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb27-37"><a href="#cb27-37"></a>            multi_id, poly_id, ring_id, point_id, coord[<span class="dv">0</span>], coord[<span class="dv">1</span>]);</span>
-<span id="cb27-38"><a href="#cb27-38"></a>        }</span>
-<span id="cb27-39"><a href="#cb27-39"></a>      }</span>
-<span id="cb27-40"><a href="#cb27-40"></a>    } </span>
-<span id="cb27-41"><a href="#cb27-41"></a>  }</span>
-<span id="cb27-42"><a href="#cb27-42"></a>  </span>
-<span id="cb27-43"><a href="#cb27-43"></a>  <span class="cf">return</span> R_NilValue;</span>
-<span id="cb27-44"><a href="#cb27-44"></a>}</span></code></pre></div>
+<span id="cb27-28"><a href="#cb27-28"></a></span>
+<span id="cb27-29"><a href="#cb27-29"></a>      <span class="cf">for</span> (<span class="dt">int32_t</span> ring_id = <span class="dv">0</span>; ring_id &lt; n_rings; ring_id++) {</span>
+<span id="cb27-30"><a href="#cb27-30"></a>        <span class="dt">int32_t</span> n_coords = coord_offset[ring_id + <span class="dv">1</span>] - coord_offset[ring_id];</span>
+<span id="cb27-31"><a href="#cb27-31"></a></span>
+<span id="cb27-32"><a href="#cb27-32"></a>        <span class="cf">for</span> (<span class="dt">int32_t</span> point_id = <span class="dv">0</span>; point_id &lt; n_coords; point_id++) {</span>
+<span id="cb27-33"><a href="#cb27-33"></a>          coord = coords + (coord_size * (coord_offset[ring_id] + point_id));</span>
+<span id="cb27-34"><a href="#cb27-34"></a>          Rprintf(</span>
+<span id="cb27-35"><a href="#cb27-35"></a>            <span class="st">"multipolygon[%d]-&gt;polygon[%d]-&gt;ring[%d]-&gt;point[%d] (%g %g)</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb27-36"><a href="#cb27-36"></a>            multi_id, poly_id, ring_id, point_id, coord[<span class="dv">0</span>], coord[<span class="dv">1</span>]);</span>
+<span id="cb27-37"><a href="#cb27-37"></a>        }</span>
+<span id="cb27-38"><a href="#cb27-38"></a>      }</span>
+<span id="cb27-39"><a href="#cb27-39"></a>    }</span>
+<span id="cb27-40"><a href="#cb27-40"></a>  }</span>
+<span id="cb27-41"><a href="#cb27-41"></a></span>
+<span id="cb27-42"><a href="#cb27-42"></a>  <span class="cf">return</span> R_NilValue;</span>
+<span id="cb27-43"><a href="#cb27-43"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">multipolygon_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
     <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
@@ -637,7 +635,7 @@
     <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
     <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
   <span class="op">)</span>
-  
+
   <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_multipolygon_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 
@@ -688,9 +686,9 @@
 <span id="cb31-3"><a href="#cb31-3"></a></span>
 <span id="cb31-4"><a href="#cb31-4"></a>SEXP c_dump_metadata(SEXP schema_xptr) {</span>
 <span id="cb31-5"><a href="#cb31-5"></a>  <span class="kw">struct</span> ArrowSchema* schema = schema_from_xptr(schema_xptr, <span class="st">"schema"</span>);</span>
-<span id="cb31-6"><a href="#cb31-6"></a>  </span>
+<span id="cb31-6"><a href="#cb31-6"></a></span>
 <span id="cb31-7"><a href="#cb31-7"></a>  <span class="dt">const</span> <span class="dt">char</span>* metadata = schema-&gt;metadata;</span>
-<span id="cb31-8"><a href="#cb31-8"></a>  </span>
+<span id="cb31-8"><a href="#cb31-8"></a></span>
 <span id="cb31-9"><a href="#cb31-9"></a>  <span class="dt">int64_t</span> pos = <span class="dv">0</span>;</span>
 <span id="cb31-10"><a href="#cb31-10"></a>  <span class="dt">int32_t</span> n, m, name_len, value_len;</span>
 <span id="cb31-11"><a href="#cb31-11"></a>  memcpy(&amp;n, metadata + pos, <span class="kw">sizeof</span>(<span class="dt">int32_t</span>));</span>
@@ -711,7 +709,7 @@
 <span id="cb31-26"><a href="#cb31-26"></a>        pos += value_len;</span>
 <span id="cb31-27"><a href="#cb31-27"></a></span>
 <span id="cb31-28"><a href="#cb31-28"></a>        Rprintf(<span class="st">"ARROW:extension:name: '%.*s'</span><span class="sc">\n</span><span class="st">"</span>, value_len, value);</span>
-<span id="cb31-29"><a href="#cb31-29"></a>        </span>
+<span id="cb31-29"><a href="#cb31-29"></a></span>
 <span id="cb31-30"><a href="#cb31-30"></a>    } <span class="cf">else</span> <span class="cf">if</span> (name_len &gt;= <span class="dv">24</span> &amp;&amp; strncmp(name, <span class="st">"ARROW:extension:metadata"</span>, <span class="dv">24</span>) == <span class="dv">0</span>) {</span>
 <span id="cb31-31"><a href="#cb31-31"></a>      memcpy(&amp;m, metadata + pos, <span class="kw">sizeof</span>(<span class="dt">int32_t</span>));</span>
 <span id="cb31-32"><a href="#cb31-32"></a>      pos += <span class="kw">sizeof</span>(<span class="dt">int32_t</span>);</span>
@@ -742,7 +740,7 @@
 <span id="cb31-57"><a href="#cb31-57"></a>      <span class="cf">continue</span>;</span>
 <span id="cb31-58"><a href="#cb31-58"></a>    }</span>
 <span id="cb31-59"><a href="#cb31-59"></a>  }</span>
-<span id="cb31-60"><a href="#cb31-60"></a>  </span>
+<span id="cb31-60"><a href="#cb31-60"></a></span>
 <span id="cb31-61"><a href="#cb31-61"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb31-62"><a href="#cb31-62"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
