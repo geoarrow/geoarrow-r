@@ -474,7 +474,10 @@ public:
   Handler::Result read_buffer(Handler* handler, const uint8_t* data, int64_t size) {
     s.setBuffer(reinterpret_cast<const char*>(data), size);
     try {
-      return readGeometryWithType(handler);
+      Handler::Result result;
+      HANDLE_OR_RETURN(readGeometryWithType(handler));
+      s.assertFinished();
+      return Handler::Result::CONTINUE;
     } catch(ParserException& e) {
       throw io::IOException("%s", e.what());
     }
@@ -507,7 +510,12 @@ private:
     }
 
     Handler::Result result;
-    HANDLE_OR_RETURN(handler->geom_start(meta_.geometry_type, -1));
+    if (meta_.is_empty) {
+      HANDLE_OR_RETURN(handler->geom_start(meta_.geometry_type, 0));
+    } else {
+      HANDLE_OR_RETURN(handler->geom_start(meta_.geometry_type, -1));
+    }
+
 
     switch (meta_.geometry_type) {
 
@@ -573,11 +581,11 @@ private:
 
     if (s.isNumber()) { // (0 0, 1 1)
       do {
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, -1));
-
         if (s.isEMPTY()) {
+          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 0));
           s.assertWord();
         } else {
+          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 1));
           HANDLE_OR_RETURN(this->readPointCoordinate(handler));
         }
         HANDLE_OR_RETURN(handler->geom_end());
@@ -585,7 +593,11 @@ private:
 
     } else { // ((0 0), (1 1))
       do {
-        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 1));
+        if (s.isEMPTY()) {
+          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 0));
+        } else {
+          HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POINT, 1));
+        }
         HANDLE_OR_RETURN(this->readPoint(handler));
         HANDLE_OR_RETURN(handler->geom_end());
       } while (s.assertOneOf(",)") != ')');
@@ -602,7 +614,11 @@ private:
     Handler::Result result;
 
     do {
-      HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::LINESTRING, -1));
+      if (s.isEMPTY()) {
+        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::LINESTRING, 0));
+      } else {
+        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::LINESTRING, -1));
+      }
       HANDLE_OR_RETURN(this->readLineString(handler));
       HANDLE_OR_RETURN(handler->geom_end());
     } while (s.assertOneOf(",)") != ')');
@@ -618,7 +634,11 @@ private:
     Handler::Result result;
 
     do {
-      HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::LINESTRING, -1));
+      if (s.isEMPTY()) {
+        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POLYGON, 0));
+      } else {
+        HANDLE_OR_RETURN(handler->geom_start(Meta::GeometryType::POLYGON, -1));
+      }
       HANDLE_OR_RETURN(this->readPolygon(handler));
       HANDLE_OR_RETURN(handler->geom_end());
     } while (s.assertOneOf(",)") != ')');

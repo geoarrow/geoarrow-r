@@ -130,10 +130,10 @@ test_that("WKT reader Z, ZM, and M prefixes are parsed", {
   )
 })
 
-test_that("WKT reader SRID prefixes are parsed", {
+test_that("WKT reader SRID prefixes are parsed (but dropped)", {
   expect_identical(
     wk::as_wkt(geoarrow_create_wkt("SRID=218;POINT (30 10)")),
-    wk::new_wk_wkt("SRID=218;POINT (30 10)")
+    wk::new_wk_wkt("POINT (30 10)")
   )
 })
 
@@ -226,10 +226,6 @@ test_that("Invalid WKT fails with reasonable error messages", {
   expect_error(wk::wk_void(geoarrow_create_wkt("LINESTRING (30")), "^Expected")
   expect_error(wk::wk_void(geoarrow_create_wkt("SRID=30A")), "^Expected")
   expect_error(wk::wk_void(geoarrow_create_wkt("SRID")), "^Expected")
-  expect_error(
-    wk::wk_void(geoarrow_create_wkt(strrep("a", 4096))),
-    "Expected a value with fewer than 4096 character"
-  )
 })
 
 
@@ -239,14 +235,17 @@ test_that("bad arrays error", {
     narrow::narrow_array_data(buffers = list(raw(1), raw(1))),
     validate = FALSE
   )
-  expect_error(wk::wk_void(arr_wkt), "width must be >= 0")
+  expect_error(wk::wk_void(arr_wkt), "to have width > 0")
 
   arr_wkt <- narrow::narrow_array(
     narrow::narrow_schema("i", metadata = list("ARROW:extension:name" = "geoarrow.wkt")),
     narrow::narrow_array_data(buffers = list(NULL, integer())),
     validate = FALSE
   )
-  expect_error(wk::wk_void(arr_wkt), "Can't handle schema format 'i'")
+  expect_error(
+    wk::wk_void(arr_wkt),
+    "Unsupported storage type for extension geoarrow.wkt"
+  )
 })
 
 test_that("large binary/unicode is supported", {
