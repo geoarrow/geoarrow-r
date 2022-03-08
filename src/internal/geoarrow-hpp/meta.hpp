@@ -401,6 +401,20 @@ class Meta {
             }
             break;
 
+        case Extension::WKT:
+            switch (storage_type_) {
+            case StorageType::Binary:
+            case StorageType::LargeBinary:
+            case StorageType::String:
+            case StorageType::LargeString:
+                break;
+            default:
+                set_error(
+                    "Expected geoarrow.wkt to be a string or large string but found '%s'",
+                    schema->format);
+            }
+            break;
+
         default:
             break;
         }
