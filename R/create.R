@@ -43,13 +43,6 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 
   if (identical(extension, "geoarrow.wkt")) {
     return(geoarrow_create_wkt_array(unclass(wk::as_wkt(handleable)), schema, strict = strict))
-  } else if (identical(extension, "geoarrow.geojson")) {
-    assert_geos_with_geojson()
-
-    geos_geom <- geos::as_geos_geometry(handleable)
-    geojson_geom <- geos::geos_write_geojson(geos_geom)
-
-    return(geoarrow_create_geojson_array(geojson_geom, schema, strict = strict))
   } else if (identical(extension, "geoarrow.wkb")) {
     return(geoarrow_create_wkb_array(unclass(wk::as_wkb(handleable)), schema, strict = strict))
   }
@@ -170,14 +163,6 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 geoarrow_create_wkt_array <- function(x, schema, strict = FALSE) {
   stopifnot(
     identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkt")
-  )
-
-  geoarrow_create_string_array(x, schema, strict = strict)
-}
-
-geoarrow_create_geojson_array <- function(x, schema, strict = FALSE) {
-  stopifnot(
-    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.geojson")
   )
 
   geoarrow_create_string_array(x, schema, strict = strict)

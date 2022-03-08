@@ -20,11 +20,6 @@ wk_handle.narrow_array <- function(handleable, handler, ...) {
 
   switch(
     extension,
-    "geoarrow.geojson" = {
-      assert_geos_with_geojson()
-      chr <- narrow::from_narrow_array(handleable, character())
-      wk::wk_handle(geos::geos_read_geojson(chr, crs = geo_metadata$crs), handler)
-    },
     "geoarrow.wkt" = ,
     "geoarrow.wkb" = ,
     "geoarrow.point" = ,

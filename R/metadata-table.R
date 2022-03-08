@@ -39,7 +39,6 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
       geodesic = identical(ext_meta$geodesic, "true"),
       encoding = "WKT"
     ),
-    "geoarrow.geojson" = list(crs = ext_meta$crs, encoding = "GeoJSON"),
     "geoarrow.point" = list(
       crs = ext_meta$crs,
       encoding = "point"
@@ -128,14 +127,6 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
       crs = crs_chr_or_null(crs),
       geodesic = geodesic
     ),
-    "GeoJSON" = {
-      stopifnot(identical(geodesic, FALSE))
-      geoarrow_schema_geojson(
-        name = schema$name,
-        format = schema$format,
-        crs = crs_chr_or_null(crs)
-      )
-    },
     "point" = {
       stopifnot(identical(geodesic, FALSE), !is.null(dim))
 
@@ -241,7 +232,6 @@ guess_column_encoding <- function(schema) {
       ext,
       "geoarrow.wkb" = return("WKB"),
       "geoarrow.wkt" = return("WKT"),
-      "geoarrow.geojson" = return("GeoJSON"),
       "geoarrow.point" = return("point"),
       "geoarrow.linestring" = return("linestring"),
       "geoarrow.polygon" = return("polygon"),

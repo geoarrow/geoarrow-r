@@ -1,7 +1,7 @@
 
 # nocov start
 .onLoad <- function(...) {
-  for (ext in c("wkb", "wkt", "geojson", "point", "linestring", "polygon", "multi")) {
+  for (ext in c("wkb", "wkt", "point", "linestring", "polygon", "multi")) {
     cls <- paste0("narrow_vctr_", ext)
     s3_register("vctrs::vec_proxy", cls, vctr_proxy)
     s3_register("vctrs::vec_restore", cls, vctr_restore)

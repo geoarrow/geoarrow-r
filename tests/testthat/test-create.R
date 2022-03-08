@@ -1,19 +1,4 @@
 
-test_that("geoarrow_create() works for geoarrow::geojson", {
-  array <- geoarrow_create(
-    wk::xy(1:2, 1:2),
-    schema = geoarrow_schema_geojson()
-  )
-
-  expect_identical(
-    narrow::from_narrow_array(array),
-    c(
-      "{\"type\":\"Point\",\"coordinates\":[1.0,1.0]}",
-      "{\"type\":\"Point\",\"coordinates\":[2.0,2.0]}"
-    )
-  )
-})
-
 test_that("geoarrow_create() works for geoarrow::wkt", {
   array <- geoarrow_create(
     wk::xy(1:2, 1:2),
@@ -207,21 +192,6 @@ test_that("wkt arrays can be created", {
   expect_identical(
     narrow::from_narrow_array(array),
     c("POINT (1 2)", "LINESTRING (1 2, 3 4)")
-  )
-})
-
-test_that("geojson arrays can be created", {
-  geojson_text <- c(
-    "{\"type\":\"Point\",\"coordinates\":[1.0,2.0]}",
-    "{\"type\":\"LineString\",\"coordinates\":[[1.0,2.0],[3.0,4.0]]}"
-  )
-  array <- geoarrow_create_geojson_array(
-    geojson_text,
-    schema = geoarrow_schema_geojson()
-  )
-  expect_identical(
-    narrow::from_narrow_array(array),
-    geojson_text
   )
 })
 

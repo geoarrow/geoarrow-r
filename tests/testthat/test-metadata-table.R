@@ -41,11 +41,6 @@ test_that("geoarrow_metadata_column() works for flat types", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_geojson()),
-    list(crs = NULL, encoding = "GeoJSON")
-  )
-
-  expect_mapequal(
     geoarrow_metadata_column(geoarrow_schema_point(dim = "xyz")),
     list(crs = NULL, encoding = "point")
   )
@@ -257,46 +252,6 @@ test_that("schema_from_column_metadata() works for WKB", {
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
       geoarrow_schema_wkb(format = "w:12")
-    )
-  )
-})
-
-test_that("schema_from_column_metadata() works for GeoJSON", {
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "GeoJSON"),
-    narrow::narrow_schema(name = "", format = "u")
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed),
-    narrow::narrow_schema_info(
-      geoarrow_schema_geojson()
-    )
-  )
-
-  # with crs
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = "EPSG:1234", encoding = "GeoJSON"),
-    narrow::narrow_schema(format = "u", name = "")
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed),
-    narrow::narrow_schema_info(
-      geoarrow_schema_geojson(crs = "EPSG:1234")
-    )
-  )
-
-  # non-default storage type
-  schema_reconstructed <- schema_from_column_metadata(
-    list(crs = NULL, encoding = "GeoJSON"),
-    narrow::narrow_schema(
-      format = "w:12",
-      name = ""
-    )
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed),
-    narrow::narrow_schema_info(
-      geoarrow_schema_geojson(format = "w:12")
     )
   )
 })

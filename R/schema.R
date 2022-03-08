@@ -213,14 +213,6 @@ geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = 
   )
 }
 
-#' @rdname geoarrow_schema_point
-#' @export
-geoarrow_schema_geojson <- function(name = "", format = "u", crs = NULL) {
-  schema <- geoarrow_schema_wkt(name, format, crs, NULL)
-  schema$metadata[["ARROW:extension:name"]] <- "geoarrow.geojson"
-  schema
-}
-
 format_is_id <- function(format_id) {
   isTRUE(scalar_chr(format_id) %in% c("i", "I", "l", "L", "s", "S", "c", "C"))
 }

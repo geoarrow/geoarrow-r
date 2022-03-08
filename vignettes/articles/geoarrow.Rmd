@@ -79,12 +79,12 @@ places %>%
 
 ## Using `geoarrow_collect()`
 
-Until this point, we have used `geoarrow_collect_sf()`. This is probably what you want, since the fantastic [sf](https://r-spatial.github.io/sf/) package is a feature-complete GIS designed to work well with GIS data in data.frame form. If you want to customize how geometry columns are converted into R objects, you can use `geoarrow_collect()` with a `handler`. For example, if you want to convert geometry to a `geos::geos_geometry()` directly without pivoting through sf, you can use `handler = geos::geos_geometry_writer`.
+Until this point, we have used `geoarrow_collect_sf()`. This is probably what you want, since the fantastic [sf](https://r-spatial.github.io/sf/) package is a feature-complete GIS designed to work well with GIS data in data.frame form. If you want to customize how geometry columns are converted into R objects, you can use `geoarrow_collect()` with a `handler`. For example, if you want to convert geometry to a `wk::wkb()` directly without pivoting through sf, you can use `handler = wk::wkb_writer`.
 
 ```{r}
 places %>% 
   head() %>% 
-  geoarrow_collect(handler = geos::geos_geometry_writer)
+  geoarrow_collect(handler = wk::wkb_writer)
 ```
 
 For large point data sets, it can be useful to represent geometry as a `wk::xy()`, which is a thin wrapper around `data.frame(x = c(), y = c())`. You can create these objects as geometry columns using `handler = wk::xy_writer`:

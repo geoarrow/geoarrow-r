@@ -130,14 +130,14 @@ You can access coordinate values as flat arrays using `wk_coords()`:
 wk::wk_coords(linestrings)
 ```
 
-The geoarrow package implements `wk::wk_handle()`, so you can use any handler or filter defined in any package. For example, you can apply an affine transform and create a `geos::geos_geometry()` vector in one step (with zero intermediary copies):
+The geoarrow package implements `wk::wk_handle()`, so you can use any handler or filter defined in any package. For example, you can apply an affine transform and create a `wk::wkb()` vector in one step (with zero intermediary copies):
 
 ```{r}
 wk::wk_handle(
   linestrings,
   wk::wk_transform_filter(
     trans = wk::wk_affine_rotate(90),
-    handler = geos::geos_geometry_writer()
+    handler = wk::wkb_writer()
   )
 )
 ```

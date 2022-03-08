@@ -62,8 +62,7 @@ geoarrow_schema_set_crs <- function(schema, crs) {
     extensions = c(
       "geoarrow.point",
       "geoarrow.wkt",
-      "geoarrow.wkb",
-      "geoarrow.geojson"
+      "geoarrow.wkb"
     )
   )
 }
