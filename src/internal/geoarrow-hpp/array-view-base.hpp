@@ -63,7 +63,7 @@ Handler::Result read_features_templ(TArrayView& view, Handler* handler) {
         return result;
     }
 
-    for (uint64_t i = 0; i < view.array_->length; i++) {
+    for (int64_t i = 0; i < view.array_->length; i++) {
         HANDLE_CONTINUE_OR_BREAK(view.read_feature(handler, i));
     }
 

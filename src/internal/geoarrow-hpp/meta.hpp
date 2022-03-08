@@ -93,7 +93,7 @@ class Meta {
             case util::StorageType::FixedWidthList:
                 strncpy(dim_, schema->children[0]->name, 4);
                 dimensions_ = dimensions_from_dim(dim_);
-                if (fixed_width_ != strlen(dim_)) {
+                if (fixed_width_ != static_cast<int>(strlen(dim_))) {
                     set_error(
                         "Expected geoarrow.point with dimensions '%s' to have width %d but found width %lld",
                         dim_, strlen(dim_), fixed_width_);
@@ -111,7 +111,7 @@ class Meta {
                 }
                 break;
             case util::StorageType::Struct:
-                for (uint64_t i = 0; i < schema->n_children; i++) {
+                for (int64_t i = 0; i < schema->n_children; i++) {
                     if (!child.set_schema(schema->children[i])) {
                         set_child_error(
                             child.error_,

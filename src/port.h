@@ -40,7 +40,7 @@
 #else
 
 #ifdef __cplusplus
-#include <cstdint.h>
+#include <cstdint>
 #else
 #include <stdint.h>
 #endif
