@@ -338,9 +338,9 @@
 </h3>
 <p>Just like WKB, multipoints, multilinestrings, multipolygons, and geometrycollections share a common encoding but have different identifiers.</p>
 <ul>
-<li>Multipoint geometries have an <code>ARROW:extension:name</code> of “geoarrow.multipoint” and must contain a child named “points” with the “geoarrow.point” extension type.</li>
-<li>Multilinestring geometries have an <code>ARROW:extension:name</code> of “geoarrow.multilinestring” and must contain a child named “linestrings” with the “geoarrow.linestring” extension type.</li>
-<li>Multipolygon geometries have an <code>ARROW:extension:name</code> of “geoarrow.multipolygon” and must contain a child named “polygons” with the “geoarrow.polygon” extension type.</li>
+<li>Multipoint geometries have an <code>ARROW:extension:name</code> of “geoarrow.collectionpoint” and must contain a child named “points” with the “geoarrow.point” extension type.</li>
+<li>Multilinestring geometries have an <code>ARROW:extension:name</code> of “geoarrow.collectionlinestring” and must contain a child named “linestrings” with the “geoarrow.linestring” extension type.</li>
+<li>Multipolygon geometries have an <code>ARROW:extension:name</code> of “geoarrow.collectionpolygon” and must contain a child named “polygons” with the “geoarrow.polygon” extension type.</li>
 <li>Geometry collections (i.e., mixed arrays of points, lines, polygons, multipoints, multipolygons, and/or geometry collections) are not currently supported. For those who need to communicate these objects, use the “geoarrow.wkb” extension type. In the future, support for these will be added as unions (i.e., the child array will be a sparse or dense union of points, lines, polygons, multipoints, multilinestrings, and/or multipolygons).</li>
 </ul>
 <p>Collections do not carry extension metadata of their own (i.e., the CRS and geodesic flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).</p>
@@ -352,7 +352,7 @@
 
 <span class="va">carray</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">metadata</span>
 <span class="co">#&gt; $`ARROW:extension:name`</span>
-<span class="co">#&gt; [1] "geoarrow.multi"</span>
+<span class="co">#&gt; [1] "geoarrow.collection"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $`ARROW:extension:metadata`</span>
 <span class="co">#&gt; [1] 00 00 00 00</span></code></pre></div>
