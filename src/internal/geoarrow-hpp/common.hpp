@@ -51,10 +51,11 @@ namespace geoarrow {
 namespace util {
 
 enum Extension {
+    Geometry,
     Point,
     Linestring,
     Polygon,
-    Multi,
+    Collection,
     WKB,
     WKT,
     ExtensionOther,

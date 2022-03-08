@@ -259,7 +259,7 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   case util::Extension::Polygon:
     Rprintf("Extension: 'geoarrow.polygon'\n");
     break;
-  case util::Extension::Multi:
+  case util::Extension::Collection:
     Rprintf("Extension: 'geoarrow.collection'\n");
     break;
 

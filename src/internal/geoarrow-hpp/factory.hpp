@@ -272,7 +272,7 @@ ArrayView* create_view(struct ArrowSchema* schema) {
     case util::Extension::Polygon:
         return create_view_polygon(schema, geoarrow_meta);
 
-    case util::Extension::Multi:
+    case util::Extension::Collection:
         return create_view_multi(schema, geoarrow_meta);
 
     case util::Extension::WKB:

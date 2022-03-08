@@ -225,7 +225,7 @@ class Meta {
 
             break;
 
-        case util::Extension::Multi:
+        case util::Extension::Collection:
         switch (storage_type_) {
             case util::StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
@@ -417,7 +417,7 @@ class Meta {
                 } else if (value_len >= 16 && strncmp(value, "geoarrow.polygon", 16) == 0) {
                     extension_ = util::Extension::Polygon;
                 } else if (value_len >= 14 && strncmp(value, "geoarrow.collection", 14) == 0) {
-                    extension_ = util::Extension::Multi;
+                    extension_ = util::Extension::Collection;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 12) == 0) {
                     extension_ = util::Extension::WKB;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkt", 12) == 0) {
