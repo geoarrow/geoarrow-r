@@ -30,7 +30,7 @@ wk_handle.narrow_array <- function(handleable, handler, ...) {
     "geoarrow.point" = ,
     "geoarrow.linestring" = ,
     "geoarrow.polygon" = ,
-    "geoarrow.multi" = handle_geoarrow_point(handleable, handler),
+    "geoarrow.multi" = handle_geoarrow_wk(handleable, handler),
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }
@@ -52,7 +52,7 @@ wk_handle.narrow_array_stream <- function(handleable, handler, ...,
     "geoarrow.wkt" = ,
     "geoarrow.linestring" = ,
     "geoarrow.polygon" = ,
-    "geoarrow.multi" = handle_geoarrow_point_stream(handleable, handler, geoarrow_schema, geoarrow_n_features),
+    "geoarrow.multi" = handle_geoarrow_stream_wk(handleable, handler, geoarrow_schema, geoarrow_n_features),
     stop(sprintf("Unsupported extension type '%s'", extension), call. = FALSE)
   )
 }
@@ -61,6 +61,21 @@ wk_handle.narrow_array_stream <- function(handleable, handler, ...,
 #' @rdname wk_handle.narrow_array
 wk_handle.narrow_vctr_geoarrow <- function(handleable, handler, ...) {
   wk_handle(attr(handleable, "array", exact = TRUE), handler, ...)
+}
+
+handle_geoarrow_wk <- function(array, handler) {
+  handle_geoarrow_stream_wk(
+    narrow::as_narrow_array_stream(array),
+    handler,
+    array$schema,
+    n_features = array$array_data$length
+  )
+}
+
+handle_geoarrow_stream_wk <- function(array_stream, handler,
+                                      schema = narrow::narrow_array_stream_get_schema(array_stream),
+                                      n_features = NA_integer_) {
+  .Call(geoarrow_c_handle_wk, list(array_stream, schema, n_features), handler)
 }
 
 # for testing

@@ -180,7 +180,7 @@ void delete_array_view_xptr(SEXP array_view_xptr) {
     }
 }
 
-SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
+SEXP geoarrow_handle_wk(SEXP data, wk_handler_t* handler) {
     CPP_START
 
     struct ArrowArrayStream* array_stream = array_stream_from_xptr(VECTOR_ELT(data, 0), "handleable");
@@ -259,6 +259,6 @@ SEXP geoarrow_read_point(SEXP data, wk_handler_t* handler) {
 }
 
 
-extern "C" SEXP geoarrow_c_handle_point(SEXP data, SEXP handler_xptr) {
-  return wk_handler_run_xptr(&geoarrow_read_point, data, handler_xptr);
+extern "C" SEXP geoarrow_c_handle_wk(SEXP data, SEXP handler_xptr) {
+  return wk_handler_run_xptr(&geoarrow_handle_wk, data, handler_xptr);
 }
