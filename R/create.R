@@ -92,7 +92,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 
     return(array)
 
-  } else if (identical(extension, "geoarrow.collection")) {
+  } else if (startsWith(extension, "geoarrow.multi") || identical(extension, "geoarrow.geometrycollection")) {
     child_schema <- schema$children[[1]]
     sub_extension <- scalar_chr(child_schema$metadata[["ARROW:extension:name"]])
 
@@ -240,7 +240,7 @@ geoarrow_create_multipolygon_array <- function(coords, lengths, schema,
                                                  n = lapply(lengths, length),
                                                  strict = FALSE) {
   stopifnot(
-    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.collection"),
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.multipolygon"),
     length(lengths) == 3,
     length(n) == 3
   )
@@ -263,7 +263,7 @@ geoarrow_create_multilinestring_array <- function(coords, lengths, schema,
                                                   n = lapply(lengths, length),
                                                   strict = FALSE) {
   stopifnot(
-    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.collection"),
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.multilinestring"),
     length(lengths) == 2,
     length(n) == 2
   )
@@ -285,7 +285,7 @@ geoarrow_create_multilinestring_array <- function(coords, lengths, schema,
 geoarrow_create_multipoint_array <- function(coords, lengths, schema, n = length(lengths),
                                              strict = FALSE) {
   stopifnot(
-    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.collection")
+    identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.multipoint")
   )
 
   geoarrow_create_nested_list(

@@ -111,6 +111,20 @@ test_that("vctrs support works for all extensions", {
   expect_true(vctrs::vec_is(vctr))
   expect_s3_class(
     vctrs::vec_restore(vctrs::vec_proxy(vctr), vctr),
-    "narrow_vctr_geoarrow_collection"
+    "narrow_vctr_geoarrow_multipoint"
+  )
+
+  vctr <- as_geoarrow_vctr(wk::wkt(c("MULTILINESTRING ((1 2, 3 4))")))
+  expect_true(vctrs::vec_is(vctr))
+  expect_s3_class(
+    vctrs::vec_restore(vctrs::vec_proxy(vctr), vctr),
+    "narrow_vctr_geoarrow_multilinestring"
+  )
+
+  vctr <- as_geoarrow_vctr(wk::wkt(c("MULTIPOLYGON (((1 2, 3 4, 5 6, 1 2)))")))
+  expect_true(vctrs::vec_is(vctr))
+  expect_s3_class(
+    vctrs::vec_restore(vctrs::vec_proxy(vctr), vctr),
+    "narrow_vctr_geoarrow_multipolygon"
   )
 })

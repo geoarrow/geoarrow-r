@@ -141,7 +141,7 @@ test_that("geoarrow point reader works for multipolygon", {
   }
 })
 
-test_that("geoarrow.collection reader works for null features", {
+test_that("geoarrow.multi* reader works for null features", {
   features <- geoarrow_create(wk::wkt(c(NA, "MULTIPOLYGON (((0 0, 0 1, 1 0, 0 0)))")))
   expect_identical(is.na(wk::as_wkt(features)), c(TRUE, FALSE))
 })

@@ -178,20 +178,24 @@ geoarrow_schema_multipolygon <- function(child, name = "", edges = "planar",
 geoarrow_schema_collection <- function(child, name = "") {
   child_ext <- scalar_chr(child$metadata[["ARROW:extension:name"]])
   if (identical(child_ext, "geoarrow.point")) {
+    ext <- "geoarrow.multipoint"
     child$name <- "points"
   } else if (identical(child_ext, "geoarrow.linestring")) {
+    ext <- "geoarrow.multilinestring"
     child$name <- "linestrings"
   } else if (identical(child_ext, "geoarrow.polygon")) {
+    ext <- "geoarrow.multipolygon"
     child$name <- "polygons"
   } else {
-    "geometries"
+    ext <- "geoarrow.geometrycollection"
+    child$name <- "geometries"
   }
 
   narrow::narrow_schema(
     name = scalar_chr(name),
     format = "+l",
     metadata = list(
-      "ARROW:extension:name" = "geoarrow.collection",
+      "ARROW:extension:name" = ext,
       "ARROW:extension:metadata" = geoarrow_metadata_serialize()
     ),
     children = list(child)

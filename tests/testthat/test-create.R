@@ -742,7 +742,7 @@ test_that("geoarrow_schema_default() works with all geometry types", {
   schema_multipoint <- geoarrow_schema_default(wk::wkt("MULTIPOINT (1 1, 2 2)"))
   expect_identical(
     schema_multipoint$metadata[["ARROW:extension:name"]],
-    "geoarrow.collection"
+    "geoarrow.multipoint"
   )
   expect_identical(
     schema_multipoint$children[[1]]$metadata[["ARROW:extension:name"]],
@@ -752,7 +752,7 @@ test_that("geoarrow_schema_default() works with all geometry types", {
   schema_multilinestring <- geoarrow_schema_default(wk::wkt("MULTILINESTRING ((1 1, 2 2))"))
   expect_identical(
     schema_multilinestring$metadata[["ARROW:extension:name"]],
-    "geoarrow.collection"
+    "geoarrow.multilinestring"
   )
   expect_identical(
     schema_multilinestring$children[[1]]$metadata[["ARROW:extension:name"]],
@@ -762,7 +762,7 @@ test_that("geoarrow_schema_default() works with all geometry types", {
   schema_multipolygon <- geoarrow_schema_default(wk::wkt("MULTIPOLYGON (((0 0, 1 1, 0 1, 0 0)))"))
   expect_identical(
     schema_multipolygon$metadata[["ARROW:extension:name"]],
-    "geoarrow.collection"
+    "geoarrow.multipolygon"
   )
   expect_identical(
     schema_multipolygon$children[[1]]$metadata[["ARROW:extension:name"]],
