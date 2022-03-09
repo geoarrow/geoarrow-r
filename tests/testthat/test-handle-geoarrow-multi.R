@@ -18,7 +18,7 @@ test_that("geoarrow point reader works for multipoint", {
 
       features_array <- geoarrow_create(
         features,
-        schema = geoarrow_schema_multi(
+        schema = geoarrow_schema_collection(
           point_schema(dim = coord_dim),
         ),
         strict = TRUE

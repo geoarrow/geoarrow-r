@@ -9,7 +9,7 @@
 \alias{geoarrow_schema_multipoint_struct}
 \alias{geoarrow_schema_multilinestring}
 \alias{geoarrow_schema_multipolygon}
-\alias{geoarrow_schema_multi}
+\alias{geoarrow_schema_collection}
 \alias{geoarrow_schema_wkb}
 \alias{geoarrow_schema_wkt}
 \title{Create low-level Arrow schemas}
@@ -65,7 +65,7 @@ geoarrow_schema_multipolygon(
   point = geoarrow_schema_point()
 )
 
-geoarrow_schema_multi(child, name = "")
+geoarrow_schema_collection(child, name = "")
 
 geoarrow_schema_wkb(name = "", format = "z", crs = NULL, edges = "planar")
 
@@ -104,6 +104,6 @@ These schemas are used as the basis for column types in Apache Arrow
 geoarrow_schema_point()
 geoarrow_schema_linestring()
 geoarrow_schema_polygon()
-geoarrow_schema_multi(geoarrow_schema_point())
+geoarrow_schema_collection(geoarrow_schema_point())
 
 }

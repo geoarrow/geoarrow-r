@@ -596,7 +596,7 @@ geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, poin
     point,
     geoarrow_schema_linestring(point = point),
     geoarrow_schema_polygon(),
-    geoarrow_schema_multi(point),
+    geoarrow_schema_collection(point),
     geoarrow_schema_multilinestring(point = point),
     geoarrow_schema_multipolygon(point = point),
     # fall back to WKB for collections or mixed types

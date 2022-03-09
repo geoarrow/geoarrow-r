@@ -25,7 +25,7 @@
 #' geoarrow_schema_point()
 #' geoarrow_schema_linestring()
 #' geoarrow_schema_polygon()
-#' geoarrow_schema_multi(geoarrow_schema_point())
+#' geoarrow_schema_collection(geoarrow_schema_point())
 #'
 geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
                                   format_coord = "g") {
@@ -119,7 +119,7 @@ geoarrow_schema_polygon <- function(name = "", edges = "planar",
 #' @export
 geoarrow_schema_multipoint <- function(child, name = "", dim = "xy",
                                        crs = NULL, format_coord = "g") {
-  geoarrow_schema_multi(
+  geoarrow_schema_collection(
     geoarrow_schema_point(
       name = "points",
       dim = dim,
@@ -134,7 +134,7 @@ geoarrow_schema_multipoint <- function(child, name = "", dim = "xy",
 #' @export
 geoarrow_schema_multipoint_struct <- function(child, name = "", dim = "xy",
                                               crs = NULL, format_coord = "g") {
-  geoarrow_schema_multi(
+  geoarrow_schema_collection(
     geoarrow_schema_point_struct(
       name = "points",
       dim = dim,
@@ -149,7 +149,7 @@ geoarrow_schema_multipoint_struct <- function(child, name = "", dim = "xy",
 #' @export
 geoarrow_schema_multilinestring <- function(child, name = "", edges = "planar",
                                             point = geoarrow_schema_point()) {
-  geoarrow_schema_multi(
+  geoarrow_schema_collection(
     geoarrow_schema_linestring(
       name = "linestrings",
       edges = edges,
@@ -163,7 +163,7 @@ geoarrow_schema_multilinestring <- function(child, name = "", edges = "planar",
 #' @export
 geoarrow_schema_multipolygon <- function(child, name = "", edges = "planar",
                                          point = geoarrow_schema_point()) {
-  geoarrow_schema_multi(
+  geoarrow_schema_collection(
     geoarrow_schema_polygon(
       name = "polygons",
       edges = edges,
@@ -175,7 +175,7 @@ geoarrow_schema_multipolygon <- function(child, name = "", edges = "planar",
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multi <- function(child, name = "") {
+geoarrow_schema_collection <- function(child, name = "") {
   child_ext <- scalar_chr(child$metadata[["ARROW:extension:name"]])
   if (identical(child_ext, "geoarrow.point")) {
     child$name <- "points"

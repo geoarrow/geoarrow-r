@@ -184,7 +184,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
     },
     "multipoint" = {
       stopifnot(identical(schema$format, "+l"))
-      geoarrow_schema_multi(
+      geoarrow_schema_collection(
         name = schema$name,
         child = schema_from_column_metadata(
           list(encoding = "point"),
@@ -196,7 +196,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
     },
     "multilinestring" = {
       stopifnot(identical(schema$format, "+l"), !is.null(dim))
-      geoarrow_schema_multi(
+      geoarrow_schema_collection(
         name = schema$name,
         child = schema_from_column_metadata(
           list(encoding = "linestring"),
@@ -208,7 +208,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
     },
     "multipolygon" = {
       stopifnot(identical(schema$format, "+l"), !is.null(dim))
-      geoarrow_schema_multi(
+      geoarrow_schema_collection(
         name = schema$name,
         child = schema_from_column_metadata(
           list(encoding = "polygon"),

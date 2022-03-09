@@ -167,7 +167,7 @@ test_that("geoarrow_create() errors for invalid schemas", {
   expect_error(
     geoarrow_create(
       wk::xy(),
-      schema = geoarrow_schema_multi(
+      schema = geoarrow_schema_collection(
         narrow::narrow_schema(
           "i",
           metadata = list("ARROW:extension:name" = "not an extension")
