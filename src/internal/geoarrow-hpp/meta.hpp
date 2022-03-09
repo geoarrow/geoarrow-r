@@ -33,7 +33,7 @@ class Meta {
         expected_buffers_ = -1;
         nullable_ = false;
         extension_ = util::Extension::ExtensionNone;
-        geodesic_ = false;
+        edges_ = util::Edges::EdgesUnknown;
         crs_size_ = false;
         crs_ = nullptr;
         geometry_type_ = util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
@@ -170,6 +170,9 @@ class Meta {
                 dimensions_ = child.dimensions_;
                 crs_size_ = child.crs_size_;
                 crs_ = child.crs_;
+                if (edges_ == util::Edges::EdgesUnknown) {
+                    edges_ = util::Edges::Planar;
+                }
                 break;
 
             default:
@@ -214,6 +217,9 @@ class Meta {
                 dimensions_ = child.dimensions_;
                 crs_size_ = child.crs_size_;
                 crs_ = child.crs_;
+                if (edges_ == util::Edges::EdgesUnknown) {
+                    edges_ = util::Edges::Planar;
+                }
                 break;
 
             default:
@@ -254,7 +260,7 @@ class Meta {
                 dimensions_ = child.dimensions_;
                 crs_size_ = child.crs_size_;
                 crs_ = child.crs_;
-                geodesic_ = child.geodesic_;
+                edges_ = child.edges_;
                 break;
 
             default:
@@ -452,9 +458,11 @@ class Meta {
                     if (name_len >= 3 && strncmp(name, "crs", 3) == 0) {
                         crs_size_ = value_len;
                         crs_ = value;
-                    } else if (name_len >= 3 && strncmp(name, "geodesic", 3) == 0) {
-                        if (value_len >= 4 && strncmp(value, "true", 4) == 0) {
-                            geodesic_ = true;
+                    } else if (name_len >= 4 && strncmp(name, "edges", 4) == 0) {
+                        if (value_len >= 9 && strncmp(value, "spherical", 9) == 0) {
+                            edges_ = util::Edges::Spherical;
+                        } else if (value_len >= 11 && strncmp(value, "ellipsoidal", 11) == 0) {
+                            edges_ = util::Edges::Ellipsoidal;
                         }
                     }
                 }
@@ -486,7 +494,7 @@ class Meta {
 
     util::Extension extension_;
     char dim_[5];
-    bool geodesic_;
+    util::Edges edges_;
     int32_t crs_size_;
     const char* crs_;
 

@@ -91,6 +91,8 @@ enum GeometryType {
 
 enum Dimensions {DIMENSIONS_UNKNOWN = 0, XY = 1, XYZ = 2, XYM = 3, XYZM = 4};
 
+enum Edges {Planar, Spherical, Ellipsoidal, EdgesUnknown};
+
 }
 
 }
