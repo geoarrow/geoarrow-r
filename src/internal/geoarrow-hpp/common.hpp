@@ -58,7 +58,7 @@ enum Extension {
     MultiPoint,
     MultiLinestring,
     MultiPolygon,
-    Collection,
+    GeometryCollection,
     WKB,
     WKT,
     ExtensionOther,

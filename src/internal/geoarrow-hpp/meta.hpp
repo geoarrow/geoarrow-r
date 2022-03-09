@@ -234,13 +234,13 @@ class Meta {
         case util::Extension::MultiPoint:
         case util::Extension::MultiLinestring:
         case util::Extension::MultiPolygon:
-        case util::Extension::Collection:
+        case util::Extension::GeometryCollection:
         switch (storage_type_) {
             case util::StorageType::List:
                 if (!child.set_schema(schema->children[0])) {
                     set_child_error(
                         child.error_,
-                        "geoarrow.collection child has an invalid schema");
+                        "geoarrow.geometrycollection child has an invalid schema");
                     return false;
                 }
 
@@ -256,7 +256,7 @@ class Meta {
                     break;
                 default:
                     set_error(
-                        "Child of geoarrow.collection must be a geoarrow.point, geoarrow.linestring, or geoarrow.polygon");
+                        "Child of geoarrow.geometrycollection must be a geoarrow.point, geoarrow.linestring, or geoarrow.polygon");
                     return false;
                 }
 
@@ -268,7 +268,7 @@ class Meta {
 
             default:
                 set_error(
-                    "Expected geoarrow.collection to be a list but found '%s'",
+                    "Expected geoarrow.geometrycollection to be a list but found '%s'",
                     schema->format);
                 return false;
             }
@@ -431,8 +431,8 @@ class Meta {
                     extension_ = util::Extension::MultiLinestring;
                 } else if (value_len >= 21 && strncmp(value, "geoarrow.multipolygon", 21) == 0) {
                     extension_ = util::Extension::MultiPolygon;
-                } else if (value_len >= 14 && strncmp(value, "geoarrow.collection", 14) == 0) {
-                    extension_ = util::Extension::Collection;
+                } else if (value_len >= 14 && strncmp(value, "geoarrow.geometrycollection", 14) == 0) {
+                    extension_ = util::Extension::GeometryCollection;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 12) == 0) {
                     extension_ = util::Extension::WKB;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkt", 12) == 0) {
