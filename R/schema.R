@@ -132,6 +132,21 @@ geoarrow_schema_multipoint <- function(child, name = "", dim = "xy",
 
 #' @rdname geoarrow_schema_point
 #' @export
+geoarrow_schema_multipoint_struct <- function(child, name = "", dim = "xy",
+                                              crs = NULL, format_coord = "g") {
+  geoarrow_schema_multi(
+    geoarrow_schema_point_struct(
+      name = "points",
+      dim = dim,
+      crs = crs,
+      format_coord = format_coord
+    ),
+    name = name
+  )
+}
+
+#' @rdname geoarrow_schema_point
+#' @export
 geoarrow_schema_multilinestring <- function(child, name = "", edges = "planar",
                                             point = geoarrow_schema_point()) {
   geoarrow_schema_multi(

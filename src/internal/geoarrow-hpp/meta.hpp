@@ -231,6 +231,9 @@ class Meta {
 
             break;
 
+        case util::Extension::MultiPoint:
+        case util::Extension::MultiLinestring:
+        case util::Extension::MultiPolygon:
         case util::Extension::Collection:
         switch (storage_type_) {
             case util::StorageType::List:
@@ -422,6 +425,12 @@ class Meta {
                     extension_ = util::Extension::Linestring;
                 } else if (value_len >= 16 && strncmp(value, "geoarrow.polygon", 16) == 0) {
                     extension_ = util::Extension::Polygon;
+                } else if (value_len >= 19 && strncmp(value, "geoarrow.multipoint", 19) == 0) {
+                    extension_ = util::Extension::MultiPoint;
+                } else if (value_len >= 24 && strncmp(value, "geoarrow.multilinestring", 24) == 0) {
+                    extension_ = util::Extension::MultiLinestring;
+                } else if (value_len >= 21 && strncmp(value, "geoarrow.multipolygon", 21) == 0) {
+                    extension_ = util::Extension::MultiPolygon;
                 } else if (value_len >= 14 && strncmp(value, "geoarrow.collection", 14) == 0) {
                     extension_ = util::Extension::Collection;
                 } else if (value_len >= 12 && strncmp(value, "geoarrow.wkb", 12) == 0) {

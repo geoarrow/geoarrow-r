@@ -62,10 +62,8 @@ test_that("geoarrow point reader works for multilinestring", {
 
       features_array <- geoarrow_create(
         features,
-        schema = geoarrow_schema_multi(
-          geoarrow_schema_linestring(
-            point = point_schema(dim = coord_dim)
-          )
+        schema = geoarrow_schema_multilinestring(
+          point = point_schema(dim = coord_dim)
         ),
         strict = TRUE
       )
@@ -121,10 +119,8 @@ test_that("geoarrow point reader works for multipolygon", {
 
       features_array <- geoarrow_create(
         features,
-        schema = geoarrow_schema_multi(
-          geoarrow_schema_polygon(
-            point = point_schema(dim = coord_dim)
-          )
+        schema = geoarrow_schema_multipolygon(
+          point = point_schema(dim = coord_dim)
         ),
         strict = TRUE
       )
@@ -151,17 +147,17 @@ test_that("geoarrow.collection reader works for null features", {
 })
 
 test_that("geoarrow linestring reader errors for invalid schemas", {
-  schema <- geoarrow_schema_multi(geoarrow_schema_point())
+  schema <- geoarrow_schema_multipoint()
   schema$children[[1]] <- narrow::narrow_schema("+l")
   array <- narrow::narrow_array(schema, validate = FALSE)
   expect_error(wk::wk_void(array), "collection child has an invalid schema")
 
-  schema <- geoarrow_schema_multi(geoarrow_schema_point())
+  schema <- geoarrow_schema_multipoint()
   schema$children[[1]] <- narrow::narrow_schema("+l", children = list(narrow::narrow_schema("g")))
   array <- narrow::narrow_array(schema, validate = FALSE)
   expect_error(wk::wk_void(array), "must be a geoarrow.point, ")
 
-  schema <- geoarrow_schema_multi(geoarrow_schema_point())
+  schema <- geoarrow_schema_multipoint()
   schema$format <- "+L"
   array <- narrow::narrow_array(schema, validate = FALSE)
   expect_error(wk::wk_void(array), "collection to be a list")

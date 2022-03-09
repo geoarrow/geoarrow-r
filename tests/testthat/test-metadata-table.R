@@ -116,9 +116,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
 test_that("geoarrow_metadata_column() works for polygon", {
   expect_mapequal(
     geoarrow_metadata_column(
-      geoarrow_schema_multi(
-        geoarrow_schema_point()
-      )
+      geoarrow_schema_multipoint()
     ),
     list(
       crs = NULL,
@@ -128,9 +126,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
 
   expect_mapequal(
     geoarrow_metadata_column(
-      geoarrow_schema_multi(
-        geoarrow_schema_linestring(edges = "spherical")
-      )
+      geoarrow_schema_multilinestring(edges = "spherical")
     ),
     list(
       crs = NULL,
@@ -141,9 +137,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
 
   expect_mapequal(
     geoarrow_metadata_column(
-      geoarrow_schema_multi(
-        geoarrow_schema_point(crs = "EPSG:1234")
-      )
+      geoarrow_schema_multipoint(crs = "EPSG:1234")
     ),
     list(
       crs = "EPSG:1234",
@@ -500,7 +494,7 @@ test_that("schema_from_column_metadata() works for polygon", {
 })
 
 test_that("schema_from_column_metadata() works for multipoint", {
-  bare <- geoarrow_schema_multi(geoarrow_schema_point())
+  bare <- geoarrow_schema_multipoint()
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
   bare$children[[1]]$children[[1]]$metadata <- NULL
@@ -515,9 +509,7 @@ test_that("schema_from_column_metadata() works for multipoint", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_point()
-      ),
+      geoarrow_schema_multipoint(),
       recursive = TRUE
     )
   )
@@ -533,9 +525,7 @@ test_that("schema_from_column_metadata() works for multipoint", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_point(crs = "EPSG:1234")
-      ),
+      geoarrow_schema_multipoint(crs = "EPSG:1234"),
       recursive = TRUE
     )
   )
@@ -553,16 +543,14 @@ test_that("schema_from_column_metadata() works for multipoint", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_point(dim = "xyzm")
-      ),
+      geoarrow_schema_multipoint(dim = "xyzm"),
       recursive = TRUE
     )
   )
 })
 
 test_that("schema_from_column_metadata() works for multilinestring", {
-  bare <- geoarrow_schema_multi(geoarrow_schema_linestring())
+  bare <- geoarrow_schema_multilinestring()
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
   bare$children[[1]]$children[[1]]$metadata <- NULL
@@ -577,9 +565,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_linestring()
-      ),
+      geoarrow_schema_multilinestring(),
       recursive = TRUE
     )
   )
@@ -595,10 +581,8 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_linestring(
-          point = geoarrow_schema_point(crs = "EPSG:1234")
-        )
+      geoarrow_schema_multilinestring(
+        point = geoarrow_schema_point(crs = "EPSG:1234")
       ),
       recursive = TRUE
     )
@@ -617,10 +601,8 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_linestring(
-          point = geoarrow_schema_point(dim = "xyzm")
-        )
+      geoarrow_schema_multilinestring(
+        point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
     )
@@ -637,11 +619,9 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_linestring(
-          edges = "spherical",
-          point = geoarrow_schema_point(dim = "xyzm")
-        )
+      geoarrow_schema_multilinestring(
+        edges = "spherical",
+        point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
     )
@@ -649,7 +629,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
 })
 
 test_that("schema_from_column_metadata() works for multipolygon", {
-  bare <- geoarrow_schema_multi(geoarrow_schema_polygon())
+  bare <- geoarrow_schema_multipolygon()
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
   bare$children[[1]]$children[[1]]$metadata <- NULL
@@ -664,9 +644,7 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_polygon()
-      ),
+      geoarrow_schema_multipolygon(),
       recursive = TRUE
     )
   )
@@ -682,10 +660,8 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_polygon(
-          point = geoarrow_schema_point(crs = "EPSG:1234")
-        )
+      geoarrow_schema_multipolygon(
+        point = geoarrow_schema_point(crs = "EPSG:1234")
       ),
       recursive = TRUE
     )
@@ -704,10 +680,8 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_polygon(
-          point = geoarrow_schema_point(dim = "xyzm")
-        )
+      geoarrow_schema_multipolygon(
+        point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
     )
@@ -724,11 +698,9 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
-      geoarrow_schema_multi(
-        geoarrow_schema_polygon(
-          edges = "spherical",
-          point = geoarrow_schema_point(dim = "xyzm")
-        )
+      geoarrow_schema_multipolygon(
+        edges = "spherical",
+        point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
     )
