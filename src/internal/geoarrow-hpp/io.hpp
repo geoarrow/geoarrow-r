@@ -27,43 +27,11 @@ private:
   char error_[8096];
 };
 
-// The SimpleBufferSource is a wrapper around an in-memory buffer of bytes used
-// as a basis for input. Rather than a base class, readers template along a class
-// with an identical `fill_buffer()` method.
-class SimpleBufferSource {
-public:
-  SimpleBufferSource(): data_(nullptr), size_(0), offset_(0) {}
-
-  void set_buffer(const uint8_t* str, int64_t size) {
-    data_ = str;
-    size_ = size;
-    offset_ = 0;
-  }
-
-  int64_t fill_buffer(uint8_t* buffer, int64_t max_size) {
-    int64_t copy_size = std::min<int64_t>(size_ - offset_, max_size);
-    if (copy_size > 0) {
-      memcpy(buffer, data_ + offset_, copy_size);
-      offset_ += copy_size;
-      return copy_size;
-    } else {
-      return 0;
-    }
-  }
-
-private:
-  const uint8_t* data_;
-  int64_t size_;
-  int64_t offset_;
-};
-
-// The SimpleBufferSink is a wrapper around an in-memory buffer of bytes used
-// as a basis for input. Rather than a base class, readers template along a class
-// with an identical `write()` method.
+template<typename T>
 class SimpleBufferSink {
 public:
   SimpleBufferSink(int64_t size): data_(nullptr), size_(size), offset_(0) {
-    data_ = reinterpret_cast<uint8_t*>(malloc(size));
+    data_ = reinterpret_cast<T*>(malloc(size));
     if (data_ == nullptr) {
       throw std::runtime_error("Failed to allocate SimpleBufferSink::data_");
     }
@@ -75,10 +43,10 @@ public:
     }
   }
 
-  void write(uint8_t* buffer, int64_t size) {
+  void write(T* buffer, int64_t size) {
     while ((offset_ + size) >= size_) {
       int64_t new_size = (size_ + 1) * 1.5;
-      uint8_t* new_str = reinterpret_cast<uint8_t*>(realloc(data_, new_size));
+      T* new_str = reinterpret_cast<T*>(realloc(data_, new_size));
       if (new_str == nullptr) {
         throw std::runtime_error("Failed to reallocate SimpleBufferSink::data_");
       }
@@ -91,18 +59,18 @@ public:
     offset_ += size;
   }
 
-  const uint8_t* data() {
+  const T* data() {
     return data_;
   }
 
-  uint8_t* release() {
-    uint8_t* out = data_;
+  T* release() {
+    T* out = data_;
     data_ = nullptr;
     return out;
   }
 
 private:
-  uint8_t* data_;
+  T* data_;
   int64_t size_;
   int64_t offset_;
 };
