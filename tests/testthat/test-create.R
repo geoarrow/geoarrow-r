@@ -71,9 +71,7 @@ test_that("geoarrow_create() works for geoarrow::polygon", {
 test_that("geoarrow_create() works for geoarrow::multi / geoarrow::point", {
   array <- geoarrow_create(
     wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (4 5, 6 7, 8 9)")),
-    schema = geoarrow_schema_multi(
-      geoarrow_schema_point_struct()
-    )
+    schema = geoarrow_schema_multipoint_struct()
   )
 
   expect_identical(
@@ -89,10 +87,8 @@ test_that("geoarrow_create() works for geoarrow::multi / geoarrow::linestring", 
       c("MULTILINESTRING ((0 1, 2 3))",
         "MULTILINESTRING ((4 5, 6 7, 8 9), (10 11, 12 13))")
     ),
-    schema = geoarrow_schema_multi(
-      geoarrow_schema_linestring(
-        point = geoarrow_schema_point_struct()
-      )
+    schema = geoarrow_schema_multilinestring(
+      point = geoarrow_schema_point_struct()
     )
   )
 
@@ -115,10 +111,8 @@ test_that("geoarrow_create() works for goearrow::multi / geoarrow::polygon", {
 
   poly <- geoarrow_create(
     wk::wkt(poly_text),
-    schema = geoarrow_schema_multi(
-      geoarrow_schema_polygon(
-        point = geoarrow_schema_point_struct()
-      )
+    schema = geoarrow_schema_multipolygon(
+      point = geoarrow_schema_point_struct()
     ),
     strict = TRUE
   )
@@ -331,10 +325,8 @@ test_that("multipolygons can be created", {
   poly <- geoarrow_create_multipolygon_array(
     wk::xy(poly_coords$x, poly_coords$y),
     list(c(2, 1), c(1, 1, 1), c(5, 4, 5)),
-    geoarrow_schema_multi(
-      geoarrow_schema_polygon(
-        point = geoarrow_schema_point_struct()
-      )
+    geoarrow_schema_multipolygon(
+      point = geoarrow_schema_point_struct()
     ),
     strict = TRUE
   )
@@ -377,10 +369,8 @@ test_that("multilinestrings can be created", {
   multi <- geoarrow_create_multilinestring_array(
     wk::xy(1:10, 11:20),
     list(c(2, 1), c(2, 3, 5)),
-    geoarrow_schema_multi(
-      geoarrow_schema_linestring(
-        point = geoarrow_schema_point_struct()
-      )
+    geoarrow_schema_multilinestring(
+      point = geoarrow_schema_point_struct()
     )
   )
   expect_null(multi$array_data$buffers[[1]])
@@ -408,7 +398,7 @@ test_that("multipoints can be created", {
   multi <- geoarrow_create_multipoint_array(
     wk::xy(1:10, 11:20),
     c(5, 5),
-    geoarrow_schema_multi(geoarrow_schema_point_struct()),
+    geoarrow_schema_multipoint_struct(),
     strict = TRUE
   )
   expect_null(multi$array_data$buffers[[1]])

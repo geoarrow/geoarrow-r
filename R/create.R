@@ -597,8 +597,8 @@ geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, poin
     geoarrow_schema_linestring(point = point),
     geoarrow_schema_polygon(),
     geoarrow_schema_multi(point),
-    geoarrow_schema_multi(geoarrow_schema_linestring(point = point)),
-    geoarrow_schema_multi(geoarrow_schema_polygon(point = point)),
+    geoarrow_schema_multilinestring(point = point),
+    geoarrow_schema_multipolygon(point = point),
     # fall back to WKB for collections or mixed types
     geoarrow_schema_wkb(),
     stop(sprintf("Unsupported geometry type ID '%d'", geometry_type), call. = FALSE) # nocov

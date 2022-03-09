@@ -6,6 +6,7 @@
 \alias{geoarrow_schema_linestring}
 \alias{geoarrow_schema_polygon}
 \alias{geoarrow_schema_multipoint}
+\alias{geoarrow_schema_multipoint_struct}
 \alias{geoarrow_schema_multilinestring}
 \alias{geoarrow_schema_multipolygon}
 \alias{geoarrow_schema_multi}
@@ -35,6 +36,14 @@ geoarrow_schema_polygon(
 )
 
 geoarrow_schema_multipoint(
+  child,
+  name = "",
+  dim = "xy",
+  crs = NULL,
+  format_coord = "g"
+)
+
+geoarrow_schema_multipoint_struct(
   child,
   name = "",
   dim = "xy",

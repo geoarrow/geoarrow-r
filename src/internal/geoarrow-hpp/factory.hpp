@@ -209,7 +209,7 @@ ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
 // autogen factory end
 
 
-ArrayView* create_view_multi(struct ArrowSchema* schema, Meta& multi_meta) {
+ArrayView* create_view_collection(struct ArrowSchema* schema, Meta& multi_meta) {
     Meta child_meta(schema->children[0]);
 
     switch (child_meta.extension_) {
@@ -272,8 +272,11 @@ ArrayView* create_view(struct ArrowSchema* schema) {
     case util::Extension::Polygon:
         return create_view_polygon(schema, geoarrow_meta);
 
+    case util::Extension::MultiPoint:
+    case util::Extension::MultiLinestring:
+    case util::Extension::MultiPolygon:
     case util::Extension::Collection:
-        return create_view_multi(schema, geoarrow_meta);
+        return create_view_collection(schema, geoarrow_meta);
 
     case util::Extension::WKB:
         return create_view_wkb(schema, geoarrow_meta);
