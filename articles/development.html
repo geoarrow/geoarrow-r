@@ -163,16 +163,16 @@
 <span class="co">#&gt; 3          1       1       0 40 40</span>
 <span class="co">#&gt; 4          2       2       0  0  0</span>
 <span class="co">#&gt; 5          2       2       0 10  5</span></code></pre></div>
-<p>The geoarrow package implements <code><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk::wk_handle()</a></code>, so you can use any handler or filter defined in any package. For example, you can apply an affine transform and create a <code><a href="https://paleolimbot.github.io/geos/reference/as_geos_geometry.html" class="external-link">geos::geos_geometry()</a></code> vector in one step (with zero intermediary copies):</p>
+<p>The geoarrow package implements <code><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk::wk_handle()</a></code>, so you can use any handler or filter defined in any package. For example, you can apply an affine transform and create a <code><a href="https://paleolimbot.github.io/wk/reference/wkb.html" class="external-link">wk::wkb()</a></code> vector in one step (with zero intermediary copies):</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk_handle</a></span><span class="op">(</span>
   <span class="va">linestrings</span>,
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_transform.html" class="external-link">wk_transform_filter</a></span><span class="op">(</span>
     trans <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_trans_affine.html" class="external-link">wk_affine_rotate</a></span><span class="op">(</span><span class="fl">90</span><span class="op">)</span>,
-    handler <span class="op">=</span> <span class="fu">geos</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/geos/reference/wk-methods.html" class="external-link">geos_geometry_writer</a></span><span class="op">(</span><span class="op">)</span>
+    handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">wkb_writer</a></span><span class="op">(</span><span class="op">)</span>
   <span class="op">)</span>
 <span class="op">)</span>
-<span class="co">#&gt; &lt;geos_geometry[2]&gt;</span>
+<span class="co">#&gt; &lt;wk_wkb[2]&gt;</span>
 <span class="co">#&gt; [1] &lt;LINESTRING (-10 30, -30 10, -40 40)&gt; &lt;LINESTRING (0 0, -5 10)&gt;</span></code></pre></div>
 <p>You can use the <code><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">wk::sfc_writer()</a></code> handler to generate sf objects. Note that when using the <code><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk::wk_handle()</a></code> interface, you will have to propagate the CRS and/or geodesic flags yourself. For a guide on how to write filters and handlers in C and C++, see the <a href="https://paleolimbot.github.io/wk/articles/programming.html" class="external-link">programming vignette</a> from the wk package.</p>
 <p>If you need geoarrow/arrow-specific metadata information, you can inspect the schemas directly using the list-like interface of schem aobjects. The most important thing you will have to check is the extension name, which will tell you which bit of compiled code you will need to safely access the array data.</p>
