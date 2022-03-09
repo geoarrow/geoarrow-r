@@ -25,12 +25,12 @@ library(arrow)
 
 All geoarrow arrays carry an extension type with a "geoarrow." prefix (via the field-level `ARROW:extension:name` metadata key) and extension metadata (via the field-level `ARROW:extension:metadata` key). The extension metadata contains key/value pairs encoded in the same format as specified for [metadata in the C data interface](https://arrow.apache.org/docs/format/CDataInterface.html#c.ArrowSchema.metadata). This format was chosen to allow readers to access this information without having to vendor a base64 decoder or JSON parser. Currently supported keys are:
 
-- `crs`: Contains a serialized version of the coordinate reference system in one of the CRS formats recognized by the PROJ engine (i.e., `proj_create_crs_to_crs()` in the C API or `projinfo -k crs` at the command-line). The `crs` key should be omitted if the `crs` is unknown (i.e., an empty string should not be used). The WKT2 or `AUTHORITY:CODE` formats are preferred. If sufficient, `AUTHORITY:CODE` should be used because this is easier to test for equality with another CRS. Values for the `crs` key should be authority compliant where possible (i.e., `OGC:CRS84` should be used in place of `EPSG:4326` unless latitude values are stored before longitude values). The string is interpreted using UTF-8 encoding.
-- `geodesic`: A value of `"true"` instructs readers that edges should be interpolated along an ellipsoidal path rather than a Cartesian one (i.e., for lossless conversion to and from [S2](https://s2geometry.io/) and/or [BigQuery geography](https://cloud.google.com/bigquery/docs/reference/standard-sql/geography_functions). The `geodesic` key must be `"true"` or the key should be omitted.
+- `crs`: Contains a serialized version of the coordinate reference system as WKT2 (previously known as WKT2:2019). The string is interpreted using UTF-8 encoding.
+- `edges`: A value of `"spherical"` instructs readers that edges should be interpolated along a spherical path rather than a Cartesian one (i.e., for lossless conversion to and from [S2](https://s2geometry.io/) and/or [BigQuery geography](https://cloud.google.com/bigquery/docs/reference/standard-sql/geography_functions); otherwise, edges will be interpreted as planar. The `edges` key must be `"spherical"` or the key should be omitted. A future value of "ellipsoidal" may be permitted if libraries to support such edges become available.
 
 The keys should appear in the order listed above. Empty metadata should be encoded as four zero bytes (i.e., the 32-bit integer `0x00 0x00 0x00 0x00`, indicating that there are zero metadata keys) rather than omitted. These constraints are in place to ensure that type equality can be checked without deserializing the `ARROW:extension:metadata` field.
 
-The `crs` key is only used for `geoarrow.point` arrays; the `geodesic` key is only used for `geoarrow.linestring` and `geoarrow.polygon` arrays. Practically this was chosen so that child arrays can be passed to functions and validated independently (i.e., without having to pass the crs/geodesic values down the call stack as extra arguments). Conceptually this was chosen to keep metadata confined to the array for which it is relevant.
+The `crs` key is only used for `geoarrow.point` arrays; the `edges` key is only used for `geoarrow.linestring` and `geoarrow.polygon` arrays. Practically this was chosen so that child arrays can be passed to functions and validated independently (i.e., without having to pass the crs/edges values down the call stack as extra arguments). Conceptually this was chosen to keep metadata confined to the array for which it is relevant.
 
 In geoarrow, you can view the decoded extension metadata using `geoarrow_metadata()`:
 
@@ -114,7 +114,7 @@ Future representations of points by the reference implementation will provide ef
 
 ### Metadata
 
-The field-level metadata for linestrings in geoarrow must contain an extension type of "geoarrow.linestring" and extension metadata specifying an optional "geodesic" flag (see parent 'Metadata' section above).
+The field-level metadata for linestrings in geoarrow must contain an extension type of "geoarrow.linestring" and extension metadata specifying an optional "edges" flag (see parent 'Metadata' section above).
 
 ```{r}
 carray <- geoarrow_create(
@@ -152,7 +152,7 @@ carray$array_data$children[[1]]$children[[1]]$buffers[[2]]
 
 ### Metadata
 
-The field-level metadata for polygons in geoarrow must contain an extension type of "geoarrow.polygon" and extension metadata specifying an optional "geodesic" flag (see parent 'Metadata' section above).
+The field-level metadata for polygons in geoarrow must contain an extension type of "geoarrow.polygon" and extension metadata specifying an optional "edges" flag (see parent 'Metadata' section above).
 
 ```{r}
 carray <- geoarrow_create(
@@ -198,7 +198,7 @@ Just like WKB, multipoints, multilinestrings, multipolygons, and geometrycollect
 - Multipolygon geometries have an `ARROW:extension:name` of "geoarrow.collectionpolygon" and must contain a child named "polygons" with the "geoarrow.polygon" extension type.
 - Geometry collections (i.e., mixed arrays of points, lines, polygons, multipoints, multipolygons, and/or geometry collections) are not currently supported. For those who need to communicate these objects, use the "geoarrow.wkb" extension type. In the future, support for these will be added as unions (i.e., the child array will be a sparse or dense union of points, lines, polygons, multipoints, multilinestrings, and/or multipolygons).
 
-Collections do not carry extension metadata of their own (i.e., the CRS and geodesic flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).
+Collections do not carry extension metadata of their own (i.e., the CRS and edges flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).
 
 ```{r}
 carray <- geoarrow_create(
