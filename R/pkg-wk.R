@@ -9,8 +9,8 @@ wk_crs.narrow_array <- function(x) {
 #' @export
 wk_is_geodesic.narrow_array <- function(x) {
   identical(
-    recursive_extract_narrow_schema(x$schema, "geodesic"),
-    "true"
+    recursive_extract_narrow_schema(x$schema, "edges"),
+    "spherical"
   )
 }
 
@@ -68,9 +68,11 @@ geoarrow_schema_set_crs <- function(schema, crs) {
 }
 
 geoarrow_schema_set_geodesic <- function(schema, geodesic) {
+  edges <- if (isTRUE(geodesic)) "spherical" else NULL
+
   recursive_modify_narrow_schema(
     schema,
-    geodesic = geodesic,
+    edges = edges,
     extensions = c(
       "geoarrow.linestring",
       "geoarrow.polygon",

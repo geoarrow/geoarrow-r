@@ -36,14 +36,14 @@ In geoarrow, you can view the decoded extension metadata using `geoarrow_metadat
 
 ```{r}
 geoarrow_metadata(geoarrow_schema_point(crs = "OGC:CRS84"))
-geoarrow_metadata(geoarrow_schema_linestring(geodesic = TRUE))
+geoarrow_metadata(geoarrow_schema_linestring(edges = "spherical"))
 ```
 
 The serialized metadata looks like this:
 
 ```{r}
 geoarrow_schema_point(crs = "OGC:CRS84")$metadata
-geoarrow_schema_linestring(geodesic = TRUE)$metadata
+geoarrow_schema_linestring(edges = "spherical")$metadata
 ```
 
 ## Points

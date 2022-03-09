@@ -31,12 +31,12 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
     ext_name,
     "geoarrow.wkb" = list(
       crs = ext_meta$crs,
-      geodesic = identical(ext_meta$geodesic, "true"),
+      edges = ext_meta$edges,
       encoding = "WKB"
     ),
     "geoarrow.wkt" = list(
       crs = ext_meta$crs,
-      geodesic = identical(ext_meta$geodesic, "true"),
+      edges = ext_meta$edges,
       encoding = "WKT"
     ),
     "geoarrow.point" = list(
@@ -45,24 +45,24 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
     ),
     "geoarrow.linestring" = list(
       crs = geoarrow_metadata(schema$children[[1]])$crs,
-      geodesic = identical(ext_meta$geodesic, "true"),
+      edges = ext_meta$edges,
       encoding = "linestring"
     ),
     "geoarrow.polygon" = list(
       crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs,
-      geodesic = identical(ext_meta$geodesic, "true"),
+      edges = ext_meta$edges,
       encoding = "polygon"
     ),
     "geoarrow.collection" = {
       child <- geoarrow_metadata_column(schema$children[[1]], include_crs = TRUE)
       crs <- child$crs
-      geodesic <- child$geodesic
+      edges <- child$edges
       child$crs <- NULL
-      child$geodesic <- NULL
+      child$edges <- NULL
 
       list(
         crs = crs,
-        geodesic = geodesic,
+        edges = edges,
         encoding = paste0("multi", child$encoding)
       )
     },
@@ -70,27 +70,27 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
   )
 
 
-  # don't include geodesic unless TRUE
-  if (!isTRUE(result$geodesic)) {
-    result$geodesic <- NULL
+  # don't include edges unless "spherical"
+  if (!identical(result$edges, "spherical")) {
+    result$edges <- NULL
   }
 
-  # don't include crs, geodesic, or dim if not top level
+  # don't include crs, edges, or dim if not top level
   if (!include_crs) {
     result$crs <- NULL
-    result$geodesic <- NULL
+    result$edges <- NULL
   }
 
   result
 }
 
-schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), geodesic = NULL) {
+schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), edges = NULL) {
   if (!is.null(schema$dictionary)) {
     schema$dictionary <- schema_from_column_metadata(
       meta,
       schema$dictionary,
       crs = crs,
-      geodesic = geodesic
+      edges = edges
     )
 
     return(schema)
@@ -105,12 +105,12 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
     crs <- guess_column_crs(schema)
   }
 
-  if (is.null(geodesic)) {
-    geodesic <- meta$geodesic
+  if (is.null(edges)) {
+    edges <- meta$edges
   }
 
-  if (is.null(geodesic)) {
-    geodesic <- FALSE
+  if (is.null(edges)) {
+    edges <- "planar"
   }
 
   switch(
@@ -119,16 +119,16 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
       name = schema$name,
       format = schema$format,
       crs = crs_chr_or_null(crs),
-      geodesic = geodesic
+      edges = edges
     ),
     "WKT" = geoarrow_schema_wkt(
       name = schema$name,
       format = schema$format,
       crs = crs_chr_or_null(crs),
-      geodesic = geodesic
+      edges = edges
     ),
     "point" = {
-      stopifnot(identical(geodesic, FALSE), !is.null(dim))
+      stopifnot(is.null(edges) || identical(edges, "planar"), !is.null(dim))
 
       if (identical(schema$format, "+s")) {
         stopifnot(identical(nchar(dim), length(schema$children)))
@@ -159,7 +159,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
       stopifnot(identical(schema$format, "+l"))
       geoarrow_schema_linestring(
         name = schema$name,
-        geodesic = geodesic,
+        edges = edges,
         point = schema_from_column_metadata(
           list(encoding = "point"),
           schema$children[[1]],
@@ -174,7 +174,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
       )
       geoarrow_schema_polygon(
         name = schema$name,
-        geodesic = geodesic,
+        edges = edges,
         point = schema_from_column_metadata(
           list(encoding = "point"),
           schema$children[[1]]$children[[1]],
@@ -190,7 +190,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
           list(encoding = "point"),
           schema$children[[1]],
           crs = crs,
-          geodesic = geodesic
+          edges = edges
         )
       )
     },
@@ -202,7 +202,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
           list(encoding = "linestring"),
           schema$children[[1]],
           crs = crs,
-          geodesic = geodesic
+          edges = edges
         )
       )
     },
@@ -214,7 +214,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), g
           list(encoding = "polygon"),
           schema$children[[1]],
           crs = crs,
-          geodesic = geodesic
+          edges = edges
         )
       )
     },

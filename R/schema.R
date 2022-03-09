@@ -7,7 +7,7 @@
 #'   representation is recommended as the most complete way to encode this
 #'   information; however, any string that can be recognized by the PROJ
 #'   command-line utility (e.g., "OGC:CRS84").
-#' @param geodesic Use `TRUE` to assert that edges should be interpolated
+#' @param edges Use "spherical" to assert that edges should be interpolated
 #'   using the shortest geodesic path (great circle on a sphere).
 #' @param dim A string with one character per dimension. The string must be one
 #'   of xy, xyz, xym, or xyzm.
@@ -77,7 +77,7 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
+geoarrow_schema_linestring <- function(name = "", edges = "planar",
                                        point = geoarrow_schema_point()) {
   point$name <- "vertices"
 
@@ -86,7 +86,7 @@ geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
     format = "+l",
     metadata = list(
       "ARROW:extension:name" = "geoarrow.linestring",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(edges = edges)
     ),
     children = list(point)
   )
@@ -94,7 +94,7 @@ geoarrow_schema_linestring <- function(name = "", geodesic = FALSE,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
+geoarrow_schema_polygon <- function(name = "", edges = "planar",
                                     point = geoarrow_schema_point()) {
   point$name <- "vertices"
 
@@ -103,7 +103,7 @@ geoarrow_schema_polygon <- function(name = "", geodesic = FALSE,
     format = "+l",
     metadata = list(
       "ARROW:extension:name" = "geoarrow.polygon",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(geodesic = geodesic)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(edges = edges)
     ),
     children = list(
       narrow::narrow_schema(
@@ -132,12 +132,12 @@ geoarrow_schema_multipoint <- function(child, name = "", dim = "xy",
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multilinestring <- function(child, name = "", geodesic = FALSE,
+geoarrow_schema_multilinestring <- function(child, name = "", edges = "planar",
                                             point = geoarrow_schema_point()) {
   geoarrow_schema_multi(
     geoarrow_schema_linestring(
       name = "linestrings",
-      geodesic = geodesic,
+      edges = edges,
       point = point
     ),
     name = name
@@ -146,12 +146,12 @@ geoarrow_schema_multilinestring <- function(child, name = "", geodesic = FALSE,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multipolygon <- function(child, name = "", geodesic = FALSE,
+geoarrow_schema_multipolygon <- function(child, name = "", edges = "planar",
                                          point = geoarrow_schema_point()) {
   geoarrow_schema_multi(
     geoarrow_schema_polygon(
       name = "polygons",
-      geodesic = geodesic,
+      edges = edges,
       point = point
     ),
     name = name
@@ -185,7 +185,7 @@ geoarrow_schema_multi <- function(child, name = "") {
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = FALSE) {
+geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, edges = "planar") {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z")))
 
   narrow::narrow_schema(
@@ -193,14 +193,14 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, geodesic = 
     format = format,
     metadata = list(
       "ARROW:extension:name" = "geoarrow.wkb",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, edges = edges)
     )
   )
 }
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = FALSE) {
+geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, edges = "planar") {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z", "u", "U")))
 
   narrow::narrow_schema(
@@ -208,7 +208,7 @@ geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, geodesic = 
     format = format,
     metadata = list(
       "ARROW:extension:name" = "geoarrow.wkt",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, geodesic = geodesic)
+      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, edges = edges)
     )
   )
 }

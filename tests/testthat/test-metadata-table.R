@@ -31,8 +31,8 @@ test_that("geoarrow_metadata_column() works for flat types", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_wkt(geodesic = TRUE)),
-    list(crs = NULL, geodesic = TRUE, encoding = "WKT")
+    geoarrow_metadata_column(geoarrow_schema_wkt(edges = "spherical")),
+    list(crs = NULL, edges = "spherical", encoding = "WKT")
   )
 
   expect_mapequal(
@@ -61,10 +61,10 @@ test_that("geoarrow_metadata_column() works for linestring", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_linestring(geodesic = TRUE)),
+    geoarrow_metadata_column(geoarrow_schema_linestring(edges = "spherical")),
     list(
       crs = NULL,
-      geodesic = TRUE,
+      edges = "spherical",
       encoding = "linestring"
     )
   )
@@ -92,10 +92,10 @@ test_that("geoarrow_metadata_column() works for polygon", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_polygon(geodesic = TRUE)),
+    geoarrow_metadata_column(geoarrow_schema_polygon(edges = "spherical")),
     list(
       crs = NULL,
-      geodesic = TRUE,
+      edges = "spherical",
       encoding = "polygon"
     )
   )
@@ -129,12 +129,12 @@ test_that("geoarrow_metadata_column() works for polygon", {
   expect_mapequal(
     geoarrow_metadata_column(
       geoarrow_schema_multi(
-        geoarrow_schema_linestring(geodesic = TRUE)
+        geoarrow_schema_linestring(edges = "spherical")
       )
     ),
     list(
       crs = NULL,
-      geodesic = TRUE,
+      edges = "spherical",
       encoding = "multilinestring"
     )
   )
@@ -178,13 +178,13 @@ test_that("schema_from_column_metadata() works for WKT", {
 
   # with geodesic
   schema_reconstructed <- schema_from_column_metadata(
-    list(geodesic = TRUE, encoding = "WKT"),
+    list(edges = "spherical", encoding = "WKT"),
     narrow::narrow_schema(format = "u", name = "")
   )
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkt(geodesic = TRUE)
+      geoarrow_schema_wkt(edges = "spherical")
     )
   )
 
@@ -230,13 +230,13 @@ test_that("schema_from_column_metadata() works for WKB", {
 
   # with geodesic
   schema_reconstructed <- schema_from_column_metadata(
-    list(geodesic = TRUE, encoding = "WKB"),
+    list(edges = "spherical", encoding = "WKB"),
     narrow::narrow_schema(format = "z", name = "")
   )
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkb(geodesic = TRUE)
+      geoarrow_schema_wkb(edges = "spherical")
     )
   )
 
@@ -405,7 +405,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   # with geodesic
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, geodesic = TRUE,
+      crs = NULL, edges = "spherical",
       encoding = "linestring"
     ),
     bare
@@ -414,7 +414,7 @@ test_that("schema_from_column_metadata() works for linestring", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_linestring(
-        geodesic = TRUE,
+        edges = "spherical",
         point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
@@ -482,7 +482,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   # with geodesic
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, geodesic = TRUE,
+      crs = NULL, edges = "spherical",
       encoding = "polygon"
     ),
     bare
@@ -491,7 +491,7 @@ test_that("schema_from_column_metadata() works for polygon", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_polygon(
-        geodesic = TRUE,
+        edges = "spherical",
         point = geoarrow_schema_point(dim = "xyzm")
       ),
       recursive = TRUE
@@ -629,7 +629,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   # with geodesic
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, geodesic = TRUE,
+      crs = NULL, edges = "spherical",
       encoding = "multilinestring"
     ),
     bare
@@ -639,7 +639,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
         geoarrow_schema_linestring(
-          geodesic = TRUE,
+          edges = "spherical",
           point = geoarrow_schema_point(dim = "xyzm")
         )
       ),
@@ -716,7 +716,7 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   # with geodesic
   schema_reconstructed <- schema_from_column_metadata(
     list(
-      crs = NULL, geodesic = TRUE,
+      crs = NULL, edges = "spherical",
       encoding = "multipolygon"
     ),
     bare
@@ -726,7 +726,7 @@ test_that("schema_from_column_metadata() works for multipolygon", {
     narrow::narrow_schema_info(
       geoarrow_schema_multi(
         geoarrow_schema_polygon(
-          geodesic = TRUE,
+          edges = "spherical",
           point = geoarrow_schema_point(dim = "xyzm")
         )
       ),

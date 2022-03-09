@@ -14,7 +14,7 @@ geoarrow_metadata <- function(schema) {
   if (is.null(serialized)) list() else geoarrow_metadata_deserialize(serialized)
 }
 
-geoarrow_set_metadata <- function(schema, crs, geodesic) {
+geoarrow_set_metadata <- function(schema, crs, geodesic, edges) {
   meta <- geoarrow_metadata(schema)
   if (!missing(crs)) {
     meta$crs <- crs
@@ -24,12 +24,16 @@ geoarrow_set_metadata <- function(schema, crs, geodesic) {
     meta$geodesic <- geodesic
   }
 
+  if (!missing(edges)) {
+    meta$edges <- edges
+  }
+
   serialized <- do.call(geoarrow_metadata_serialize, meta)
   schema$metadata[["ARROW:extension:metadata"]] <- serialized
   schema
 }
 
-geoarrow_metadata_serialize <- function(crs = NULL, geodesic = NULL) {
+geoarrow_metadata_serialize <- function(crs = NULL, geodesic = NULL, edges = NULL) {
   if (!is.null(geodesic)) {
     geodesic <- scalar_lgl(geodesic)
     geodesic <- if (geodesic) "true" else NULL
@@ -39,7 +43,7 @@ geoarrow_metadata_serialize <- function(crs = NULL, geodesic = NULL) {
     crs <- NULL
   }
 
-  vals <- list(crs = crs, geodesic = geodesic)
+  vals <- list(crs = crs, geodesic = geodesic, edges = edges)
   vals <- vals[!vapply(vals, is.null, logical(1))]
   vals <- lapply(vals, scalar_chr)
 

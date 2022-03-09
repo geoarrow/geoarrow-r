@@ -24,13 +24,13 @@ geoarrow_schema_point_struct(
 
 geoarrow_schema_linestring(
   name = "",
-  geodesic = FALSE,
+  edges = "planar",
   point = geoarrow_schema_point()
 )
 
 geoarrow_schema_polygon(
   name = "",
-  geodesic = FALSE,
+  edges = "planar",
   point = geoarrow_schema_point()
 )
 
@@ -45,22 +45,22 @@ geoarrow_schema_multipoint(
 geoarrow_schema_multilinestring(
   child,
   name = "",
-  geodesic = FALSE,
+  edges = "planar",
   point = geoarrow_schema_point()
 )
 
 geoarrow_schema_multipolygon(
   child,
   name = "",
-  geodesic = FALSE,
+  edges = "planar",
   point = geoarrow_schema_point()
 )
 
 geoarrow_schema_multi(child, name = "")
 
-geoarrow_schema_wkb(name = "", format = "z", crs = NULL, geodesic = FALSE)
+geoarrow_schema_wkb(name = "", format = "z", crs = NULL, edges = "planar")
 
-geoarrow_schema_wkt(name = "", format = "u", crs = NULL, geodesic = FALSE)
+geoarrow_schema_wkt(name = "", format = "u", crs = NULL, edges = "planar")
 }
 \arguments{
 \item{name}{An optional name}
@@ -76,7 +76,7 @@ command-line utility (e.g., "OGC:CRS84").}
 \item{format_coord}{A format for floating point coordinate storage. This
 can be "f" (float/float32) or "g" (double/float64).}
 
-\item{geodesic}{Use \code{TRUE} to assert that edges should be interpolated
+\item{edges}{Use "spherical" to assert that edges should be interpolated
 using the shortest geodesic path (great circle on a sphere).}
 
 \item{point}{The point schema to use for coordinates}
