@@ -1,6 +1,6 @@
 
-geoarrow_metadata_table <- function(schema, primary_column = NULL) {
-  columns <- lapply(schema$children, geoarrow_metadata_column, include_crs = TRUE)
+geoparquet_metadata <- function(schema, primary_column = NULL) {
+  columns <- lapply(schema$children, geoparquet_column_metadata, include_crs = TRUE)
   names(columns) <- vapply(schema$children, function(child) child$name, character(1))
   columns <- columns[!vapply(columns, is.null, logical(1))]
 
@@ -19,7 +19,7 @@ geoarrow_metadata_table <- function(schema, primary_column = NULL) {
   )
 }
 
-geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
+geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
   ext_name <- schema$metadata[["ARROW:extension:name"]]
   ext_meta <- geoarrow_metadata(schema)
 
@@ -57,7 +57,7 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
     "geoarrow.multilinestring" = ,
     "geoarrow.multipolygon" = ,
     "geoarrow.geometrycollection" = {
-      child <- geoarrow_metadata_column(schema$children[[1]], include_crs = TRUE)
+      child <- geoparquet_column_metadata(schema$children[[1]], include_crs = TRUE)
       crs <- child$crs
       edges <- child$edges
       child$crs <- NULL
@@ -87,9 +87,9 @@ geoarrow_metadata_column <- function(schema, include_crs = TRUE) {
   result
 }
 
-schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), edges = NULL) {
+schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(), edges = NULL) {
   if (!is.null(schema$dictionary)) {
-    schema$dictionary <- schema_from_column_metadata(
+    schema$dictionary <- schema_from_geoparquet_metadata(
       meta,
       schema$dictionary,
       crs = crs,
@@ -163,7 +163,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
       geoarrow_schema_linestring(
         name = schema$name,
         edges = edges,
-        point = schema_from_column_metadata(
+        point = schema_from_geoparquet_metadata(
           list(encoding = "point"),
           schema$children[[1]],
           crs = crs_chr_or_null(crs)
@@ -178,7 +178,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
       geoarrow_schema_polygon(
         name = schema$name,
         edges = edges,
-        point = schema_from_column_metadata(
+        point = schema_from_geoparquet_metadata(
           list(encoding = "point"),
           schema$children[[1]]$children[[1]],
           crs = crs_chr_or_null(crs)
@@ -189,7 +189,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
       stopifnot(identical(schema$format, "+l"))
       geoarrow_schema_collection(
         name = schema$name,
-        child = schema_from_column_metadata(
+        child = schema_from_geoparquet_metadata(
           list(encoding = "point"),
           schema$children[[1]],
           crs = crs,
@@ -201,7 +201,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
       stopifnot(identical(schema$format, "+l"), !is.null(dim))
       geoarrow_schema_collection(
         name = schema$name,
-        child = schema_from_column_metadata(
+        child = schema_from_geoparquet_metadata(
           list(encoding = "linestring"),
           schema$children[[1]],
           crs = crs,
@@ -213,7 +213,7 @@ schema_from_column_metadata <- function(meta, schema, crs = crs_unspecified(), e
       stopifnot(identical(schema$format, "+l"), !is.null(dim))
       geoarrow_schema_collection(
         name = schema$name,
-        child = schema_from_column_metadata(
+        child = schema_from_geoparquet_metadata(
           list(encoding = "polygon"),
           schema$children[[1]],
           crs = crs,

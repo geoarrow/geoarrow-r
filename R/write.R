@@ -74,7 +74,7 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE) {
   for (i in seq_along(handleable_schema$children)) {
     handleable_schema$children[[i]]$name <- names(arrays_handleable)[i]
   }
-  file_metadata <- geoarrow_metadata_table(handleable_schema)
+  file_metadata <- geoparquet_metadata(handleable_schema)
 
   # create the record batch before shipping to Arrow because this has a better
   # chance of keeping metadata associated with the type

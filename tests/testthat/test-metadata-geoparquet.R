@@ -1,6 +1,6 @@
 
-test_that("geoarrow_metadata_table() works", {
-  expect_error(geoarrow_metadata_table(narrow::narrow_schema("i")), "zero columns")
+test_that("geoparquet_metadata() works", {
+  expect_error(geoparquet_metadata(narrow::narrow_schema("i")), "zero columns")
 
   schema <- narrow::narrow_schema(
     format = "+s",
@@ -10,50 +10,50 @@ test_that("geoarrow_metadata_table() works", {
     )
   )
 
-  meta <- geoarrow_metadata_table(schema)
+  meta <- geoparquet_metadata(schema)
   expect_identical(meta$primary_column, "col1")
   expect_identical(meta$columns$col1$encoding, "WKB")
   expect_identical(meta$columns$col2$encoding, "WKT")
 
-  meta2 <- geoarrow_metadata_table(schema, primary_column = "col2")
+  meta2 <- geoparquet_metadata(schema, primary_column = "col2")
   expect_identical(meta2$primary_column, "col2")
 })
 
-test_that("geoarrow_metadata_column() works for flat types", {
+test_that("geoparquet_column_metadata() works for flat types", {
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_wkt()),
+    geoparquet_column_metadata(geoarrow_schema_wkt()),
     list(crs = NULL, encoding = "WKT")
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_wkt(crs = "EPSG:1234")),
+    geoparquet_column_metadata(geoarrow_schema_wkt(crs = "EPSG:1234")),
     list(crs = "EPSG:1234", encoding = "WKT")
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_wkt(edges = "spherical")),
+    geoparquet_column_metadata(geoarrow_schema_wkt(edges = "spherical")),
     list(crs = NULL, edges = "spherical", encoding = "WKT")
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_wkb()),
+    geoparquet_column_metadata(geoarrow_schema_wkb()),
     list(crs = NULL, encoding = "WKB")
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_point(dim = "xyz")),
+    geoparquet_column_metadata(geoarrow_schema_point(dim = "xyz")),
     list(crs = NULL, encoding = "point")
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_point(crs = "EPSG:1234")),
+    geoparquet_column_metadata(geoarrow_schema_point(crs = "EPSG:1234")),
     list(crs = "EPSG:1234", encoding = "point")
   )
 })
 
-test_that("geoarrow_metadata_column() works for linestring", {
+test_that("geoparquet_column_metadata() works for linestring", {
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_linestring()),
+    geoparquet_column_metadata(geoarrow_schema_linestring()),
     list(
       crs = NULL,
       encoding = "linestring"
@@ -61,7 +61,7 @@ test_that("geoarrow_metadata_column() works for linestring", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_linestring(edges = "spherical")),
+    geoparquet_column_metadata(geoarrow_schema_linestring(edges = "spherical")),
     list(
       crs = NULL,
       edges = "spherical",
@@ -70,7 +70,7 @@ test_that("geoarrow_metadata_column() works for linestring", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(
+    geoparquet_column_metadata(
       geoarrow_schema_linestring(
         point = geoarrow_schema_point(crs = "EPSG:1234")
       )
@@ -82,9 +82,9 @@ test_that("geoarrow_metadata_column() works for linestring", {
   )
 })
 
-test_that("geoarrow_metadata_column() works for polygon", {
+test_that("geoparquet_column_metadata() works for polygon", {
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_polygon()),
+    geoparquet_column_metadata(geoarrow_schema_polygon()),
     list(
       crs = NULL,
       encoding = "polygon"
@@ -92,7 +92,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(geoarrow_schema_polygon(edges = "spherical")),
+    geoparquet_column_metadata(geoarrow_schema_polygon(edges = "spherical")),
     list(
       crs = NULL,
       edges = "spherical",
@@ -101,7 +101,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(
+    geoparquet_column_metadata(
       geoarrow_schema_polygon(
         point = geoarrow_schema_point(crs = "EPSG:1234")
       )
@@ -113,9 +113,9 @@ test_that("geoarrow_metadata_column() works for polygon", {
   )
 })
 
-test_that("geoarrow_metadata_column() works for polygon", {
+test_that("geoparquet_column_metadata() works for polygon", {
   expect_mapequal(
-    geoarrow_metadata_column(
+    geoparquet_column_metadata(
       geoarrow_schema_multipoint()
     ),
     list(
@@ -125,7 +125,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(
+    geoparquet_column_metadata(
       geoarrow_schema_multilinestring(edges = "spherical")
     ),
     list(
@@ -136,7 +136,7 @@ test_that("geoarrow_metadata_column() works for polygon", {
   )
 
   expect_mapequal(
-    geoarrow_metadata_column(
+    geoparquet_column_metadata(
       geoarrow_schema_multipoint(crs = "EPSG:1234")
     ),
     list(
@@ -146,8 +146,8 @@ test_that("geoarrow_metadata_column() works for polygon", {
   )
 })
 
-test_that("schema_from_column_metadata() works for WKT", {
-  schema_reconstructed <- schema_from_column_metadata(
+test_that("schema_from_geoparquet_metadata() works for WKT", {
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = NULL, encoding = "WKT"),
     narrow::narrow_schema(name = "", format = "u")
   )
@@ -159,7 +159,7 @@ test_that("schema_from_column_metadata() works for WKT", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = "EPSG:1234", encoding = "WKT"),
     narrow::narrow_schema(format = "u", name = "")
   )
@@ -171,7 +171,7 @@ test_that("schema_from_column_metadata() works for WKT", {
   )
 
   # with geodesic
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(edges = "spherical", encoding = "WKT"),
     narrow::narrow_schema(format = "u", name = "")
   )
@@ -183,7 +183,7 @@ test_that("schema_from_column_metadata() works for WKT", {
   )
 
   # non-default storage type
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = NULL, encoding = "WKT"),
     narrow::narrow_schema(
       format = "w:12",
@@ -198,8 +198,8 @@ test_that("schema_from_column_metadata() works for WKT", {
   )
 })
 
-test_that("schema_from_column_metadata() works for WKB", {
-  schema_reconstructed <- schema_from_column_metadata(
+test_that("schema_from_geoparquet_metadata() works for WKB", {
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = NULL, encoding = "WKB"),
     narrow::narrow_schema(name = "", format = "z")
   )
@@ -211,7 +211,7 @@ test_that("schema_from_column_metadata() works for WKB", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = "EPSG:1234", encoding = "WKB"),
     narrow::narrow_schema(format = "z", name = "")
   )
@@ -223,7 +223,7 @@ test_that("schema_from_column_metadata() works for WKB", {
   )
 
   # with geodesic
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(edges = "spherical", encoding = "WKB"),
     narrow::narrow_schema(format = "z", name = "")
   )
@@ -235,7 +235,7 @@ test_that("schema_from_column_metadata() works for WKB", {
   )
 
   # non-default storage type
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = NULL, encoding = "WKB"),
     narrow::narrow_schema(
       format = "w:12",
@@ -250,11 +250,11 @@ test_that("schema_from_column_metadata() works for WKB", {
   )
 })
 
-test_that("schema_from_column_metadata() works for point", {
+test_that("schema_from_geoparquet_metadata() works for point", {
   bare_point <- geoarrow_schema_point(dim = "xy")
   bare_point$metadata <- NULL
 
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = NULL, encoding = "point"),
     bare_point
   )
@@ -267,7 +267,7 @@ test_that("schema_from_column_metadata() works for point", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = "EPSG:1234", encoding = "point"),
     bare_point
   )
@@ -282,7 +282,7 @@ test_that("schema_from_column_metadata() works for point", {
   # with dim
   bare_point$format <- "+w:4"
   bare_point$children[[1]]$name <- ""
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = "EPSG:1234", encoding = "point"),
     bare_point
   )
@@ -295,11 +295,11 @@ test_that("schema_from_column_metadata() works for point", {
   )
 })
 
-test_that("schema_from_column_metadata() works for point struct", {
+test_that("schema_from_geoparquet_metadata() works for point struct", {
   bare_point <- geoarrow_schema_point_struct(dim = "xy")
   bare_point$metadata <- NULL
 
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = NULL, encoding = "point"),
     bare_point
   )
@@ -312,7 +312,7 @@ test_that("schema_from_column_metadata() works for point struct", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = "EPSG:1234", encoding = "point"),
     bare_point
   )
@@ -326,7 +326,7 @@ test_that("schema_from_column_metadata() works for point struct", {
 
   # with dim
   bare_point$children <- lapply(1:4, function(x) narrow::narrow_schema("g"))
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = "EPSG:1234", encoding = "point"),
     bare_point
   )
@@ -339,11 +339,11 @@ test_that("schema_from_column_metadata() works for point struct", {
   )
 })
 
-test_that("schema_from_column_metadata() works for linestring", {
+test_that("schema_from_geoparquet_metadata() works for linestring", {
   bare <- geoarrow_schema_linestring()
   bare$metadata <- NULL
 
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "linestring"
@@ -359,7 +359,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
       encoding = "linestring"
@@ -379,7 +379,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   # with dim
   bare$children[[1]]$children[[1]]$name <- "xyzm"
   bare$children[[1]]$format <- "+w:4"
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "linestring"
@@ -397,7 +397,7 @@ test_that("schema_from_column_metadata() works for linestring", {
   )
 
   # with geodesic
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
       encoding = "linestring"
@@ -416,11 +416,11 @@ test_that("schema_from_column_metadata() works for linestring", {
   )
 })
 
-test_that("schema_from_column_metadata() works for polygon", {
+test_that("schema_from_geoparquet_metadata() works for polygon", {
   bare <- geoarrow_schema_polygon()
   bare$metadata <- NULL
 
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "polygon"
@@ -436,7 +436,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
       encoding = "polygon"
@@ -456,7 +456,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   # with dim
   bare$children[[1]]$children[[1]]$children[[1]]$name <- "xyzm"
   bare$children[[1]]$children[[1]]$format <- "+w:4"
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "polygon"
@@ -474,7 +474,7 @@ test_that("schema_from_column_metadata() works for polygon", {
   )
 
   # with geodesic
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
       encoding = "polygon"
@@ -493,13 +493,13 @@ test_that("schema_from_column_metadata() works for polygon", {
   )
 })
 
-test_that("schema_from_column_metadata() works for multipoint", {
+test_that("schema_from_geoparquet_metadata() works for multipoint", {
   bare <- geoarrow_schema_multipoint()
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
   bare$children[[1]]$children[[1]]$metadata <- NULL
 
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "multipoint"
@@ -515,7 +515,7 @@ test_that("schema_from_column_metadata() works for multipoint", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
       encoding = "multipoint"
@@ -533,7 +533,7 @@ test_that("schema_from_column_metadata() works for multipoint", {
   # with dim
   bare$children[[1]]$children[[1]]$name <- "xyzm"
   bare$children[[1]]$format <- "+w:4"
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "multipoint"
@@ -549,13 +549,13 @@ test_that("schema_from_column_metadata() works for multipoint", {
   )
 })
 
-test_that("schema_from_column_metadata() works for multilinestring", {
+test_that("schema_from_geoparquet_metadata() works for multilinestring", {
   bare <- geoarrow_schema_multilinestring()
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
   bare$children[[1]]$children[[1]]$metadata <- NULL
 
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "multilinestring"
@@ -571,7 +571,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
       encoding = "multilinestring"
@@ -591,7 +591,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   # with dim
   bare$children[[1]]$children[[1]]$children[[1]]$name <- "xyzm"
   bare$children[[1]]$children[[1]]$format <- "+w:4"
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "multilinestring"
@@ -609,7 +609,7 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   )
 
   # with geodesic
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
       encoding = "multilinestring"
@@ -628,13 +628,13 @@ test_that("schema_from_column_metadata() works for multilinestring", {
   )
 })
 
-test_that("schema_from_column_metadata() works for multipolygon", {
+test_that("schema_from_geoparquet_metadata() works for multipolygon", {
   bare <- geoarrow_schema_multipolygon()
   bare$metadata <- NULL
   bare$children[[1]]$metadata <- NULL
   bare$children[[1]]$children[[1]]$metadata <- NULL
 
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "multipolygon"
@@ -650,7 +650,7 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   )
 
   # with crs
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
       encoding = "multipolygon"
@@ -670,7 +670,7 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   # with dim
   bare$children[[1]]$children[[1]]$children[[1]]$children[[1]]$name <- "xyzm"
   bare$children[[1]]$children[[1]]$children[[1]]$format <- "+w:4"
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
       encoding = "multipolygon"
@@ -688,7 +688,7 @@ test_that("schema_from_column_metadata() works for multipolygon", {
   )
 
   # with geodesic
-  schema_reconstructed <- schema_from_column_metadata(
+  schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
       encoding = "multipolygon"

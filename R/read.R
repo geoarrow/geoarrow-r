@@ -143,7 +143,7 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
       if (identical(metadata$columns[[col_name]]$encoding, "::embedded::")) {
         geoarrow_schema <- narrow::as_narrow_schema(x$schema[[col_name]])
       } else {
-        geoarrow_schema <- schema_from_column_metadata(
+        geoarrow_schema <- schema_from_geoparquet_metadata(
           meta = metadata$columns[[col_name]],
           schema = narrow::as_narrow_schema(x$schema[[col_name]])
         )
