@@ -202,23 +202,23 @@
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">geometry</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="va"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">xy_writer</a></span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,255 × 2</span></span>
-<span class="co">#&gt;    name               geometry            </span>
-<span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;wk_xy&gt;</span>             </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Englebjerggård     (11.777372 55.20040)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Iglekærgård        (11.779017 55.19977)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Sibberup Østergård (11.800020 55.19469)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Boegård            (11.788049 55.18910)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Søbygård           (11.783189 55.18633)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Krogård            (11.777743 55.19016)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Korshøjgård        (11.815743 55.21096)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Dyssegård          (11.768147 55.20039)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Jernit             ( 9.922891 56.26500)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Styg Gårde         ( 8.393110 55.88779)</span>
+<span class="co">#&gt;    name           geometry            </span>
+<span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;wk_xy&gt;</span>             </span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Roskilde       (12.081925 55.64335)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Esbjerg        ( 8.452075 55.46649)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Randers        (10.037148 56.46175)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Kolding        ( 9.479050 55.48950)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Vejle          ( 9.533324 55.70001)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Aarhus         (10.213405 56.14963)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Odense         (10.385210 55.39972)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Horsens        ( 9.844477 55.86117)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Aalborg        ( 9.921526 57.04626)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Englebjerggård (11.777372 55.20040)</span>
 <span class="co">#&gt; <span style="color: #949494;"># … with 7,245 more rows</span></span>
 
 <span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">places_xy</span><span class="op">$</span><span class="va">geometry</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">xy</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>
-<span class="co">#&gt; [1] 11.77737 11.77902 11.80002 11.78805 11.78319 11.77774</span></code></pre></div>
+<span class="co">#&gt; [1] 12.081925  8.452075 10.037148  9.479050  9.533324 10.213405</span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
