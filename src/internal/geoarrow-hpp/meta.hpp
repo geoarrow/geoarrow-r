@@ -62,7 +62,7 @@ class Meta {
 
     bool schema_valid(const struct ArrowSchema* schema) {
         switch (storage_type_) {
-        case util::StorageType::FixedWidthList:
+        case util::StorageType::FixedSizeList:
             if (fixed_width_ <= 0) {
                 set_error("Expected fixed-size list to have size > 0 but got %lld", fixed_width_);
                 return false;
@@ -91,7 +91,7 @@ class Meta {
             geometry_type_ = util::GeometryType::POINT;
 
             switch (storage_type_) {
-            case util::StorageType::FixedWidthList:
+            case util::StorageType::FixedSizeList:
                 strncpy(dim_, schema->children[0]->name, 4);
                 dimensions_ = dimensions_from_dim(dim_);
                 if (fixed_width_ != static_cast<int>(strlen(dim_))) {
@@ -322,7 +322,7 @@ class Meta {
         }
 
         switch (storage_type_) {
-        case util::StorageType::FixedWidthList:
+        case util::StorageType::FixedSizeList:
         case util::StorageType::List:
         case util::StorageType::LargeList:
             if (array->n_children != 1) {
@@ -381,7 +381,7 @@ class Meta {
                 expected_buffers_ = 2;
                 break;
             case 'w':
-                storage_type_ = util::StorageType::FixedWidthList;
+                storage_type_ = util::StorageType::FixedSizeList;
                 fixed_width_ = atol(format + 3);
                 expected_buffers_ = 1;
                 break;

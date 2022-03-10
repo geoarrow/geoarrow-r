@@ -7,7 +7,7 @@ glue <- function(..., .envir = parent.frame(), .indent = "") {
 point_switch_template <- '
 
 switch (point_meta.storage_type_) {
-case util::StorageType::FixedWidthList:
+case util::StorageType::FixedSizeList:
     return new ${ type("PointArrayView") }(schema);
 
 case util::StorageType::Struct:

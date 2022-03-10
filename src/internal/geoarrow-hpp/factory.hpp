@@ -13,7 +13,7 @@ namespace {
 ArrayView* create_view_point(struct ArrowSchema* schema, Meta& point_meta) {
 
     switch (point_meta.storage_type_) {
-    case util::StorageType::FixedWidthList:
+    case util::StorageType::FixedSizeList:
         return new PointArrayView(schema);
 
     case util::StorageType::Struct:
@@ -35,7 +35,7 @@ ArrayView* create_view_linestring(struct ArrowSchema* schema,
     case util::StorageType::List:
 
             switch (point_meta.storage_type_) {
-            case util::StorageType::FixedWidthList:
+            case util::StorageType::FixedSizeList:
                 return new LinestringArrayView<PointArrayView>(schema);
 
             case util::StorageType::Struct:
@@ -67,7 +67,7 @@ ArrayView* create_view_polygon(struct ArrowSchema* schema, Meta& polygon_meta) {
             case util::StorageType::List:
 
                         switch (point_meta.storage_type_) {
-                        case util::StorageType::FixedWidthList:
+                        case util::StorageType::FixedSizeList:
                             return new PolygonArrayView<PointArrayView>(schema);
 
                         case util::StorageType::Struct:
@@ -102,7 +102,7 @@ ArrayView* create_view_multipoint(struct ArrowSchema* schema,
     switch (multi_meta.storage_type_) {
     case util::StorageType::List:
         switch (point_meta.storage_type_) {
-    case util::StorageType::FixedWidthList:
+    case util::StorageType::FixedSizeList:
         return new CollectionArrayView<PointArrayView>(schema);
 
     case util::StorageType::Struct:
@@ -133,7 +133,7 @@ ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
     case util::StorageType::List:
 
         switch (point_meta.storage_type_) {
-        case util::StorageType::FixedWidthList:
+        case util::StorageType::FixedSizeList:
             return new CollectionArrayView<LinestringArrayView<PointArrayView>>(schema);
 
         case util::StorageType::Struct:
@@ -174,7 +174,7 @@ ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
         case util::StorageType::List:
 
                 switch (point_meta.storage_type_) {
-                case util::StorageType::FixedWidthList:
+                case util::StorageType::FixedSizeList:
                     return new CollectionArrayView<PolygonArrayView<PointArrayView>>(schema);
 
                 case util::StorageType::Struct:

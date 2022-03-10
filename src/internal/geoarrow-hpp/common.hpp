@@ -73,7 +73,7 @@ enum StorageType {
     FixedWidthBinary,
     Binary,
     LargeBinary,
-    FixedWidthList,
+    FixedSizeList,
     Struct,
     List,
     LargeList,

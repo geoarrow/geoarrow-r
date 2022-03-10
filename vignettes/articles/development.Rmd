@@ -278,7 +278,7 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
   }
 
   switch(meta.storage_type_) {
-  case util::StorageType::FixedWidthList:
+  case util::StorageType::FixedSizeList:
     Rprintf("Storage type: fixed size list\n");
     break;
   case util::StorageType::Struct:
