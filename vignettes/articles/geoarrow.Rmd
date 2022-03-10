@@ -24,7 +24,7 @@ library(arrow)
 library(dplyr)
 library(geoarrow)
 
-places_folder <- system.file("denmark_osm/osm_places", package = "geoarrow")
+places_folder <- system.file("example_dataset/osm_places", package = "geoarrow")
 list.files(places_folder, recursive = TRUE)
 ```
 
