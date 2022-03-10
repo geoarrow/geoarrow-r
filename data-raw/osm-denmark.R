@@ -96,4 +96,4 @@ dir.create("inst/denmark_osm")
 
 arrow::open_dataset("data-raw/denmark_osm/osm_places.parquet") %>%
   dplyr::group_by(fclass) %>%
-  arrow::write_dataset("inst/denmark_osm/osm_places")
+  arrow::write_dataset("inst/example_dataset/osm_places")
