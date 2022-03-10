@@ -32,3 +32,6 @@ Suggests:
     sf
 Config/testthat/edition: 3
 URL: https://paleolimbot.github.io/geoarrow/
+Depends: 
+    R (>= 2.10)
+LazyData: true
