@@ -282,41 +282,50 @@
 <span id="cb14-23"><a href="#cb14-23"></a>  <span class="cf">case</span> util::Extension::Polygon:</span>
 <span id="cb14-24"><a href="#cb14-24"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.polygon'</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-25"><a href="#cb14-25"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-26"><a href="#cb14-26"></a>  <span class="cf">case</span> util::Extension::Collection:</span>
-<span id="cb14-27"><a href="#cb14-27"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.collection'</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-26"><a href="#cb14-26"></a>  <span class="cf">case</span> util::Extension::MultiPoint:</span>
+<span id="cb14-27"><a href="#cb14-27"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.multipoint'</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-28"><a href="#cb14-28"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-29"><a href="#cb14-29"></a></span>
-<span id="cb14-30"><a href="#cb14-30"></a>  <span class="cf">default</span>:</span>
-<span id="cb14-31"><a href="#cb14-31"></a>    Rprintf(<span class="st">"Extension: other</span><span class="sc">\n</span><span class="st">"</span>);</span>
-<span id="cb14-32"><a href="#cb14-32"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-33"><a href="#cb14-33"></a>  }</span>
-<span id="cb14-34"><a href="#cb14-34"></a></span>
-<span id="cb14-35"><a href="#cb14-35"></a>  <span class="cf">switch</span>(meta.<span class="va">storage_type_</span>) {</span>
-<span id="cb14-36"><a href="#cb14-36"></a>  <span class="cf">case</span> util::StorageType::FixedWidthList:</span>
-<span id="cb14-37"><a href="#cb14-37"></a>    Rprintf(<span class="st">"Storage type: fixed size list</span><span class="sc">\n</span><span class="st">"</span>);</span>
-<span id="cb14-38"><a href="#cb14-38"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-39"><a href="#cb14-39"></a>  <span class="cf">case</span> util::StorageType::Struct:</span>
-<span id="cb14-40"><a href="#cb14-40"></a>    Rprintf(<span class="st">"Storage type: struct</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-29"><a href="#cb14-29"></a>  <span class="cf">case</span> util::Extension::MultiLinestring:</span>
+<span id="cb14-30"><a href="#cb14-30"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.multilinestring'</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-31"><a href="#cb14-31"></a>    <span class="cf">break</span>;</span>
+<span id="cb14-32"><a href="#cb14-32"></a>  <span class="cf">case</span> util::Extension::MultiPolygon:</span>
+<span id="cb14-33"><a href="#cb14-33"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.multipolygon'</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-34"><a href="#cb14-34"></a>    <span class="cf">break</span>;</span>
+<span id="cb14-35"><a href="#cb14-35"></a>  <span class="cf">case</span> util::Extension::GeometryCollection:</span>
+<span id="cb14-36"><a href="#cb14-36"></a>    Rprintf(<span class="st">"Extension: 'geoarrow.geometrycollection'</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-37"><a href="#cb14-37"></a>    <span class="cf">break</span>;</span>
+<span id="cb14-38"><a href="#cb14-38"></a></span>
+<span id="cb14-39"><a href="#cb14-39"></a>  <span class="cf">default</span>:</span>
+<span id="cb14-40"><a href="#cb14-40"></a>    Rprintf(<span class="st">"Extension: other</span><span class="sc">\n</span><span class="st">"</span>);</span>
 <span id="cb14-41"><a href="#cb14-41"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-42"><a href="#cb14-42"></a>  <span class="cf">case</span> util::StorageType::List:</span>
-<span id="cb14-43"><a href="#cb14-43"></a>    Rprintf(<span class="st">"Storage type: list</span><span class="sc">\n</span><span class="st">"</span>);</span>
-<span id="cb14-44"><a href="#cb14-44"></a>    <span class="cf">break</span>;</span>
-<span id="cb14-45"><a href="#cb14-45"></a></span>
-<span id="cb14-46"><a href="#cb14-46"></a>  <span class="cf">default</span>:</span>
-<span id="cb14-47"><a href="#cb14-47"></a>    Rprintf(<span class="st">"Storage type: other</span><span class="sc">\n</span><span class="st">"</span>);</span>
-<span id="cb14-48"><a href="#cb14-48"></a>  }</span>
-<span id="cb14-49"><a href="#cb14-49"></a></span>
-<span id="cb14-50"><a href="#cb14-50"></a>  Rprintf(<span class="st">"Dimensions: '</span><span class="sc">%s</span><span class="st">'</span><span class="sc">\n</span><span class="st">"</span>, meta.<span class="va">dim_</span>);</span>
-<span id="cb14-51"><a href="#cb14-51"></a></span>
-<span id="cb14-52"><a href="#cb14-52"></a>  <span class="cf">if</span> (meta.<span class="va">crs_size_</span> &gt; <span class="dv">0</span>) {</span>
-<span id="cb14-53"><a href="#cb14-53"></a>    <span class="bu">std::</span>string crs(meta.<span class="va">crs_</span>, meta.<span class="va">crs_size_</span>);</span>
-<span id="cb14-54"><a href="#cb14-54"></a>    Rprintf(<span class="st">"CRS: '</span><span class="sc">%s</span><span class="st">'</span><span class="sc">\n</span><span class="st">"</span>, crs.c_str());</span>
-<span id="cb14-55"><a href="#cb14-55"></a>  }</span>
-<span id="cb14-56"><a href="#cb14-56"></a></span>
-<span id="cb14-57"><a href="#cb14-57"></a>  <span class="cf">if</span> (meta.<span class="va">geodesic_</span>) {</span>
-<span id="cb14-58"><a href="#cb14-58"></a>    Rprintf(<span class="st">"Geodesic!</span><span class="sc">\n</span><span class="st">"</span>);</span>
-<span id="cb14-59"><a href="#cb14-59"></a>  }</span>
-<span id="cb14-60"><a href="#cb14-60"></a>}</span></code></pre></div>
+<span id="cb14-42"><a href="#cb14-42"></a>  }</span>
+<span id="cb14-43"><a href="#cb14-43"></a></span>
+<span id="cb14-44"><a href="#cb14-44"></a>  <span class="cf">switch</span>(meta.<span class="va">storage_type_</span>) {</span>
+<span id="cb14-45"><a href="#cb14-45"></a>  <span class="cf">case</span> util::StorageType::FixedSizeList:</span>
+<span id="cb14-46"><a href="#cb14-46"></a>    Rprintf(<span class="st">"Storage type: fixed size list</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-47"><a href="#cb14-47"></a>    <span class="cf">break</span>;</span>
+<span id="cb14-48"><a href="#cb14-48"></a>  <span class="cf">case</span> util::StorageType::Struct:</span>
+<span id="cb14-49"><a href="#cb14-49"></a>    Rprintf(<span class="st">"Storage type: struct</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-50"><a href="#cb14-50"></a>    <span class="cf">break</span>;</span>
+<span id="cb14-51"><a href="#cb14-51"></a>  <span class="cf">case</span> util::StorageType::List:</span>
+<span id="cb14-52"><a href="#cb14-52"></a>    Rprintf(<span class="st">"Storage type: list</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-53"><a href="#cb14-53"></a>    <span class="cf">break</span>;</span>
+<span id="cb14-54"><a href="#cb14-54"></a></span>
+<span id="cb14-55"><a href="#cb14-55"></a>  <span class="cf">default</span>:</span>
+<span id="cb14-56"><a href="#cb14-56"></a>    Rprintf(<span class="st">"Storage type: other</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-57"><a href="#cb14-57"></a>  }</span>
+<span id="cb14-58"><a href="#cb14-58"></a></span>
+<span id="cb14-59"><a href="#cb14-59"></a>  Rprintf(<span class="st">"Dimensions: '</span><span class="sc">%s</span><span class="st">'</span><span class="sc">\n</span><span class="st">"</span>, meta.<span class="va">dim_</span>);</span>
+<span id="cb14-60"><a href="#cb14-60"></a></span>
+<span id="cb14-61"><a href="#cb14-61"></a>  <span class="cf">if</span> (meta.<span class="va">crs_size_</span> &gt; <span class="dv">0</span>) {</span>
+<span id="cb14-62"><a href="#cb14-62"></a>    <span class="bu">std::</span>string crs(meta.<span class="va">crs_</span>, meta.<span class="va">crs_size_</span>);</span>
+<span id="cb14-63"><a href="#cb14-63"></a>    Rprintf(<span class="st">"CRS: '</span><span class="sc">%s</span><span class="st">'</span><span class="sc">\n</span><span class="st">"</span>, crs.c_str());</span>
+<span id="cb14-64"><a href="#cb14-64"></a>  }</span>
+<span id="cb14-65"><a href="#cb14-65"></a></span>
+<span id="cb14-66"><a href="#cb14-66"></a>  <span class="cf">if</span> (meta.<span class="va">edges_</span> == util::Edges::Spherical) {</span>
+<span id="cb14-67"><a href="#cb14-67"></a>    Rprintf(<span class="st">"Spherical edges!</span><span class="sc">\n</span><span class="st">"</span>);</span>
+<span id="cb14-68"><a href="#cb14-68"></a>  }</span>
+<span id="cb14-69"><a href="#cb14-69"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">geoarrow_metadata_dump</span><span class="op">(</span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
 <span class="co">#&gt; Extension: 'geoarrow.point'</span>
@@ -336,7 +345,7 @@
 <span class="co">#&gt; Storage type: other</span>
 <span class="co">#&gt; Dimensions: 'xy'</span>
 <span class="co">#&gt; CRS: 'EPSG:1234'</span>
-<span class="co">#&gt; Geodesic!</span></code></pre></div>
+<span class="co">#&gt; Spherical edges!</span></code></pre></div>
 <p>This also will give a reasonable error for invalid objects:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">points_invalid</span> <span class="op">&lt;-</span> <span class="va">points</span>

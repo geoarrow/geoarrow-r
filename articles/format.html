@@ -84,20 +84,20 @@
 <p>All geoarrow arrays carry an extension type with a “geoarrow.” prefix (via the field-level <code>ARROW:extension:name</code> metadata key) and extension metadata (via the field-level <code>ARROW:extension:metadata</code> key). The extension metadata contains key/value pairs encoded in the same format as specified for <a href="https://arrow.apache.org/docs/format/CDataInterface.html#c.ArrowSchema.metadata" class="external-link">metadata in the C data interface</a>. This format was chosen to allow readers to access this information without having to vendor a base64 decoder or JSON parser. Currently supported keys are:</p>
 <ul>
 <li>
-<code>crs</code>: Contains a serialized version of the coordinate reference system in one of the CRS formats recognized by the PROJ engine (i.e., <code>proj_create_crs_to_crs()</code> in the C API or <code>projinfo -k crs</code> at the command-line). The <code>crs</code> key should be omitted if the <code>crs</code> is unknown (i.e., an empty string should not be used). The WKT2 or <code>AUTHORITY:CODE</code> formats are preferred. If sufficient, <code>AUTHORITY:CODE</code> should be used because this is easier to test for equality with another CRS. Values for the <code>crs</code> key should be authority compliant where possible (i.e., <code>OGC:CRS84</code> should be used in place of <code>EPSG:4326</code> unless latitude values are stored before longitude values). The string is interpreted using UTF-8 encoding.</li>
+<code>crs</code>: Contains a serialized version of the coordinate reference system as WKT2 (previously known as WKT2:2019). The string is interpreted using UTF-8 encoding.</li>
 <li>
-<code>geodesic</code>: A value of <code>"true"</code> instructs readers that edges should be interpolated along an ellipsoidal path rather than a Cartesian one (i.e., for lossless conversion to and from <a href="https://s2geometry.io/" class="external-link">S2</a> and/or <a href="https://cloud.google.com/bigquery/docs/reference/standard-sql/geography_functions" class="external-link">BigQuery geography</a>. The <code>geodesic</code> key must be <code>"true"</code> or the key should be omitted.</li>
+<code>edges</code>: A value of <code>"spherical"</code> instructs readers that edges should be interpolated along a spherical path rather than a Cartesian one (i.e., for lossless conversion to and from <a href="https://s2geometry.io/" class="external-link">S2</a> and/or <a href="https://cloud.google.com/bigquery/docs/reference/standard-sql/geography_functions" class="external-link">BigQuery geography</a>; otherwise, edges will be interpreted as planar. The <code>edges</code> key must be <code>"spherical"</code> or the key should be omitted. A future value of “ellipsoidal” may be permitted if libraries to support such edges become available.</li>
 </ul>
 <p>The keys should appear in the order listed above. Empty metadata should be encoded as four zero bytes (i.e., the 32-bit integer <code>0x00 0x00 0x00 0x00</code>, indicating that there are zero metadata keys) rather than omitted. These constraints are in place to ensure that type equality can be checked without deserializing the <code>ARROW:extension:metadata</code> field.</p>
-<p>The <code>crs</code> key is only used for <code>geoarrow.point</code> arrays; the <code>geodesic</code> key is only used for <code>geoarrow.linestring</code> and <code>geoarrow.polygon</code> arrays. Practically this was chosen so that child arrays can be passed to functions and validated independently (i.e., without having to pass the crs/geodesic values down the call stack as extra arguments). Conceptually this was chosen to keep metadata confined to the array for which it is relevant.</p>
+<p>The <code>crs</code> key is only used for <code>geoarrow.point</code> arrays; the <code>edges</code> key is only used for <code>geoarrow.linestring</code> and <code>geoarrow.polygon</code> arrays. Practically this was chosen so that child arrays can be passed to functions and validated independently (i.e., without having to pass the crs/edges values down the call stack as extra arguments). Conceptually this was chosen to keep metadata confined to the array for which it is relevant.</p>
 <p>In geoarrow, you can view the decoded extension metadata using <code><a href="../reference/geoarrow_metadata.html">geoarrow_metadata()</a></code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"OGC:CRS84"</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; $crs</span>
 <span class="co">#&gt; [1] "OGC:CRS84"</span>
-<span class="fu"><a href="../reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt; $geodesic</span>
-<span class="co">#&gt; [1] "true"</span></code></pre></div>
+<span class="fu"><a href="../reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span>edges <span class="op">=</span> <span class="st">"spherical"</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; $edges</span>
+<span class="co">#&gt; [1] "spherical"</span></code></pre></div>
 <p>The serialized metadata looks like this:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"OGC:CRS84"</span><span class="op">)</span><span class="op">$</span><span class="va">metadata</span>
@@ -106,12 +106,13 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $`ARROW:extension:metadata`</span>
 <span class="co">#&gt;  [1] 01 00 00 00 03 00 00 00 63 72 73 09 00 00 00 4f 47 43 3a 43 52 53 38 34</span>
-<span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">metadata</span>
+<span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span>edges <span class="op">=</span> <span class="st">"spherical"</span><span class="op">)</span><span class="op">$</span><span class="va">metadata</span>
 <span class="co">#&gt; $`ARROW:extension:name`</span>
 <span class="co">#&gt; [1] "geoarrow.linestring"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $`ARROW:extension:metadata`</span>
-<span class="co">#&gt;  [1] 01 00 00 00 08 00 00 00 67 65 6f 64 65 73 69 63 04 00 00 00 74 72 75 65</span></code></pre></div>
+<span class="co">#&gt;  [1] 01 00 00 00 05 00 00 00 65 64 67 65 73 09 00 00 00 73 70 68 65 72 69 63 61</span>
+<span class="co">#&gt; [26] 6c</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="points">Points<a class="anchor" aria-label="anchor" href="#points"></a>
@@ -207,7 +208,7 @@
 <div class="section level3">
 <h3 id="metadata-2">Metadata<a class="anchor" aria-label="anchor" href="#metadata-2"></a>
 </h3>
-<p>The field-level metadata for linestrings in geoarrow must contain an extension type of “geoarrow.linestring” and extension metadata specifying an optional “geodesic” flag (see parent ‘Metadata’ section above).</p>
+<p>The field-level metadata for linestrings in geoarrow must contain an extension type of “geoarrow.linestring” and extension metadata specifying an optional “edges” flag (see parent ‘Metadata’ section above).</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
@@ -219,10 +220,11 @@
 <span class="co">#&gt; [1] "geoarrow.linestring"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $`ARROW:extension:metadata`</span>
-<span class="co">#&gt;  [1] 01 00 00 00 08 00 00 00 67 65 6f 64 65 73 69 63 04 00 00 00 74 72 75 65</span>
+<span class="co">#&gt;  [1] 01 00 00 00 05 00 00 00 65 64 67 65 73 09 00 00 00 73 70 68 65 72 69 63 61</span>
+<span class="co">#&gt; [26] 6c</span>
 <span class="fu"><a href="../reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="va">carray</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; $geodesic</span>
-<span class="co">#&gt; [1] "true"</span></code></pre></div>
+<span class="co">#&gt; $edges</span>
+<span class="co">#&gt; [1] "spherical"</span></code></pre></div>
 <p>The coordinate reference system in geoarrow is always stored with the point array (i.e., the child array of a geoarrow.linestring).</p>
 </div>
 <div class="section level3">
@@ -265,7 +267,7 @@
 <div class="section level3">
 <h3 id="metadata-3">Metadata<a class="anchor" aria-label="anchor" href="#metadata-3"></a>
 </h3>
-<p>The field-level metadata for polygons in geoarrow must contain an extension type of “geoarrow.polygon” and extension metadata specifying an optional “geodesic” flag (see parent ‘Metadata’ section above).</p>
+<p>The field-level metadata for polygons in geoarrow must contain an extension type of “geoarrow.polygon” and extension metadata specifying an optional “edges” flag (see parent ‘Metadata’ section above).</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
@@ -277,10 +279,11 @@
 <span class="co">#&gt; [1] "geoarrow.polygon"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $`ARROW:extension:metadata`</span>
-<span class="co">#&gt;  [1] 01 00 00 00 08 00 00 00 67 65 6f 64 65 73 69 63 04 00 00 00 74 72 75 65</span>
+<span class="co">#&gt;  [1] 01 00 00 00 05 00 00 00 65 64 67 65 73 09 00 00 00 73 70 68 65 72 69 63 61</span>
+<span class="co">#&gt; [26] 6c</span>
 <span class="fu"><a href="../reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="va">carray</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; $geodesic</span>
-<span class="co">#&gt; [1] "true"</span></code></pre></div>
+<span class="co">#&gt; $edges</span>
+<span class="co">#&gt; [1] "spherical"</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="storage-type-2">Storage type<a class="anchor" aria-label="anchor" href="#storage-type-2"></a>
@@ -338,12 +341,12 @@
 </h3>
 <p>Just like WKB, multipoints, multilinestrings, multipolygons, and geometrycollections share a common encoding but have different identifiers.</p>
 <ul>
-<li>Multipoint geometries have an <code>ARROW:extension:name</code> of “geoarrow.collectionpoint” and must contain a child named “points” with the “geoarrow.point” extension type.</li>
-<li>Multilinestring geometries have an <code>ARROW:extension:name</code> of “geoarrow.collectionlinestring” and must contain a child named “linestrings” with the “geoarrow.linestring” extension type.</li>
-<li>Multipolygon geometries have an <code>ARROW:extension:name</code> of “geoarrow.collectionpolygon” and must contain a child named “polygons” with the “geoarrow.polygon” extension type.</li>
+<li>Multipoint geometries have an <code>ARROW:extension:name</code> of “geoarrow.multipoint” and must contain a child named “points” with the “geoarrow.point” extension type.</li>
+<li>Multilinestring geometries have an <code>ARROW:extension:name</code> of “geoarrow.multilinestring” and must contain a child named “linestrings” with the “geoarrow.linestring” extension type.</li>
+<li>Multipolygon geometries have an <code>ARROW:extension:name</code> of “geoarrow.multipolygon” and must contain a child named “polygons” with the “geoarrow.polygon” extension type.</li>
 <li>Geometry collections (i.e., mixed arrays of points, lines, polygons, multipoints, multipolygons, and/or geometry collections) are not currently supported. For those who need to communicate these objects, use the “geoarrow.wkb” extension type. In the future, support for these will be added as unions (i.e., the child array will be a sparse or dense union of points, lines, polygons, multipoints, multilinestrings, and/or multipolygons).</li>
 </ul>
-<p>Collections do not carry extension metadata of their own (i.e., the CRS and geodesic flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).</p>
+<p>Collections do not carry extension metadata of their own (i.e., the CRS and edges flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
@@ -352,7 +355,7 @@
 
 <span class="va">carray</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">metadata</span>
 <span class="co">#&gt; $`ARROW:extension:name`</span>
-<span class="co">#&gt; [1] "geoarrow.collection"</span>
+<span class="co">#&gt; [1] "geoarrow.multipoint"</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $`ARROW:extension:metadata`</span>
 <span class="co">#&gt; [1] 00 00 00 00</span></code></pre></div>
