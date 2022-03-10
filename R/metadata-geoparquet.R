@@ -41,17 +41,17 @@ geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
     ),
     "geoarrow.point" = list(
       crs = ext_meta$crs,
-      encoding = "point"
+      encoding = "geoarrow.point"
     ),
     "geoarrow.linestring" = list(
       crs = geoarrow_metadata(schema$children[[1]])$crs,
       edges = ext_meta$edges,
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     ),
     "geoarrow.polygon" = list(
       crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs,
       edges = ext_meta$edges,
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     ),
     "geoarrow.multipoint" = ,
     "geoarrow.multilinestring" = ,
@@ -66,7 +66,7 @@ geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
       list(
         crs = crs,
         edges = edges,
-        encoding = paste0("multi", child$encoding)
+        encoding = ext_name
       )
     },
     return(NULL)
@@ -130,7 +130,7 @@ schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(
       crs = crs_chr_or_null(crs),
       edges = edges
     ),
-    "point" = {
+    "geoarrow.point" = {
       stopifnot(is.null(edges) || identical(edges, "planar"), !is.null(dim))
 
       if (identical(schema$format, "+s")) {
@@ -158,19 +158,19 @@ schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(
         )
       }
     },
-    "linestring" = {
+    "geoarrow.linestring" = {
       stopifnot(identical(schema$format, "+l"))
       geoarrow_schema_linestring(
         name = schema$name,
         edges = edges,
         point = schema_from_geoparquet_metadata(
-          list(encoding = "point"),
+          list(encoding = "geoarrow.point"),
           schema$children[[1]],
           crs = crs_chr_or_null(crs)
         )
       )
     },
-    "polygon" = {
+    "geoarrow.polygon" = {
       stopifnot(
         identical(schema$format, "+l"),
         identical(schema$children[[1]]$format, "+l")
@@ -179,42 +179,42 @@ schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(
         name = schema$name,
         edges = edges,
         point = schema_from_geoparquet_metadata(
-          list(encoding = "point"),
+          list(encoding = "geoarrow.point"),
           schema$children[[1]]$children[[1]],
           crs = crs_chr_or_null(crs)
         )
       )
     },
-    "multipoint" = {
+    "geoarrow.multipoint" = {
       stopifnot(identical(schema$format, "+l"))
       geoarrow_schema_collection(
         name = schema$name,
         child = schema_from_geoparquet_metadata(
-          list(encoding = "point"),
+          list(encoding = "geoarrow.point"),
           schema$children[[1]],
           crs = crs,
           edges = edges
         )
       )
     },
-    "multilinestring" = {
+    "geoarrow.multilinestring" = {
       stopifnot(identical(schema$format, "+l"), !is.null(dim))
       geoarrow_schema_collection(
         name = schema$name,
         child = schema_from_geoparquet_metadata(
-          list(encoding = "linestring"),
+          list(encoding = "geoarrow.linestring"),
           schema$children[[1]],
           crs = crs,
           edges = edges
         )
       )
     },
-    "multipolygon" = {
+    "geoarrow.multipolygon" = {
       stopifnot(identical(schema$format, "+l"), !is.null(dim))
       geoarrow_schema_collection(
         name = schema$name,
         child = schema_from_geoparquet_metadata(
-          list(encoding = "polygon"),
+          list(encoding = "geoarrow.polygon"),
           schema$children[[1]],
           crs = crs,
           edges = edges
@@ -235,9 +235,9 @@ guess_column_encoding <- function(schema) {
       ext,
       "geoarrow.wkb" = return("WKB"),
       "geoarrow.wkt" = return("WKT"),
-      "geoarrow.point" = return("point"),
-      "geoarrow.linestring" = return("linestring"),
-      "geoarrow.polygon" = return("polygon"),
+      "geoarrow.point" = return("geoarrow.point"),
+      "geoarrow.linestring" = return("geoarrow.linestring"),
+      "geoarrow.polygon" = return("geoarrow.polygon"),
       "geoarrow.multipoint" = ,
       "geoarrow.multilinestring" = ,
       "geoarrow.multipolygon" = ,
@@ -245,10 +245,11 @@ guess_column_encoding <- function(schema) {
         child_encoding <- guess_column_encoding(schema$children[[1]])
         switch(
           child_encoding,
-          "point" = return("multipoint"),
-          "linestring" = return("multilinestring"),
-          "polygon" = return("multipolygon"),
-          stop(sprintf("Unsupported child encoding for multi: '%s'", child_encoding))
+          "geoarrow.point" = return("geoarrow.multipoint"),
+          "geoarrow.linestring" = return("geoarrow.multilinestring"),
+          "geoarrow.polygon" = return("geoarrow.multipolygon"),
+          "geoarrow.geometry" = return("geoarrow.geometrycollection"),
+          stop(sprintf("Unsupported child encoding for collection: '%s'", child_encoding))
         )
       }
     )
@@ -262,7 +263,7 @@ guess_column_encoding <- function(schema) {
   } else if (schema$format %in% c("+w:2", "+w:4")) {
     child_format <- schema$children[[1]]$format
     if (identical(child_format, "g") || identical(child_format, "f")) {
-      return("point")
+      return("geoarrow.point")
     }
   }
 
@@ -271,7 +272,7 @@ guess_column_encoding <- function(schema) {
   if (schema$format == "+s") {
      dims <- paste(child_names, collapse = "")
      if (dims %in% c("xy", "xyz", "xym", "xyzm")) {
-       return("point")
+       return("geoarrow.point")
      }
   } else if (length(child_names) == 1) {
     switch(
@@ -279,19 +280,20 @@ guess_column_encoding <- function(schema) {
       "xy" =,
       "xyz" =,
       "xym" =,
-      "xyzm" = return("point"),
-      "vertices" = return("linestring"),
-      "rings" = return("polygon"),
-      "points" = return("multipoint"),
-      "linestrings" = return("multilinestring"),
-      "polygons" = return("multipolygon"),
+      "xyzm" = return("geoarrow.point"),
+      "vertices" = return("geoarrow.linestring"),
+      "rings" = return("geoarrow.polygon"),
+      "points" = return("geoarrow.multipoint"),
+      "linestrings" = return("geoarrow.multilinestring"),
+      "polygons" = return("geoarrow.multipolygon"),
       "geometries" = {
         child_encoding <- guess_column_encoding(schema$children[[1]])
         switch(
           child_encoding,
-          "point" = return("multipoint"),
-          "linestring" = return("multilinestring"),
-          "polygon" = return("multipolygon")
+          "geoarrow.point" = return("geoarrow.multipoint"),
+          "geoarrow.linestring" = return("geoarrow.multilinestring"),
+          "geoarrow.polygon" = return("geoarrow.multipolygon"),
+          "geoarrow.geometry" = return("geoarrow.geometrycollection")
         )
       }
     )

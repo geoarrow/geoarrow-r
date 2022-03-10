@@ -42,12 +42,12 @@ test_that("geoparquet_column_metadata() works for flat types", {
 
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_point(dim = "xyz")),
-    list(crs = NULL, encoding = "point")
+    list(crs = NULL, encoding = "geoarrow.point")
   )
 
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_point(crs = "EPSG:1234")),
-    list(crs = "EPSG:1234", encoding = "point")
+    list(crs = "EPSG:1234", encoding = "geoarrow.point")
   )
 })
 
@@ -56,7 +56,7 @@ test_that("geoparquet_column_metadata() works for linestring", {
     geoparquet_column_metadata(geoarrow_schema_linestring()),
     list(
       crs = NULL,
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     )
   )
 
@@ -65,7 +65,7 @@ test_that("geoparquet_column_metadata() works for linestring", {
     list(
       crs = NULL,
       edges = "spherical",
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     )
   )
 
@@ -77,7 +77,7 @@ test_that("geoparquet_column_metadata() works for linestring", {
     ),
     list(
       crs = "EPSG:1234",
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     )
   )
 })
@@ -87,7 +87,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
     geoparquet_column_metadata(geoarrow_schema_polygon()),
     list(
       crs = NULL,
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     )
   )
 
@@ -96,7 +96,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
     list(
       crs = NULL,
       edges = "spherical",
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     )
   )
 
@@ -108,7 +108,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
     ),
     list(
       crs = "EPSG:1234",
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     )
   )
 })
@@ -120,7 +120,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
     ),
     list(
       crs = NULL,
-      encoding = "multipoint"
+      encoding = "geoarrow.multipoint"
     )
   )
 
@@ -131,7 +131,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
     list(
       crs = NULL,
       edges = "spherical",
-      encoding = "multilinestring"
+      encoding = "geoarrow.multilinestring"
     )
   )
 
@@ -141,7 +141,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
     ),
     list(
       crs = "EPSG:1234",
-      encoding = "multipoint"
+      encoding = "geoarrow.multipoint"
     )
   )
 })
@@ -255,7 +255,7 @@ test_that("schema_from_geoparquet_metadata() works for point", {
   bare_point$metadata <- NULL
 
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = NULL, encoding = "point"),
+    list(crs = NULL, encoding = "geoarrow.point"),
     bare_point
   )
   expect_identical(
@@ -268,7 +268,7 @@ test_that("schema_from_geoparquet_metadata() works for point", {
 
   # with crs
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = "EPSG:1234", encoding = "point"),
+    list(crs = "EPSG:1234", encoding = "geoarrow.point"),
     bare_point
   )
   expect_identical(
@@ -283,7 +283,7 @@ test_that("schema_from_geoparquet_metadata() works for point", {
   bare_point$format <- "+w:4"
   bare_point$children[[1]]$name <- ""
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = "EPSG:1234", encoding = "point"),
+    list(crs = "EPSG:1234", encoding = "geoarrow.point"),
     bare_point
   )
   expect_identical(
@@ -300,7 +300,7 @@ test_that("schema_from_geoparquet_metadata() works for point struct", {
   bare_point$metadata <- NULL
 
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = NULL, encoding = "point"),
+    list(crs = NULL, encoding = "geoarrow.point"),
     bare_point
   )
   expect_identical(
@@ -313,7 +313,7 @@ test_that("schema_from_geoparquet_metadata() works for point struct", {
 
   # with crs
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = "EPSG:1234", encoding = "point"),
+    list(crs = "EPSG:1234", encoding = "geoarrow.point"),
     bare_point
   )
   expect_identical(
@@ -327,7 +327,7 @@ test_that("schema_from_geoparquet_metadata() works for point struct", {
   # with dim
   bare_point$children <- lapply(1:4, function(x) narrow::narrow_schema("g"))
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = "EPSG:1234", encoding = "point"),
+    list(crs = "EPSG:1234", encoding = "geoarrow.point"),
     bare_point
   )
   expect_identical(
@@ -346,7 +346,7 @@ test_that("schema_from_geoparquet_metadata() works for linestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     ),
     bare
   )
@@ -362,7 +362,7 @@ test_that("schema_from_geoparquet_metadata() works for linestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     ),
     bare
   )
@@ -382,7 +382,7 @@ test_that("schema_from_geoparquet_metadata() works for linestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     ),
     bare
   )
@@ -400,7 +400,7 @@ test_that("schema_from_geoparquet_metadata() works for linestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
-      encoding = "linestring"
+      encoding = "geoarrow.linestring"
     ),
     bare
   )
@@ -423,7 +423,7 @@ test_that("schema_from_geoparquet_metadata() works for polygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     ),
     bare
   )
@@ -439,7 +439,7 @@ test_that("schema_from_geoparquet_metadata() works for polygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     ),
     bare
   )
@@ -459,7 +459,7 @@ test_that("schema_from_geoparquet_metadata() works for polygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     ),
     bare
   )
@@ -477,7 +477,7 @@ test_that("schema_from_geoparquet_metadata() works for polygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
-      encoding = "polygon"
+      encoding = "geoarrow.polygon"
     ),
     bare
   )
@@ -502,7 +502,7 @@ test_that("schema_from_geoparquet_metadata() works for multipoint", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "multipoint"
+      encoding = "geoarrow.multipoint"
     ),
     bare
   )
@@ -518,7 +518,7 @@ test_that("schema_from_geoparquet_metadata() works for multipoint", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
-      encoding = "multipoint"
+      encoding = "geoarrow.multipoint"
     ),
     bare
   )
@@ -536,7 +536,7 @@ test_that("schema_from_geoparquet_metadata() works for multipoint", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "multipoint"
+      encoding = "geoarrow.multipoint"
     ),
     bare
   )
@@ -558,7 +558,7 @@ test_that("schema_from_geoparquet_metadata() works for multilinestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "multilinestring"
+      encoding = "geoarrow.multilinestring"
     ),
     bare
   )
@@ -574,7 +574,7 @@ test_that("schema_from_geoparquet_metadata() works for multilinestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
-      encoding = "multilinestring"
+      encoding = "geoarrow.multilinestring"
     ),
     bare
   )
@@ -594,7 +594,7 @@ test_that("schema_from_geoparquet_metadata() works for multilinestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "multilinestring"
+      encoding = "geoarrow.multilinestring"
     ),
     bare
   )
@@ -612,7 +612,7 @@ test_that("schema_from_geoparquet_metadata() works for multilinestring", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
-      encoding = "multilinestring"
+      encoding = "geoarrow.multilinestring"
     ),
     bare
   )
@@ -637,7 +637,7 @@ test_that("schema_from_geoparquet_metadata() works for multipolygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "multipolygon"
+      encoding = "geoarrow.multipolygon"
     ),
     bare
   )
@@ -653,7 +653,7 @@ test_that("schema_from_geoparquet_metadata() works for multipolygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = "EPSG:1234",
-      encoding = "multipolygon"
+      encoding = "geoarrow.multipolygon"
     ),
     bare
   )
@@ -673,7 +673,7 @@ test_that("schema_from_geoparquet_metadata() works for multipolygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL,
-      encoding = "multipolygon"
+      encoding = "geoarrow.multipolygon"
     ),
     bare
   )
@@ -691,7 +691,7 @@ test_that("schema_from_geoparquet_metadata() works for multipolygon", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(
       crs = NULL, edges = "spherical",
-      encoding = "multipolygon"
+      encoding = "geoarrow.multipolygon"
     ),
     bare
   )
@@ -710,37 +710,37 @@ test_that("schema_from_geoparquet_metadata() works for multipolygon", {
 test_that("guess_column_encoding() works for extensioned arrays", {
   expect_identical(
     guess_column_encoding(geoarrow_schema_point()),
-    "point"
+    "geoarrow.point"
   )
 
   expect_identical(
     guess_column_encoding(geoarrow_schema_linestring()),
-    "linestring"
+    "geoarrow.linestring"
   )
 
   expect_identical(
     guess_column_encoding(geoarrow_schema_polygon()),
-    "polygon"
+    "geoarrow.polygon"
   )
 
   expect_identical(
     guess_column_encoding(geoarrow_schema_multipoint()),
-    "multipoint"
+    "geoarrow.multipoint"
   )
 
   expect_identical(
     guess_column_encoding(geoarrow_schema_multilinestring()),
-    "multilinestring"
+    "geoarrow.multilinestring"
   )
 
   expect_identical(
     guess_column_encoding(geoarrow_schema_multipolygon()),
-    "multipolygon"
+    "geoarrow.multipolygon"
   )
 
   schema <- geoarrow_schema_multipoint()
   schema$children[[1]] <- geoarrow_schema_multipoint()
-  expect_error(guess_column_encoding(schema), "Unsupported child encoding for multi")
+  expect_error(guess_column_encoding(schema), "Unsupported child encoding for collection")
 })
 
 test_that("guess_column_encoding() works for unextensioned arrays", {
@@ -783,14 +783,14 @@ test_that("guess_column_encoding() works for unextensioned arrays", {
     guess_column_encoding(
       narrow::narrow_schema("+w:2", children = list(narrow::narrow_schema("f")))
     ),
-    "point"
+    "geoarrow.point"
   )
 
   expect_identical(
     guess_column_encoding(
       narrow::narrow_schema("+w:4", children = list(narrow::narrow_schema("g")))
     ),
-    "point"
+    "geoarrow.point"
   )
 
   expect_identical(
@@ -800,7 +800,7 @@ test_that("guess_column_encoding() works for unextensioned arrays", {
         children = list(narrow::narrow_schema("g", name = "xy"))
       )
     ),
-    "point"
+    "geoarrow.point"
   )
 
   expect_identical(
@@ -810,7 +810,7 @@ test_that("guess_column_encoding() works for unextensioned arrays", {
         children = list(narrow::narrow_schema("g", name = "xyz"))
       )
     ),
-    "point"
+    "geoarrow.point"
   )
 
   expect_identical(
@@ -820,7 +820,7 @@ test_that("guess_column_encoding() works for unextensioned arrays", {
         children = list(narrow::narrow_schema("g", name = "xym"))
       )
     ),
-    "point"
+    "geoarrow.point"
   )
 
   expect_identical(
@@ -830,49 +830,49 @@ test_that("guess_column_encoding() works for unextensioned arrays", {
         children = list(narrow::narrow_schema("g", name = "xyzm"))
       )
     ),
-    "point"
+    "geoarrow.point"
   )
 
   schema <- geoarrow_schema_point_struct(dim = "xy")
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "point")
+  expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
   schema <- geoarrow_schema_point_struct(dim = "xyz")
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "point")
+  expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
   schema <- geoarrow_schema_point_struct(dim = "xym")
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "point")
+  expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
   schema <- geoarrow_schema_point_struct(dim = "xyzm")
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "point")
+  expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
   schema <- geoarrow_schema_linestring()
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "linestring")
+  expect_identical(guess_column_encoding(schema), "geoarrow.linestring")
 
   schema <- geoarrow_schema_polygon()
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "polygon")
+  expect_identical(guess_column_encoding(schema), "geoarrow.polygon")
 
   schema <- geoarrow_schema_multipoint()
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "multipoint")
+  expect_identical(guess_column_encoding(schema), "geoarrow.multipoint")
 
   schema <- geoarrow_schema_multilinestring()
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "multilinestring")
+  expect_identical(guess_column_encoding(schema), "geoarrow.multilinestring")
 
   schema <- geoarrow_schema_multipolygon()
   schema$metadata <- NULL
-  expect_identical(guess_column_encoding(schema), "multipolygon")
+  expect_identical(guess_column_encoding(schema), "geoarrow.multipolygon")
 
   schema <- geoarrow_schema_multipoint()
   schema$metadata <- NULL
   schema$children[[1]]$name <- "geometries"
-  expect_identical(guess_column_encoding(schema), "multipoint")
+  expect_identical(guess_column_encoding(schema), "geoarrow.multipoint")
 
   expect_error(
     guess_column_encoding(narrow::narrow_schema("i")),
