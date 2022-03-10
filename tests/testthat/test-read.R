@@ -85,3 +85,94 @@ test_that("geoarrow_read_ipc_stream() works", {
 
   unlink(temp)
 })
+
+
+test_that("all example parquet files can be read", {
+  files <- list.files(
+    system.file("example_parquet", package = "geoarrow"),
+    full.names = TRUE
+  )
+
+  for (file in files) {
+    if (grepl("^point.*?-default", basename(file))) {
+      # currently fail because NULL values in a fixed-width list
+      # aren't supported
+      next
+    }
+
+    name <- gsub("-.*?\\.parquet$", "", basename(file))
+    result <- read_geoarrow_parquet(
+      file,
+      handler = wk::wkt_writer()
+    )
+
+    if (startsWith(basename(file), "nc_spherical")) {
+      # no nc_spherical in geoarrow_example_wkt
+    } else if (grepl("^point", basename(file))) {
+      # because an EMTPY point and a null point have different representations
+      is_empty <- grepl("EMPTY$", geoarrow_example_wkt[[name]])
+      expect_identical(
+        wk::as_wkb(result$geometry[!is_empty]),
+        wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
+      )
+    } else {
+      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+    }
+  }
+})
+
+test_that("all example feather files can be read", {
+  files <- list.files(
+    system.file("example_feather", package = "geoarrow"),
+    full.names = TRUE
+  )
+
+  for (file in files) {
+    name <- gsub("-.*?\\.feather$", "", basename(file))
+    result <- read_geoarrow_feather(
+      file,
+      handler = wk::wkt_writer()
+    )
+
+    if (startsWith(basename(file), "nc_spherical")) {
+      # no nc_spherical in geoarrow_example_wkt
+    } else if (grepl("^point", basename(file))) {
+      # because an EMTPY point and a null point have different representations
+      is_empty <- grepl("EMPTY$", geoarrow_example_wkt[[name]])
+      expect_identical(
+        wk::as_wkb(result$geometry[!is_empty]),
+        wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
+      )
+    } else {
+      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+    }
+  }
+})
+
+test_that("all example ipc_stream files can be read", {
+  files <- list.files(
+    system.file("example_ipc_stream", package = "geoarrow"),
+    full.names = TRUE
+  )
+
+  for (file in files) {
+    name <- gsub("-.*?\\.ipc$", "", basename(file))
+    result <- read_geoarrow_ipc_stream(
+      file,
+      handler = wk::wkt_writer()
+    )
+
+    if (startsWith(basename(file), "nc_spherical")) {
+      # no nc_spherical in geoarrow_example_wkt
+    } else if (grepl("^point", basename(file))) {
+      # because an EMTPY point and a null point have different representations
+      is_empty <- grepl("EMPTY$", geoarrow_example_wkt[[name]])
+      expect_identical(
+        wk::as_wkb(result$geometry[!is_empty]),
+        wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
+      )
+    } else {
+      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+    }
+  }
+})
