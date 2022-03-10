@@ -379,6 +379,10 @@ public:
 
   class WKTMeta {
   public:
+    WKTMeta():
+      geometry_type(util::GeometryType::GEOMETRY_TYPE_UNKNOWN),
+      dimensions(util::Dimensions::DIMENSIONS_UNKNOWN),
+      is_empty(false) {}
     util::GeometryType geometry_type;
     util::Dimensions dimensions;
     bool is_empty;
@@ -469,7 +473,7 @@ public:
 
 class WKTReader {
 public:
-  WKTReader() {}
+  WKTReader(): coord_size_(2) {}
 
   Handler::Result read_buffer(Handler* handler, const uint8_t* data, int64_t size) {
     s.setBuffer(reinterpret_cast<const char*>(data), size);
