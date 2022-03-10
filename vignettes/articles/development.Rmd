@@ -299,8 +299,8 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
     Rprintf("CRS: '%s'\n", crs.c_str());
   }
 
-  if (meta.geodesic_) {
-    Rprintf("Geodesic!\n");
+  if (meta.edges_ == util::Edges::Spherical) {
+    Rprintf("Spherical edges!\n");
   }
 }
 
