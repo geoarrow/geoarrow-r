@@ -532,7 +532,7 @@ test_that("point arrays can be created", {
   array_null <- geoarrow_create_point_array(
     coords,
     geoarrow_schema_point(),
-    can_be_null = TRUE
+    can_be_null = NA
   )
 
   expect_identical(
@@ -567,7 +567,7 @@ test_that("point struct arrays can be created", {
   array_null <- geoarrow_create_point_array(
     coords,
     geoarrow_schema_point_struct(),
-    can_be_null = TRUE
+    can_be_null = NA
   )
 
   expect_identical(

@@ -51,7 +51,16 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
   # minimal allocs. For now, this is going to generate some copying.
 
   if (identical(extension, "geoarrow.point")) {
-    return(geoarrow_create_point_array(wk::as_xy(handleable), schema))
+    # this is probably slow but is needed to distinguish between null and
+    # empty!
+    point_is_null <- wk::wk_count(handleable)$n_geom == 0
+    return(
+      geoarrow_create_point_array(
+        wk::as_xy(handleable),
+        schema,
+        can_be_null = point_is_null
+      )
+    )
   }
 
   # the rest of the types need the coordinates in flat form
@@ -428,13 +437,17 @@ geoarrow_create_point_array <- function(coords, schema, strict = FALSE,
   n_dim <- length(coords_dim)
   n_coord <- length(coords_dim[[1]])
 
-  if (can_be_null) {
+  if (identical(can_be_null, NA)) {
     is_na <- Reduce("&", lapply(coords_dim, is.na))
     null_count <- sum(is_na)
     validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
-  } else {
+  } else if (identical(can_be_null, FALSE)) {
     null_count <- 0
     validity_buffer <- NULL
+  } else {
+    is_na <- rep_len(can_be_null, n_coord)
+    null_count <- sum(is_na)
+    validity_buffer <- if (null_count > 0) narrow::as_narrow_bitmask(!is_na) else NULL
   }
 
   if (identical(schema$format, "+s")) {
