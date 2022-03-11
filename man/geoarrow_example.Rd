@@ -4,7 +4,7 @@
 \name{geoarrow_example}
 \alias{geoarrow_example}
 \alias{geoarrow_example_Array}
-\alias{geoarrow_example_narrow_array}
+\alias{geoarrow_example_narrow}
 \alias{geoarrow_example_wkt}
 \title{Create example geometry objects}
 \format{
@@ -27,7 +27,7 @@ geoarrow_example_Array(
   edges = "planar"
 )
 
-geoarrow_example_narrow_array(
+geoarrow_example_narrow(
   which = "nc",
   schema = NULL,
   strict = FALSE,

@@ -21,15 +21,15 @@ test_that("all examples can be created into arrow::Array", {
 
 test_that("requested example schema is respected", {
   expect_identical(
-    geoarrow_example_narrow_array()$schema$metadata[["ARROW:extension:name"]],
+    geoarrow_example_narrow()$schema$metadata[["ARROW:extension:name"]],
     "geoarrow.multipolygon"
   )
   expect_identical(
-    geoarrow_example_narrow_array(schema = geoarrow_schema_wkb())$schema$format,
+    geoarrow_example_narrow(schema = geoarrow_schema_wkb())$schema$format,
     "z"
   )
   expect_identical(
-    geoarrow_example_narrow_array(schema = geoarrow_schema_wkt())$schema$format,
+    geoarrow_example_narrow(schema = geoarrow_schema_wkt())$schema$format,
     "u"
   )
 })
@@ -42,7 +42,7 @@ test_that("requested example crs is respected", {
 })
 
 test_that("requested example edges field is respected", {
-  array_spherical <- geoarrow_example_narrow_array(edges = "spherical")
+  array_spherical <- geoarrow_example_narrow(edges = "spherical")
   expect_identical(
     geoarrow_metadata(array_spherical$schema$children[[1]])$edges,
     "spherical"

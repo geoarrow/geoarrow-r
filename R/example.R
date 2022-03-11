@@ -20,7 +20,7 @@ geoarrow_example <- function(which = "nc", schema = NULL,
                              crs = NA,
                              edges = "planar") {
   as_geoarrow_vctr(
-    geoarrow_example_narrow_array(
+    geoarrow_example_narrow(
       which = which,
       schema = schema,
       crs = crs,
@@ -36,7 +36,7 @@ geoarrow_example_Array <- function(which = "nc", schema = NULL,
                                    crs = NA,
                                    edges = "planar") {
   narrow::from_narrow_array(
-    geoarrow_example_narrow_array(
+    geoarrow_example_narrow(
       which = which,
       schema = schema,
       crs = crs,
@@ -48,10 +48,10 @@ geoarrow_example_Array <- function(which = "nc", schema = NULL,
 
 #' @rdname geoarrow_example
 #' @export
-geoarrow_example_narrow_array <- function(which = "nc", schema = NULL,
-                                          strict = FALSE,
-                                          crs = NA,
-                                          edges = "planar") {
+geoarrow_example_narrow <- function(which = "nc", schema = NULL,
+                                    strict = FALSE,
+                                    crs = NA,
+                                    edges = "planar") {
   all_examples <- geoarrow::geoarrow_example_wkt
   match.arg(which, names(all_examples))
 
