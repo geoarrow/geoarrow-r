@@ -13,16 +13,16 @@
 #' @export
 #'
 #' @examples
-#' geoarrow_create(wk::xy(1:5, 1:5))
+#' geoarrow_create_narrow(wk::xy(1:5, 1:5))
 #'
-geoarrow_create <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
-                            strict = FALSE) {
-  UseMethod("geoarrow_create")
+geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
+                                   strict = FALSE) {
+  UseMethod("geoarrow_create_narrow")
 }
 
-#' @rdname geoarrow_create
+#' @rdname geoarrow_create_narrow
 #' @export
-geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
+geoarrow_create_narrow.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
                                     strict = FALSE) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
@@ -164,7 +164,7 @@ geoarrow_create.default <- function(handleable, ..., schema = geoarrow_schema_de
 
 
   stop(
-    sprintf("Extension '%s' not supported by geoarrow_create()", extension),
+    sprintf("Extension '%s' not supported by geoarrow_create_narrow()", extension),
     call. = FALSE
   )
 }
@@ -538,7 +538,7 @@ geoarrow_create_string_array <- function(x, schema, strict = FALSE) {
   )
 }
 
-#' @rdname geoarrow_create
+#' @rdname geoarrow_create_narrow
 #' @export
 geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point()) {
   # try vector_meta (doesn't iterate along features)

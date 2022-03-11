@@ -2,7 +2,7 @@
 #' Write geometry as Apache Parquet files
 #'
 #' @inheritDotParams arrow::write_parquet
-#' @inheritParams geoarrow_create
+#' @inheritParams geoarrow_create_narrow
 #'
 #' @return The result of [arrow::write_parquet()], invisibly
 #' @export
@@ -56,11 +56,11 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE) {
   df_handleable <- handleable[is_handleable]
 
   if (is.null(schema)) {
-    arrays_handleable <- lapply(df_handleable, geoarrow_create)
+    arrays_handleable <- lapply(df_handleable, geoarrow_create_narrow)
   } else {
     arrays_handleable <- lapply(
       df_handleable,
-      geoarrow_create,
+      geoarrow_create_narrow,
       schema = schema,
       strict = strict
     )

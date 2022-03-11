@@ -2,7 +2,7 @@
 #' Create GeoArrow vectors
 #'
 #' @param x An object to convert to a GeoArrow representation.
-#' @inheritParams geoarrow_create
+#' @inheritParams geoarrow_create_narrow
 #'
 #' @return An object of class 'narrow_vctr_geoarrow_EXTENSION' and
 #'    [narrow_vctr()].
@@ -10,7 +10,7 @@
 #'
 as_geoarrow_vctr <- function(x, ..., schema = geoarrow_schema_default(x),
                              strict = FALSE) {
-  array <- geoarrow_create(x, schema = schema, strict = strict)
+  array <- geoarrow_create_narrow(x, schema = schema, strict = strict)
   narrow::narrow_vctr(array)
 }
 

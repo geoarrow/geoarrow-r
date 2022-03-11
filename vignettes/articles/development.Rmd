@@ -29,11 +29,11 @@ library(geoarrow)
 We'll also need some test arrays with each of the six types supported in the Arrow-native format.
 
 ```{r}
-points <- geoarrow_create(
+points <- geoarrow_create_narrow(
   wk::wkt(c("POINT (30 10)", "POINT (40 30)"))
 )
 
-linestrings <- geoarrow_create(
+linestrings <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "LINESTRING (30 10, 10 30, 40 40)",
@@ -42,7 +42,7 @@ linestrings <- geoarrow_create(
   )
 )
 
-polygons <- geoarrow_create(
+polygons <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
@@ -53,11 +53,11 @@ polygons <- geoarrow_create(
   )
 )
 
-multipoints <- geoarrow_create(
+multipoints <- geoarrow_create_narrow(
   wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (0 0, 3 8)"))
 )
 
-multilinestrings <- geoarrow_create(
+multilinestrings <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))",
@@ -68,7 +68,7 @@ multilinestrings <- geoarrow_create(
   )
 )
 
-multipolygons <- geoarrow_create(
+multipolygons <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "MULTIPOLYGON (
@@ -310,7 +310,7 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
 geoarrow_metadata_dump(points$schema)
 geoarrow_metadata_dump(linestrings$schema)
 geoarrow_metadata_dump(
-  geoarrow_create(
+  geoarrow_create_narrow(
     wk::wkt(crs = "EPSG:1234", geodesic = TRUE),
     geoarrow_schema_linestring()
   )$schema
@@ -406,7 +406,7 @@ point_struct_print <- function(x) {
   invisible(.Call("c_point_struct_print", x$array_data))
 }
 
-points_struct <- geoarrow_create(
+points_struct <- geoarrow_create_narrow(
   points,
   schema = geoarrow_schema_point_struct()
 )
@@ -698,7 +698,7 @@ SEXP c_dump_metadata(SEXP schema_xptr) {
 ```{r}
 invisible(.Call("c_dump_metadata", points$schema))
 
-with_crs <- geoarrow_create(
+with_crs <- geoarrow_create_narrow(
   wk::wkt(crs = "EPSG:1234"),
   schema = geoarrow_schema_point()
 )

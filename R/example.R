@@ -6,10 +6,10 @@
 #'   - "point", "linestring", "polygon", "multipoint",
 #'     "multilinestring", "multipolygon", "geometrycollection"
 #'   - One of the above with the "_z", "_m", or "_zm" suffix.
-#' @inheritParams geoarrow_create
+#' @inheritParams geoarrow_create_narrow
 #' @inheritParams geoarrow_schema_point
 #'
-#' @return The result of [geoarrow_create()] with the specified example type.
+#' @return The result of [geoarrow_create_narrow()] with the specified example type.
 #' @export
 #'
 #' @examples
@@ -70,7 +70,7 @@ geoarrow_example_narrow_array <- function(which = "nc", schema = NULL,
     schema <- geoarrow_schema_default(handleable)
   }
 
-  geoarrow_create(handleable, schema = schema, strict = strict)
+  geoarrow_create_narrow(handleable, schema = schema, strict = strict)
 }
 
 #' @rdname geoarrow_example

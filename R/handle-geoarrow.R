@@ -79,5 +79,5 @@ handle_geoarrow_stream_wk <- function(array_stream, handler,
 
 # for testing
 geoarrow_create_wkt <- function(x, ...) {
-  geoarrow_create(wk::new_wk_wkt(x), schema = geoarrow_schema_wkt(...))
+  geoarrow_create_narrow(wk::new_wk_wkt(x), schema = geoarrow_schema_wkt(...))
 }

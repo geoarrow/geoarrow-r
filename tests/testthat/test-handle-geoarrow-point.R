@@ -11,7 +11,7 @@ test_that("geoarrow point reader works for point", {
       dims_exploded <- strsplit(coord_dim, "")[[1]]
       features <- wk::as_wkb(wk::as_xy(coords_base, dims = dims_exploded))
 
-      features_array <- geoarrow_create(
+      features_array <- geoarrow_create_narrow(
         features,
         schema = point_schema(dim = coord_dim),
         strict = TRUE
