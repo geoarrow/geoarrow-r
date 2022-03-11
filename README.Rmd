@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 [![Codecov test coverage](https://codecov.io/gh/paleolimbot/geoarrow/branch/master/graph/badge.svg)](https://codecov.io/gh/paleolimbot/geoarrow?branch=master)
 <!-- badges: end -->
 
-The goal of geoarrow is to prototype Arrow representations of geometry. This is currently a [first-draft specification](https://github.com/jorisvandenbossche/geo-arrow-spec/blob/geo-arrow-format-initial/format.md) and nothing here should be used for anything except entertainment value.
+The goal of geoarrow is to leverage the features of the [arrow](https://arrow.apache.org/docs/r/) package and larger [Apache Arrow](https://arrow.apache.org/) ecosystem for geospatial data. The geoarrow package provides an R implementation of the draft [geoarrow data specification](https://github.com/geopandas/geo-arrow-spec), defining extension array types for vector geospatial data.
 
 ## Installation
 
@@ -35,9 +35,9 @@ You can install the development version from [GitHub](https://github.com/) with:
 devtools::install_github("paleolimbot/geoarrow")
 ```
 
-## Write and write to Parquet
+## Write geospatial data to Parquet
 
-This exists for prototyping only, but should work with most things that you throw at it. Notably, sf objects should work out-of-the-box.
+Parquet is a compact binary file format that enables fast reading and efficient compression. You can write geospatial data (e.g., sf objects) to Parquet using `geoarrow_write_parquet()` and read them using `geoarrow_read_parquet()`.
 
 ```{r}
 library(geoarrow)
