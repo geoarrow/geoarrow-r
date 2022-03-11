@@ -67,7 +67,7 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of geoarrow is to prototype Arrow representations of geometry. This is currently a <a href="https://github.com/jorisvandenbossche/geo-arrow-spec/blob/geo-arrow-format-initial/format.md" class="external-link">first-draft specification</a> and nothing here should be used for anything except entertainment value.</p>
+<p>The goal of geoarrow is to leverage the features of the <a href="https://arrow.apache.org/docs/r/" class="external-link">arrow</a> package and larger <a href="https://arrow.apache.org/" class="external-link">Apache Arrow</a> ecosystem for geospatial data. The geoarrow package provides an R implementation of the draft <a href="https://github.com/geopandas/geo-arrow-spec" class="external-link">geoarrow data specification</a>, defining extension array types for vector geospatial data.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -77,9 +77,9 @@
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"paleolimbot/geoarrow"</span><span class="op">)</span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="write-and-write-to-parquet">Write and write to Parquet<a class="anchor" aria-label="anchor" href="#write-and-write-to-parquet"></a>
+<h2 id="write-geospatial-data-to-parquet">Write geospatial data to Parquet<a class="anchor" aria-label="anchor" href="#write-geospatial-data-to-parquet"></a>
 </h2>
-<p>This exists for prototyping only, but should work with most things that you throw at it. Notably, sf objects should work out-of-the-box.</p>
+<p>Parquet is a compact binary file format that enables fast reading and efficient compression. You can write geospatial data (e.g., sf objects) to Parquet using <code>geoarrow_write_parquet()</code> and read them using <code>geoarrow_read_parquet()</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://paleolimbot.github.io/geoarrow/">geoarrow</a></span><span class="op">)</span>
 

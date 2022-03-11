@@ -80,11 +80,11 @@
 <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://paleolimbot.github.io/geoarrow/">geoarrow</a></span><span class="op">)</span></code></pre></div>
 <p>We’ll also need some test arrays with each of the six types supported in the Arrow-native format.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">points</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">points</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (30 10)"</span>, <span class="st">"POINT (40 30)"</span><span class="op">)</span><span class="op">)</span>
 <span class="op">)</span>
 
-<span class="va">linestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<span class="va">linestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
       <span class="st">"LINESTRING (30 10, 10 30, 40 40)"</span>,
@@ -93,7 +93,7 @@
   <span class="op">)</span>
 <span class="op">)</span>
 
-<span class="va">polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<span class="va">polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
       <span class="st">"POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,
@@ -104,11 +104,11 @@
   <span class="op">)</span>
 <span class="op">)</span>
 
-<span class="va">multipoints</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<span class="va">multipoints</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MULTIPOINT (0 1, 2 3)"</span>, <span class="st">"MULTIPOINT (0 0, 3 8)"</span><span class="op">)</span><span class="op">)</span>
 <span class="op">)</span>
 
-<span class="va">multilinestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<span class="va">multilinestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
       <span class="st">"MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,
@@ -119,7 +119,7 @@
   <span class="op">)</span>
 <span class="op">)</span>
 
-<span class="va">multipolygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<span class="va">multipolygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
       <span class="st">"MULTIPOLYGON (
@@ -336,7 +336,7 @@
 <span class="co">#&gt; Storage type: list</span>
 <span class="co">#&gt; Dimensions: 'xy'</span>
 <span class="fu">geoarrow_metadata_dump</span><span class="op">(</span>
-  <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+  <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
     <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"EPSG:1234"</span>, geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
     <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span><span class="op">)</span>
   <span class="op">)</span><span class="op">$</span><span class="va">schema</span>
@@ -427,7 +427,7 @@
   <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_struct_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 
-<span class="va">points_struct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<span class="va">points_struct</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="va">points</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point_struct</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -756,7 +756,7 @@
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_dump_metadata"</span>, <span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; ARROW:extension:name: 'geoarrow.point'</span>
 
-<span class="va">with_crs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create.html">geoarrow_create</a></span><span class="op">(</span>
+<span class="va">with_crs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"EPSG:1234"</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
