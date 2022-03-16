@@ -19,7 +19,7 @@ geoarrow_example <- function(which = "nc", schema = NULL,
                              strict = FALSE,
                              crs = NA,
                              edges = "planar") {
-  as_geoarrow_vctr(
+  geoarrow_create(
     geoarrow_example_narrow(
       which = which,
       schema = schema,
