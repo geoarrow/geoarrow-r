@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdarg>
 
 #ifndef ARROW_FLAG_DICTIONARY_ORDERED
 extern "C" {
@@ -95,6 +96,24 @@ enum GeometryType {
 enum Dimensions {DIMENSIONS_UNKNOWN = 0, XY = 1, XYZ = 2, XYM = 3, XYZM = 4};
 
 enum Edges {Planar, Spherical, Ellipsoidal, EdgesUnknown};
+
+class IOException: public std::exception {
+public:
+  IOException(const char* fmt, ...) {
+    memset(error_, 0, sizeof(error_));
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(error_, sizeof(error_) - 1, fmt, args);
+    va_end(args);
+  }
+
+  const char* what() const noexcept {
+    return error_;
+  }
+
+private:
+  char error_[8096];
+};
 
 }
 

@@ -3,7 +3,6 @@
 
 #include <cmath>
 
-#include "io.hpp"
 #include "handler.hpp"
 
 #define EWKB_Z_BIT 0x80000000
@@ -161,7 +160,7 @@ private:
         }
         break;
       default:
-        throw io::IOException("Unrecognized geometry type: %d", geometry_type);
+        throw util::IOException("Unrecognized geometry type: %d", geometry_type);
       }
 
       HANDLE_OR_RETURN(handler->geom_end());
@@ -221,7 +220,7 @@ private:
 
     void check_buffer(int64_t n) {
       if ((offset_ + n) > size_) {
-        throw io::IOException(
+        throw util::IOException(
             "Unexpected end of buffer at %lld + %lld / %lld",
              offset_, n, size_);
       }

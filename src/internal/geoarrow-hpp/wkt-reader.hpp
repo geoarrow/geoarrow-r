@@ -6,7 +6,6 @@
 #include <cstdlib>
 
 #include "handler.hpp"
-#include "io.hpp"
 
 #ifdef FASTFLOAT_FAST_FLOAT_H
 #define _GEOARROW_FROM_CHARS(first, last, out) fast_float::from_chars(first, last, out)
@@ -483,7 +482,7 @@ public:
       s.assertFinished();
       return Handler::Result::CONTINUE;
     } catch(util::ParserException& e) {
-      throw io::IOException("%s", e.what());
+      throw util::IOException("%s", e.what());
     }
   }
 

@@ -3,29 +3,11 @@
 
 #include <cstdint>
 #include <algorithm>
-#include <cstdarg>
+
 
 namespace geoarrow {
 
 namespace io {
-
-class IOException: public std::exception {
-public:
-  IOException(const char* fmt, ...) {
-    memset(error_, 0, sizeof(error_));
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(error_, sizeof(error_) - 1, fmt, args);
-    va_end(args);
-  }
-
-  const char* what() const noexcept {
-    return error_;
-  }
-
-private:
-  char error_[8096];
-};
 
 template<typename T>
 class SimpleBufferSink {
