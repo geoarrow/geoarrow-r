@@ -4,8 +4,8 @@
 #include <cstdlib>
 #include <limits>
 
+#include "handler.hpp"
 #include "common.hpp"
-#include "array-view-base.hpp"
 
 namespace geoarrow {
 
@@ -53,8 +53,16 @@ public:
     return data_;
   }
 
+  BufferT* data_at_offset() {
+    return data_ + offset_;
+  }
+
   int64_t offset() {
     return offset_;
+  }
+
+  int64_t remaining_capacity() {
+    return size_ - offset_;
   }
 
   virtual BufferT* release() {
@@ -125,7 +133,7 @@ private:
 };
 
 
-class ArrayBuilder {
+class ArrayBuilder: public Handler {
 public:
   ArrayBuilder(int64_t size = 1024):
     offset_(0), validity_buffer_builder_(size) {}
@@ -140,10 +148,9 @@ protected:
 };
 
 
-class StringBuilder: public ArrayBuilder {
+class StringArrayBuilder: public ArrayBuilder {
 public:
-  StringBuilder(struct ArrowSchema* schema, int64_t size = 1024,
-                int64_t data_size_guess_ = 1024):
+  StringArrayBuilder(int64_t size = 1024, int64_t data_size_guess_ = 1024):
       ArrayBuilder(size),
       is_large_(false),
       item_offset_(0),
@@ -183,7 +190,7 @@ public:
     throw util::IOException("Not implemented");
   }
 
-private:
+protected:
   bool is_large_;
   int64_t item_offset_;
   BufferBuilder<int32_t> offset_buffer_builder_;
@@ -205,9 +212,6 @@ private:
     is_large_ = true;
   }
 };
-
-
-
 
 }
 
