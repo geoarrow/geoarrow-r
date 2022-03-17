@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstdarg>
+#include <stdexcept>
 
 #ifndef ARROW_FLAG_DICTIONARY_ORDERED
 extern "C" {

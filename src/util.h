@@ -5,14 +5,21 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define CPP_START                         \
+    char cpp_exception_error[8096];       \
+    memset(cpp_exception_error, 0, 8096); \
+    try {
+
+#define CPP_END                                           \
+    } catch (std::exception& e) {                         \
+        strncpy(cpp_exception_error, e.what(), 8096 - 1); \
+    }                                                     \
+    Rf_error("%s", cpp_exception_error);                  \
+    return R_NilValue;
+
 
 void geoarrow_finalize_array_data(SEXP array_data_xptr);
-
-#ifdef __cplusplus
-}
-#endif
+void delete_array_view_xptr(SEXP array_view_xptr);
+void delete_array_builder_xptr(SEXP array_builder_xptr);
 
 #endif

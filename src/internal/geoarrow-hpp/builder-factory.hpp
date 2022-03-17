@@ -7,9 +7,7 @@
 
 namespace geoarrow {
 
-namespace builder {
-
-ArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size = 1024) {
+ArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size) {
     Meta geoarrow_meta(schema);
 
     switch (geoarrow_meta.extension_) {
@@ -18,8 +16,6 @@ ArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size = 1024) {
     default:
         throw Meta::ValidationError("Unsupported extension type");
     }
-}
-
 }
 
 }

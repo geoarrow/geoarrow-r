@@ -18,7 +18,7 @@ public:
     if (size > 0) {
       data_ = reinterpret_cast<BufferT*>(malloc(size));
       if (data_ == nullptr) {
-        throw std::runtime_error("Failed to allocate BufferBuilder::data_ of size %lld", size);
+        throw util::IOException("Failed to allocate BufferBuilder::data_ of size %lld", size);
       }
     }
   }
@@ -36,9 +36,9 @@ public:
   void write(const BufferT* buffer, int64_t size) {
     while ((offset_ + size) >= size_) {
       int64_t new_size = (size_ + 1) * 1.5;
-      T* new_str = reinterpret_cast<BufferT*>(realloc(data_, new_size));
+      BufferT* new_str = reinterpret_cast<BufferT*>(realloc(data_, new_size));
       if (new_str == nullptr) {
-        throw std::runtime_error("Failed to reallocate BufferBuilder::data_");
+        throw util::IOException("Failed to reallocate BufferBuilder::data_");
       }
 
       data_ = new_str;
@@ -70,7 +70,7 @@ public:
       memset(data_ + offset_, 0, size_ - offset_);
     }
 
-    T* out = data_;
+    BufferT* out = data_;
     data_ = nullptr;
     return out;
   }
@@ -132,11 +132,14 @@ private:
   }
 };
 
+}
 
 class ArrayBuilder: public Handler {
 public:
   ArrayBuilder(int64_t size = 1024):
     offset_(0), validity_buffer_builder_(size) {}
+
+  virtual ~ArrayBuilder() {}
 
   virtual void release(struct ArrowArray* array) {
     throw util::IOException("Not implemented");
@@ -144,7 +147,7 @@ public:
 
 protected:
   int64_t offset_;
-  BitmapBuilder validity_buffer_builder_;
+  builder::BitmapBuilder validity_buffer_builder_;
 };
 
 
@@ -193,9 +196,9 @@ public:
 protected:
   bool is_large_;
   int64_t item_offset_;
-  BufferBuilder<int32_t> offset_buffer_builder_;
-  BufferBuilder<int64_t> large_offset_buffer_builder_;
-  BufferBuilder<uint8_t> data_buffer_builder_;
+  builder::BufferBuilder<int32_t> offset_buffer_builder_;
+  builder::BufferBuilder<int64_t> large_offset_buffer_builder_;
+  builder::BufferBuilder<uint8_t> data_buffer_builder_;
 
   bool needs_make_large(int64_t size) {
     return !is_large_ &&
@@ -203,7 +206,7 @@ protected:
   }
 
   void make_large() {
-    large_offset_buffer_builder_ = BufferBuilder<int64_t>(offset_buffer_builder_.offset());
+    large_offset_buffer_builder_ = builder::BufferBuilder<int64_t>(offset_buffer_builder_.offset());
     for (int64_t i = 0; i < offset_buffer_builder_.offset(); i++) {
       large_offset_buffer_builder_.write(offset_buffer_builder_.data()[i]);
     }
@@ -212,7 +215,5 @@ protected:
     is_large_ = true;
   }
 };
-
-}
 
 }

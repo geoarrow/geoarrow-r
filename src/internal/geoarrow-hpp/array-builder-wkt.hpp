@@ -10,9 +10,7 @@
 
 namespace geoarrow {
 
-namespace builder {
-
-class WKTArrayBuilder: public StringArrayBuilder, public Handler {
+class WKTArrayBuilder: public StringArrayBuilder {
 public:
     WKTArrayBuilder(int64_t size, int64_t data_size_guess):
         StringArrayBuilder(size, data_size_guess),
@@ -113,6 +111,8 @@ public:
 
             is_first_coord_ = false;
         }
+
+        return Result::CONTINUE;
     }
 
     Result ring_end() {
@@ -129,10 +129,12 @@ public:
         return Result::CONTINUE;
     }
 
-    Result feat_end() { finish_element(true); }
+    Result feat_end() {
+        finish_element(true);
+        return Result::CONTINUE;
+    }
 
 private:
-    int level_;
     std::vector<std::pair<util::GeometryType, int32_t>> stack_;
     bool is_first_geom_;
     bool is_first_ring_;
@@ -159,7 +161,5 @@ private:
         write(reinterpret_cast<const uint8_t*>(&value), 1);
     }
 };
-
-}
 
 }

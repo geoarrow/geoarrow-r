@@ -10,3 +10,4 @@
 #include "internal/fast_float/fast_float.h"
 
 #include "internal/geoarrow-hpp/factory.hpp"
+#include "internal/geoarrow-hpp/builder-factory.hpp"

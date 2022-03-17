@@ -9,18 +9,6 @@
 #include "geoarrow.h"
 #include "util.h"
 
-#define CPP_START                         \
-    char cpp_exception_error[8096];       \
-    memset(cpp_exception_error, 0, 8096); \
-    try {
-
-#define CPP_END                                           \
-    } catch (std::exception& e) {                         \
-        strncpy(cpp_exception_error, e.what(), 8096 - 1); \
-    }                                                     \
-    Rf_error("%s", cpp_exception_error);                  \
-    return R_NilValue;
-
 
 class WKGeoArrowHandler: public geoarrow::Handler {
 public:
@@ -169,16 +157,6 @@ private:
         return meta_stack_.data() + meta_stack_.size() - 1;
     }
 };
-
-
-void delete_array_view_xptr(SEXP array_view_xptr) {
-    geoarrow::ArrayView* array_view =
-        reinterpret_cast<geoarrow::ArrayView*>(R_ExternalPtrAddr(array_view_xptr));
-
-    if (array_view != nullptr) {
-        delete array_view;
-    }
-}
 
 SEXP geoarrow_handle_wk(SEXP data, wk_handler_t* handler) {
     CPP_START
