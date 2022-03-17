@@ -115,14 +115,10 @@ void builder_finalize(void* handler_data) {
 }
 
 extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr) {
-  struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
+  CPP_START
 
-  geoarrow::ArrayBuilder* builder;
-  try {
-    builder = geoarrow::create_builder(schema, 1024);
-  } catch(std::exception& e) {
-    Rf_error("%s", e.what());
-  }
+  struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
+  geoarrow::ArrayBuilder* builder = geoarrow::create_builder(schema, 1024);
 
   // Use an external pointer to make sure the builder and its data are
   // cleanded up.
@@ -164,4 +160,6 @@ extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr) {
   SEXP handler_xptr = wk_handler_create_xptr(handler, builder_xptr, R_NilValue);
   UNPROTECT(1);
   return handler_xptr;
+
+  CPP_END
 }

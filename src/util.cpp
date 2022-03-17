@@ -7,8 +7,12 @@
 
 void geoarrow_finalize_array_data(SEXP array_data_xptr) {
     struct ArrowArray* array_data = (struct ArrowArray*) R_ExternalPtrAddr(array_data_xptr);
-    if (array_data != NULL && array_data->release != NULL) {
+    if (array_data != nullptr && array_data->release != nullptr) {
         array_data->release(array_data);
+    }
+
+    if (array_data != nullptr) {
+      free(array_data);
     }
 }
 
