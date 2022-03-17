@@ -1,5 +1,7 @@
 
 test_that("geoarrow vector class works", {
+  skip_if_not_installed("arrow")
+
   vctr <- geoarrow_create(wk::wkt(c("POINT (1 2)", NA)))
   expect_s3_class(vctr, "narrow_vctr_geoarrow_point")
   expect_length(vctr, 2)
@@ -8,6 +10,8 @@ test_that("geoarrow vector class works", {
 })
 
 test_that("geoarrow format() works for all extensions", {
+  skip_if_not_installed("arrow")
+
   expect_identical(
     format(geoarrow_create(wk::wkt(c("POINT (1 2)")), schema = geoarrow_schema_wkt())),
     "POINT (1 2)"
@@ -40,6 +44,8 @@ test_that("geoarrow format() works for all extensions", {
 })
 
 test_that("geoarrow as.character() works for all extensions", {
+  skip_if_not_installed("arrow")
+
   expect_identical(
     as.character(geoarrow_create(wk::wkt(c("POINT (1 2)")), schema = geoarrow_schema_wkt())),
     "POINT (1 2)"
@@ -72,6 +78,8 @@ test_that("geoarrow as.character() works for all extensions", {
 })
 
 test_that("vctrs support works for all extensions", {
+  skip_if_not_installed("arrow")
+
   vctr <- geoarrow_create(wk::wkt(c("POINT (1 2)")), schema = geoarrow_schema_wkt())
   expect_true(vctrs::vec_is(vctr))
   expect_s3_class(
