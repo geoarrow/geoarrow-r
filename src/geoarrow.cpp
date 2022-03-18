@@ -9,5 +9,8 @@
 #define FASTFLOAT_ASSERT(x)
 #include "internal/fast_float/fast_float.h"
 
+// For implementations of release callbacks
+#define GEOARROW_NO_HEADER_ONLY
+
 #include "internal/geoarrow-hpp/factory.hpp"
 #include "internal/geoarrow-hpp/builder-factory.hpp"

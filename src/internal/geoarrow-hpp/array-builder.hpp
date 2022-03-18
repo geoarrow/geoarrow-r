@@ -9,9 +9,276 @@
 #include "handler.hpp"
 #include "common.hpp"
 
+// The classes and functions in this file are all about building
+// struct ArrowArray and struct ArrowSchema objects. All memory
+// is allocated using malloc() or realloc() and freed using free().
+// The general pattern is to use create an ArrayBuilder, write to it,
+// and call release() to transfer ownership of the buffers to the
+// struct ArrowArray/struct ArrowSchema.
+
+// These two release callbacks can't be header only (I think);
+// nor can the be with in the namespaces (I think)
+void geoarrow_builder_release_schema_internal(struct ArrowSchema* schema);
+void geoarrow_builder_release_array_data_internal(struct ArrowArray* array_data);
+
+#ifdef GEOARROW_NO_HEADER_ONLY
+
+// The .release() callback for all struct ArrowSchemas populated here
+void geoarrow_builder_release_schema_internal(struct ArrowSchema* schema) {
+  if (schema != nullptr && schema->release != nullptr) {
+    // schema->name and/or schema->format must be kept alive via
+    // private_data if dynamically allocated
+
+    // metadata must be allocated with malloc()
+    if (schema->metadata != nullptr) free((void*) schema->metadata);
+
+    // this object owns the memory for all the children, but those
+    // children may have been generated elsewhere and might have
+    // their own release() callback.
+    if (schema->children != nullptr) {
+      for (int64_t i = 0; i < schema->n_children; i++) {
+        if (schema->children[i] != nullptr) {
+          if(schema->children[i]->release != nullptr) {
+            schema->children[i]->release(schema->children[i]);
+          }
+
+          free(schema->children[i]);
+        }
+      }
+
+      free(schema->children);
+    }
+
+    // this object owns the memory for the dictionary but it
+    // may have been generated somewhere else and have its own
+    // release() callback.
+    if (schema->dictionary != nullptr) {
+      if (schema->dictionary->release != nullptr) {
+        schema->dictionary->release(schema->dictionary);
+      }
+
+      free(schema->dictionary);
+    }
+
+    // private data must be allocated with malloc() if needed
+    if (schema->private_data != nullptr) {
+      free(schema->private_data);
+    }
+
+    schema->release = nullptr;
+  }
+}
+
+// The .release() callback for all struct ArrowArrays populated here
+void geoarrow_builder_release_array_data_internal(struct ArrowArray* array_data) {
+  if (array_data != nullptr && array_data->release != nullptr) {
+
+    // buffers must be allocated with malloc()
+    if (array_data->buffers != nullptr) {
+      for (int64_t i = 0; i < array_data->n_buffers; i++) {
+        free((void*) array_data->buffers[i]);
+      }
+
+      free(array_data->buffers);
+    }
+
+    // This object owns the memory for its children, but those children
+    // might have their own release() callbacks if they were generated
+    // elsewhere.
+    if (array_data->children != nullptr) {
+      for (int64_t i = 0; i < array_data->n_children; i++) {
+        if (array_data->children[i] != nullptr) {
+          if (array_data->children[i]->release != nullptr) {
+            array_data->children[i]->release(array_data->children[i]);
+          }
+
+          free(array_data->children[i]);
+        }
+      }
+
+      free(array_data->children);
+    }
+
+    // This object owns the memory for the dictionary, but it
+    // might have its own release() callback if generated elsewhere
+    if (array_data->dictionary != nullptr) {
+      if (array_data->dictionary->release != nullptr) {
+        array_data->dictionary->release(array_data->dictionary);
+      }
+
+      free(array_data->dictionary);
+    }
+
+    // private data must be allocated with malloc() if needed
+    if (array_data->private_data != nullptr) {
+      free(array_data->private_data);
+    }
+
+    array_data->release = nullptr;
+  }
+}
+
+#endif
+
 namespace geoarrow {
 
 namespace builder {
+
+// Allocates a struct ArrowSchema whose members can be further
+// populated by the caller. This ArrowSchema owns the memory of its children
+// and its dictionary (i.e., the parent release() callback will call the
+// release() method of each child and then free() it).
+inline void allocate_schema(struct ArrowSchema* schema, int64_t n_children = 0) {
+  *schema = (struct ArrowSchema) {
+    // schema->name and/or schema->format must be kept alive via
+    // private_data if dynamically allocated
+    .format = "",
+    .name = "",
+    .metadata = nullptr,
+    .flags = ARROW_FLAG_NULLABLE,
+    .n_children = n_children,
+    .children = nullptr,
+    .dictionary = nullptr,
+    .private_data = nullptr,
+    .release = &geoarrow_builder_release_schema_internal
+  };
+
+  if (n_children > 0) {
+    schema->children = reinterpret_cast<struct ArrowSchema**>(
+      malloc(n_children * sizeof(struct ArrowSchema*)));
+
+    if (schema->children == nullptr) {
+      geoarrow_builder_release_schema_internal(schema);
+      throw util::IOException(
+        "Failed to allocate schema->children of size %lld", n_children);
+    }
+
+    for (int64_t i = 0; i < n_children; i++) {
+      schema->children[i] = reinterpret_cast<struct ArrowSchema*>(
+        malloc(sizeof(struct ArrowSchema)));
+
+      if (schema->children[i] == nullptr) {
+        geoarrow_builder_release_schema_internal(schema);
+        throw util::IOException("Failed to allocate schema->children[%lld]", i);
+      }
+
+      schema->children[i]->release = nullptr;
+    }
+  }
+
+  // we don't allocate the dictionary because it has to be nullptr
+  // for non-dictionary-encoded arrays
+}
+
+
+// Allocates a struct ArrowArray whose members can be further
+// populated by the caller. This ArrowArray owns the memory of its children
+// and dictionary (i.e., the parent release() callback will call the release()
+// method of each child and then free() it).
+inline void allocate_array_data(struct ArrowArray* array_data, int64_t n_buffers = 1,
+                                int64_t n_children = 0) {
+  *array_data = (struct ArrowArray) {
+    .length = 0,
+    .null_count = -1,
+    .offset = 0,
+    .n_buffers = n_buffers,
+    .n_children = n_children,
+    .buffers = nullptr,
+    .children = nullptr,
+    .dictionary = nullptr,
+    .private_data = nullptr,
+    .release = &geoarrow_builder_release_array_data_internal
+  };
+
+  if (n_buffers > 0) {
+    array_data->buffers = reinterpret_cast<const void**>(
+      malloc(n_buffers * sizeof(const void**)));
+
+    if (array_data->buffers == nullptr) {
+      geoarrow_builder_release_array_data_internal(array_data);
+      throw util::IOException(
+        "Failed to allocate array_data->buffers of size %lld", n_buffers);
+    }
+  }
+
+  if (n_children > 0) {
+    array_data->children = reinterpret_cast<struct ArrowArray**>(
+      malloc(n_children * sizeof(struct ArrowArray*)));
+
+    if (array_data->children == nullptr) {
+      geoarrow_builder_release_array_data_internal(array_data);
+      throw util::IOException(
+        "Failed to allocate array_data->children of size %lld", n_children);
+    }
+
+    for (int64_t i = 0; i < n_children; i++) {
+      array_data->children[i] = reinterpret_cast<struct ArrowArray*>(
+        malloc(sizeof(struct ArrowArray)));
+
+      if (array_data->children[i] == nullptr) {
+        geoarrow_builder_release_array_data_internal(array_data);
+        throw util::IOException("Failed to allocate array_data->children[%lld]", i);
+      }
+
+      array_data->children[i]->release = nullptr;
+    }
+  }
+
+  // we don't allocate the dictionary because it has to be nullptr
+  // for non-dictionary-encoded arrays
+}
+
+// A construct needed to make sure that anything that gets allocated
+// as part of the array construction process is cleaned up should
+// an exception be thrown as part of that process. The intended pattern
+// is to declare a CArrayFinalizer at the beginning of the ArrayBuilder's
+// release() method, and call release() before returning.
+class CArrayFinalizer {
+public:
+  struct ArrowArray array_data;
+  struct ArrowSchema schema;
+
+  CArrayFinalizer() {
+    array_data.release = nullptr;
+    schema.release = nullptr;
+  }
+
+  void allocate(int64_t n_buffers, int64_t n_children = 0) {
+    allocate_array_data(&array_data, n_buffers, n_children);
+    allocate_schema(&schema, n_children);
+  }
+
+  void release(struct ArrowArray* array_data_out, struct ArrowSchema* schema_out) {
+    // The output pointers must be non-null but must be released before they
+    // get here (or else they will leak).
+    if (array_data_out == nullptr) {
+      throw util::IOException("output array_data is nullptr");
+    }
+
+    if (schema_out == nullptr) {
+      throw util::IOException("output schema is nullptr");
+    }
+
+    if (array_data_out->release != nullptr) {
+      throw util::IOException("output array_data is not released");
+    }
+
+    if (schema_out->release != nullptr) {
+      throw util::IOException("output schema is not released");
+    }
+
+    memcpy(array_data_out, &array_data, sizeof(struct ArrowArray));
+    array_data.release = nullptr;
+
+    memcpy(schema_out, &schema, sizeof(struct ArrowSchema));
+    schema.release = nullptr;
+  }
+
+  ~CArrayFinalizer() {
+    geoarrow_builder_release_array_data_internal(&array_data);
+    geoarrow_builder_release_schema_internal(&schema);
+  }
+};
 
 template<typename BufferT, typename T = BufferT, int bitwidth = 8 * sizeof(BufferT)>
 class BufferBuilder {
@@ -156,7 +423,7 @@ public:
 
   virtual void reserve(int64_t additional_capacity) {}
 
-  virtual void release(struct ArrowArray* array) {
+  void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     throw util::IOException("Not implemented");
   }
 
@@ -223,8 +490,22 @@ public:
     validity_buffer_builder_.write_element(not_null);
   }
 
-  void release(struct ArrowArray* array) {
-    throw util::IOException("Not implemented");
+  void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+    CArrayFinalizer finalizer;
+    finalizer.allocate(3);
+
+    finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
+    finalizer.array_data.buffers[2] = data_buffer_builder_.release();
+
+    if (is_large_) {
+      finalizer.schema.format = "U";
+      finalizer.array_data.buffers[1] = large_offset_buffer_builder_.release();
+    } else {
+      finalizer.schema.format = "u";
+      finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
+    }
+
+    finalizer.release(array_data, schema);
   }
 
 protected:
