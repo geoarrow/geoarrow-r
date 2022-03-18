@@ -12,12 +12,12 @@ typedef struct {
     geoarrow::GeoArrayBuilder* builder;
     int coord_size;
     geoarrow::util::Dimensions dim;
+    geoarrow::util::GeometryType geometry_type;
 } builder_handler_t;
 
 int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
   builder_handler_t* data = (builder_handler_t*) handler_data;
-  data->builder->new_geometry_type(
-      static_cast<geoarrow::util::GeometryType>(meta->geometry_type));
+  data->geometry_type = static_cast<geoarrow::util::GeometryType>(meta->geometry_type);
 
   if (meta->flags & WK_FLAG_DIMS_UNKNOWN) {
       data->dim = geoarrow::util::Dimensions::DIMENSIONS_UNKNOWN;
@@ -31,8 +31,10 @@ int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
       data->dim = geoarrow::util::Dimensions::XY;
   }
 
-  data->builder->new_dimensions(data->dim);
   data->builder->new_schema(nullptr);
+  data->builder->new_geometry_type(data->geometry_type);
+  data->builder->new_dimensions(data->dim);
+
   if (data->builder->array_start(nullptr) == geoarrow::Handler::Result::ABORT_ARRAY) {
       return WK_ABORT;
   } else {
@@ -43,6 +45,8 @@ int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
 SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
     builder_handler_t* data = (builder_handler_t*) handler_data;
     data->builder->array_end();
+
+
 
     // TODO: build the thing and return it!
 
@@ -66,12 +70,39 @@ int builder_feature_end(const wk_vector_meta_t* meta, R_xlen_t feat_id, void* ha
 
 int builder_geometry_start(const wk_meta_t* meta, uint32_t part_id, void* handler_data) {
   builder_handler_t* data = (builder_handler_t*) handler_data;
+
   auto geometry_type = static_cast<geoarrow::util::GeometryType>(meta->geometry_type);
+
   int32_t size;
   if (meta->size == WK_SIZE_UNKNOWN) {
       size = -1;
   } else {
       size = meta->size;
+  }
+
+  geoarrow::util::Dimensions new_dim;
+  if (meta->flags & WK_FLAG_HAS_Z && meta->flags & WK_FLAG_HAS_M) {
+    new_dim = geoarrow::util::Dimensions::XYZM;
+    data->coord_size = 4;
+  } else if (meta->flags & WK_FLAG_HAS_Z) {
+    new_dim = geoarrow::util::Dimensions::XYZ;
+    data->coord_size = 3;
+  } else if (meta->flags & WK_FLAG_HAS_M) {
+    new_dim = geoarrow::util::Dimensions::XYM;
+    data->coord_size = 3;
+  } else {
+    new_dim = geoarrow::util::Dimensions::XY;
+    data->coord_size = 2;
+  }
+
+  if (geometry_type != data->geometry_type) {
+    data->builder->new_geometry_type(geometry_type);
+    data->geometry_type = geometry_type;
+  }
+
+  if (new_dim != data->dim) {
+    data->builder->new_dimensions(new_dim);
+    data->dim = new_dim;
   }
 
   return static_cast<int>(data->builder->geom_start(geometry_type, size));
@@ -98,8 +129,7 @@ int builder_ring_end(const wk_meta_t* meta, uint32_t size, uint32_t ring_id, voi
 
 int builder_coord(const wk_meta_t* meta, const double* coord, uint32_t coord_id, void* handler_data) {
   builder_handler_t* data = (builder_handler_t*) handler_data;
-  // TODO: actual coord size here
-  return static_cast<int>(data->builder->coords(coord, 1, 2));
+  return static_cast<int>(data->builder->coords(coord, 1, data->coord_size));
 }
 
 int builder_error(const char* message, void* handler_data) {
@@ -152,6 +182,9 @@ extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr) {
     Rf_error("Failed to alloc handler data"); // # nocov
   }
 
+  data->coord_size = 2;
+  data->dim = geoarrow::util::Dimensions::DIMENSIONS_UNKNOWN;
+  data->geometry_type = geoarrow::util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
   data->builder = builder;
   handler->handler_data = data;
 
