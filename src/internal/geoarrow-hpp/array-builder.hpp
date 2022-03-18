@@ -356,6 +356,10 @@ public:
     return data_ + size_;
   }
 
+  void advance(int64_t n) {
+    size_ += n;
+  }
+
   int64_t size() {
     return size_;
   }
@@ -450,14 +454,13 @@ protected:
 
 class StringArrayBuilder: public ArrayBuilder {
 public:
-  StringArrayBuilder(int64_t capacity = 1024, int64_t data_size_guess_ = 1024):
+  StringArrayBuilder(int64_t capacity = 1024, int64_t data_size_guess = 1024):
       ArrayBuilder(capacity),
       is_large_(false),
       item_size_(0),
       offset_buffer_builder_(capacity),
       large_offset_buffer_builder_(capacity),
-      data_buffer_builder_(data_size_guess_) {
-    reserve_data(data_size_guess_);
+      data_buffer_builder_(data_size_guess) {
     if (is_large_) {
       large_offset_buffer_builder_.write_element(0);
     } else {
@@ -488,6 +491,10 @@ public:
 
   uint8_t* data_at_cursor() {
     return data_buffer_builder_.data_at_cursor();
+  }
+
+  void advance_data(int64_t n) {
+    data_buffer_builder_.advance(n);
   }
 
   void write_buffer(const uint8_t* buffer, int64_t capacity) {

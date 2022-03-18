@@ -114,6 +114,7 @@ public:
 
             write_coord(coord[i * coord_size]);
             for (int32_t j = 1; j < coord_size; j++) {
+                write_char(' ');
                 write_coord(coord[i * coord_size + j]);
             }
 
@@ -150,7 +151,6 @@ private:
     bool is_first_coord_;
 
     void write_coord(double value) {
-        string_builder_.reserve_data(32);
         int64_t remaining = string_builder_.remaining_data_capacity();
         uint8_t* data_at_cursor = string_builder_.data_at_cursor();
         int n_needed = snprintf(
@@ -161,6 +161,8 @@ private:
             throw util::IOException(
                 "Failed to reserve enough characters to write %g", value);
         }
+
+        string_builder_.advance_data(n_needed);
     }
 
     void write_string(const char* value) {

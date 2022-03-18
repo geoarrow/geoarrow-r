@@ -14,10 +14,16 @@ test_that("geoarrow_writer() creates a new wk_handler", {
 })
 
 test_that("geoarrow_writer() can write geoarrow.wkt", {
-  expect_null(
+  result <- expect_s3_class(
     wk::wk_debug(
       wk::wkt("POINT (0 1)"),
       geoarrow_writer(geoarrow_schema_wkt())
-    )
+    ),
+    "narrow_array"
+  )
+
+  expect_identical(
+    narrow::from_narrow_array(result),
+    "POINT (0 1)"
   )
 })
