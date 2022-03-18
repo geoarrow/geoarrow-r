@@ -53,7 +53,6 @@ SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
     R_ExternalPtrAddr(VECTOR_ELT(data->array_sexp, 1)));
 
   data->builder->release(array_data_out, schema_out);
-
   return data->array_sexp;
 }
 

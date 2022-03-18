@@ -191,7 +191,6 @@ inline void allocate_array_data(struct ArrowArray* array_data, int64_t n_buffers
   array_data->release = &geoarrow_builder_release_array_data_internal;
 
   if (n_buffers > 0) {
-    printf("Allocating %lld buffers\n", n_buffers);
     array_data->buffers = reinterpret_cast<const void**>(
       malloc(n_buffers * sizeof(const void*)));
 
@@ -305,10 +304,6 @@ public:
   }
 
   virtual BufferT* release() {
-    if (size_ != capacity_) {
-      memset(data_at_cursor(), 0, remaining_capacity() * bitwidth);
-    }
-
     BufferT* out = data_;
     data_ = nullptr;
     return out;
@@ -503,22 +498,16 @@ public:
     finalizer.allocate(3);
 
     finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
-    // finalizer.array_data.buffers[2] = data_buffer_builder_.release();
+    finalizer.array_data.buffers[2] = data_buffer_builder_.release();
     if (is_large_) {
       finalizer.schema.format = "U";
-      // finalizer.array_data.buffers[1] = large_offset_buffer_builder_.release();
+      finalizer.array_data.buffers[1] = large_offset_buffer_builder_.release();
     } else {
       finalizer.schema.format = "u";
-      // finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
+      finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
     }
 
-    printf("finalizer.array_data has %lld buffers\n", finalizer.array_data.n_buffers);
-    printf("finalizer.array_data.buffers[0] = %p\n", finalizer.array_data.buffers[0]);
-    printf("finalizer.array_data.buffers[1] = %p\n", finalizer.array_data.buffers[1]);
-    printf("finalizer.array_data.buffers[2] = %p\n", finalizer.array_data.buffers[2]);
-
     finalizer.release(array_data, schema);
-    printf("released!\n");
   }
 
 protected:
