@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <limits>
+#include <cstring>
 
 #include "handler.hpp"
 #include "common.hpp"
@@ -202,11 +203,10 @@ protected:
 
   bool needs_make_large(int64_t size) {
     return !is_large_ &&
-      ((data_buffer_builder_.offset() + size) > std::numeric_limits<int32_t>::min());
+      ((data_buffer_builder_.offset() + size) > std::numeric_limits<int32_t>::max());
   }
 
   void make_large() {
-    large_offset_buffer_builder_ = builder::BufferBuilder<int64_t>(offset_buffer_builder_.offset());
     for (int64_t i = 0; i < offset_buffer_builder_.offset(); i++) {
       large_offset_buffer_builder_.write(offset_buffer_builder_.data()[i]);
     }
