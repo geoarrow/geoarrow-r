@@ -12,3 +12,12 @@ test_that("geoarrow_writer() creates a new wk_handler", {
     "Unsupported extension type"
   )
 })
+
+test_that("geoarrow_writer() can write geoarrow.wkt", {
+  expect_null(
+    wk::wk_handle(
+      wk::wkt("POINT (0 1)"),
+      geoarrow_writer(geoarrow_schema_wkt())
+    )
+  )
+})

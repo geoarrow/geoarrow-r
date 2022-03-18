@@ -152,6 +152,7 @@ extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr) {
     Rf_error("Failed to alloc handler data"); // # nocov
   }
 
+  data->builder = builder;
   handler->handler_data = data;
 
   // include the builder pointer as a tag for this external pointer
