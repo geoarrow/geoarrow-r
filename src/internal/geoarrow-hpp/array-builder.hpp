@@ -448,6 +448,11 @@ public:
       large_offset_buffer_builder_(capacity),
       data_buffer_builder_(data_size_guess_) {
     reserve_data(data_size_guess_);
+    if (is_large_) {
+      large_offset_buffer_builder_.write_element(0);
+    } else {
+      offset_buffer_builder_.write_element(0);
+    }
   }
 
   void reserve(int64_t additional_capacity) {
@@ -486,9 +491,9 @@ public:
 
   void finish_element(bool not_null = true) {
     if (is_large_) {
-      large_offset_buffer_builder_.write_element(item_size_);
+      large_offset_buffer_builder_.write_element(data_buffer_builder_.size());
     } else {
-      offset_buffer_builder_.write_element(item_size_);
+      offset_buffer_builder_.write_element(data_buffer_builder_.size());
     }
 
     item_size_ = 0;
