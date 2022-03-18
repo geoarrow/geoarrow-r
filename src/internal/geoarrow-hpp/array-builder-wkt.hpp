@@ -10,10 +10,10 @@
 
 namespace geoarrow {
 
-class WKTArrayBuilder: public StringArrayBuilder {
+class WKTArrayBuilder: public GeoArrayBuilder {
 public:
-    WKTArrayBuilder(int64_t size, int64_t data_size_guess):
-        StringArrayBuilder(size, data_size_guess),
+    WKTArrayBuilder(int64_t size = 1024, int64_t data_size_guess = 1024):
+        string_builder_(size, data_size_guess),
         is_first_geom_(true),
         is_first_ring_(true),
         is_first_coord_(true) {
@@ -29,7 +29,7 @@ public:
     }
 
     Result null_feat() {
-        finish_element(false);
+        string_builder_.finish_element(false);
         return Result::ABORT_FEATURE;
     }
 
@@ -97,7 +97,7 @@ public:
     }
 
     Result coords(const double* coord, int64_t n, int32_t coord_size) {
-        reserve_data(20 * n * coord_size);
+        string_builder_.reserve_data(20 * n * coord_size);
 
         for (int64_t i = 0; i < n; i++) {
             if (!is_first_coord_) {
@@ -130,21 +130,23 @@ public:
     }
 
     Result feat_end() {
-        finish_element(true);
+        string_builder_.finish_element(true);
         return Result::CONTINUE;
     }
 
 private:
+    builder::StringArrayBuilder string_builder_;
     std::vector<std::pair<util::GeometryType, int32_t>> stack_;
     bool is_first_geom_;
     bool is_first_ring_;
     bool is_first_coord_;
 
     void write_coord(double value) {
-        reserve_data(32);
-        int64_t remaining = data_buffer_builder_.remaining_capacity();
+        string_builder_.reserve_data(32);
+        int64_t remaining = string_builder_.remaining_data_capacity();
+        uint8_t* data_at_cursor = string_builder_.data_at_cursor(&remaining);
         int n_needed = snprintf(
-            reinterpret_cast<char*>(data_buffer_builder_.data_at_offset()),
+            reinterpret_cast<char*>(data_at_cursor),
             remaining - 1, "%g", value);
 
         if (n_needed > remaining) {
@@ -154,11 +156,11 @@ private:
     }
 
     void write_string(const char* value) {
-        write(reinterpret_cast<const uint8_t*>(value), strlen(value));
+        string_builder_.write_buffer(reinterpret_cast<const uint8_t*>(value), strlen(value));
     }
 
     void write_char(char value) {
-        write(reinterpret_cast<const uint8_t*>(&value), 1);
+        string_builder_.write_buffer(reinterpret_cast<const uint8_t*>(&value), 1);
     }
 };
 

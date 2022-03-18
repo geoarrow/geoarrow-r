@@ -7,7 +7,7 @@
 
 namespace geoarrow {
 
-ArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size) {
+GeoArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size) {
     Meta geoarrow_meta(schema);
 
     switch (geoarrow_meta.extension_) {

@@ -8,7 +8,7 @@
 namespace geoarrow {
 
 ArrayView* create_view(struct ArrowSchema* schema);
-ArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size);
+GeoArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size);
 
 }
 

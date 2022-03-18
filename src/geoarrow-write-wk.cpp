@@ -9,7 +9,7 @@
 #include "util.h"
 
 typedef struct {
-    geoarrow::ArrayBuilder* builder;
+    geoarrow::GeoArrayBuilder* builder;
     int coord_size;
     geoarrow::util::Dimensions dim;
 } builder_handler_t;
@@ -118,7 +118,7 @@ extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr) {
   CPP_START
 
   struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
-  geoarrow::ArrayBuilder* builder = geoarrow::create_builder(schema, 1024);
+  geoarrow::GeoArrayBuilder* builder = geoarrow::create_builder(schema, 1024);
 
   // Use an external pointer to make sure the builder and its data are
   // cleanded up.
