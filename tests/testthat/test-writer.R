@@ -15,7 +15,7 @@ test_that("geoarrow_writer() creates a new wk_handler", {
 
 test_that("geoarrow_writer() can write geoarrow.wkt", {
   expect_null(
-    wk::wk_handle(
+    wk::wk_debug(
       wk::wkt("POINT (0 1)"),
       geoarrow_writer(geoarrow_schema_wkt())
     )

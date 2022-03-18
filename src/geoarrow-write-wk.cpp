@@ -13,6 +13,7 @@ typedef struct {
     int coord_size;
     geoarrow::util::Dimensions dim;
     geoarrow::util::GeometryType geometry_type;
+    SEXP array_sexp;
 } builder_handler_t;
 
 int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
@@ -50,7 +51,7 @@ SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
 
     // TODO: build the thing and return it!
 
-    return R_NilValue;
+    return data->array_sexp;
 }
 
 int builder_feature_start(const wk_vector_meta_t* meta, R_xlen_t feat_id, void* handler_data) {
@@ -144,7 +145,7 @@ void builder_finalize(void* handler_data) {
   }
 }
 
-extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr) {
+extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr, SEXP array_sexp_out) {
   CPP_START
 
   struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
@@ -186,12 +187,13 @@ extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr) {
   data->dim = geoarrow::util::Dimensions::DIMENSIONS_UNKNOWN;
   data->geometry_type = geoarrow::util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
   data->builder = builder;
+  data->array_sexp = array_sexp_out;
   handler->handler_data = data;
 
   // include the builder pointer as a tag for this external pointer
   // which guarnatees that it will not be garbage collected until
   // this object is garbage collected
-  SEXP handler_xptr = wk_handler_create_xptr(handler, builder_xptr, R_NilValue);
+  SEXP handler_xptr = wk_handler_create_xptr(handler, builder_xptr, array_sexp_out);
   UNPROTECT(1);
   return handler_xptr;
 
