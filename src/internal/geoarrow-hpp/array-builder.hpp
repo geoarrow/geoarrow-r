@@ -287,7 +287,7 @@ public:
 template<typename BufferT, typename T = BufferT, int bitwidth = 8 * sizeof(BufferT)>
 class BufferBuilder {
 public:
-  BufferBuilder(int64_t capacity = 1024): data_(nullptr), capacity_(capacity),
+  BufferBuilder(int64_t capacity = 1024): data_(nullptr), capacity_(-1),
     size_(0), growth_factor_(1.5) {
     reallocate(capacity);
   }
@@ -321,7 +321,17 @@ public:
   }
 
   void reallocate(int64_t capacity) {
-    int64_t n_bytes = (capacity * 8 / bitwidth) + 1;
+    if (capacity == capacity_) {
+      return;
+    }
+
+    int64_t n_bytes;
+    if (bitwidth == 1) {
+      n_bytes = ((capacity * bitwidth + 8) / 8);
+    } else {
+      n_bytes = ((capacity * bitwidth) / 8);
+    }
+
     BufferT* new_data = reinterpret_cast<BufferT*>(realloc(data_, n_bytes));
     if (new_data == nullptr) {
       throw util::IOException(
@@ -329,7 +339,7 @@ public:
     }
 
     data_ = new_data;
-    capacity_ = n_bytes * bitwidth;
+    capacity_ = n_bytes * 8 / bitwidth;
   }
 
   void write_buffer(const BufferT* buffer, int64_t size) {
