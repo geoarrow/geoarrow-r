@@ -396,6 +396,8 @@ public:
     }
   }
 
+  int64_t null_count() { return null_count_; }
+
 private:
   int64_t null_count_;
   uint8_t buffer_;
@@ -491,6 +493,7 @@ public:
 
     item_size_ = 0;
     validity_buffer_builder_.write_element(not_null);
+    size_++;
   }
 
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
@@ -506,6 +509,9 @@ public:
       finalizer.schema.format = "u";
       finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
     }
+
+    finalizer.array_data.null_count = validity_buffer_builder_.null_count();
+    finalizer.array_data.length = size_;
 
     finalizer.release(array_data, schema);
   }
