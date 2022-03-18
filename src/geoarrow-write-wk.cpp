@@ -44,14 +44,17 @@ int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
 }
 
 SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
-    builder_handler_t* data = (builder_handler_t*) handler_data;
-    data->builder->array_end();
+  builder_handler_t* data = (builder_handler_t*) handler_data;
+  data->builder->array_end();
 
+  struct ArrowSchema* schema_out = reinterpret_cast<struct ArrowSchema*>(
+    R_ExternalPtrAddr(VECTOR_ELT(data->array_sexp, 0)));
+  struct ArrowArray* array_data_out = reinterpret_cast<struct ArrowArray*>(
+    R_ExternalPtrAddr(VECTOR_ELT(data->array_sexp, 1)));
 
+  data->builder->release(array_data_out, schema_out);
 
-    // TODO: build the thing and return it!
-
-    return data->array_sexp;
+  return data->array_sexp;
 }
 
 int builder_feature_start(const wk_vector_meta_t* meta, R_xlen_t feat_id, void* handler_data) {

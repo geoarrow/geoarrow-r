@@ -20,6 +20,14 @@ public:
         stack_.reserve(32);
     }
 
+    void reserve(int64_t additional_capacity) {
+        string_builder_.reserve(additional_capacity);
+    }
+
+    void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+        string_builder_.release(array_data, schema);
+    }
+
     Result feat_start() {
         stack_.clear();
         is_first_geom_ = true;
@@ -144,7 +152,7 @@ private:
     void write_coord(double value) {
         string_builder_.reserve_data(32);
         int64_t remaining = string_builder_.remaining_data_capacity();
-        uint8_t* data_at_cursor = string_builder_.data_at_cursor(&remaining);
+        uint8_t* data_at_cursor = string_builder_.data_at_cursor();
         int n_needed = snprintf(
             reinterpret_cast<char*>(data_at_cursor),
             remaining - 1, "%g", value);

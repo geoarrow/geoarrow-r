@@ -76,7 +76,9 @@ void geoarrow_builder_release_array_data_internal(struct ArrowArray* array_data)
     // buffers must be allocated with malloc()
     if (array_data->buffers != nullptr) {
       for (int64_t i = 0; i < array_data->n_buffers; i++) {
-        free((void*) array_data->buffers[i]);
+        if (array_data->buffers[i] != nullptr) {
+          free((void*) array_data->buffers[i]);
+        }
       }
 
       free(array_data->buffers);
@@ -129,19 +131,17 @@ namespace builder {
 // and its dictionary (i.e., the parent release() callback will call the
 // release() method of each child and then free() it).
 inline void allocate_schema(struct ArrowSchema* schema, int64_t n_children = 0) {
-  *schema = (struct ArrowSchema) {
-    // schema->name and/or schema->format must be kept alive via
-    // private_data if dynamically allocated
-    .format = "",
-    .name = "",
-    .metadata = nullptr,
-    .flags = ARROW_FLAG_NULLABLE,
-    .n_children = n_children,
-    .children = nullptr,
-    .dictionary = nullptr,
-    .private_data = nullptr,
-    .release = &geoarrow_builder_release_schema_internal
-  };
+  // schema->name and/or schema->format must be kept alive via
+  // private_data if dynamically allocated
+  schema->format = "";
+  schema->name = "";
+  schema->metadata = nullptr;
+  schema->flags = ARROW_FLAG_NULLABLE;
+  schema->n_children = n_children;
+  schema->children = nullptr;
+  schema->dictionary = nullptr;
+  schema->private_data = nullptr;
+  schema->release = &geoarrow_builder_release_schema_internal;
 
   if (n_children > 0) {
     schema->children = reinterpret_cast<struct ArrowSchema**>(
@@ -152,6 +152,8 @@ inline void allocate_schema(struct ArrowSchema* schema, int64_t n_children = 0) 
       throw util::IOException(
         "Failed to allocate schema->children of size %lld", n_children);
     }
+
+    memset(schema->children, 0, n_children * sizeof(struct ArrowSchema*));
 
     for (int64_t i = 0; i < n_children; i++) {
       schema->children[i] = reinterpret_cast<struct ArrowSchema*>(
@@ -175,30 +177,31 @@ inline void allocate_schema(struct ArrowSchema* schema, int64_t n_children = 0) 
 // populated by the caller. This ArrowArray owns the memory of its children
 // and dictionary (i.e., the parent release() callback will call the release()
 // method of each child and then free() it).
-inline void allocate_array_data(struct ArrowArray* array_data, int64_t n_buffers = 1,
-                                int64_t n_children = 0) {
-  *array_data = (struct ArrowArray) {
-    .length = 0,
-    .null_count = -1,
-    .offset = 0,
-    .n_buffers = n_buffers,
-    .n_children = n_children,
-    .buffers = nullptr,
-    .children = nullptr,
-    .dictionary = nullptr,
-    .private_data = nullptr,
-    .release = &geoarrow_builder_release_array_data_internal
-  };
+inline void allocate_array_data(struct ArrowArray* array_data, int64_t n_buffers,
+                                int64_t n_children) {
+  array_data->length = 0;
+  array_data->null_count = -1;
+  array_data->offset = 0;
+  array_data->n_buffers = n_buffers;
+  array_data->n_children = n_children;
+  array_data->buffers = nullptr;
+  array_data->children = nullptr;
+  array_data->dictionary = nullptr;
+  array_data->private_data = nullptr;
+  array_data->release = &geoarrow_builder_release_array_data_internal;
 
   if (n_buffers > 0) {
+    printf("Allocating %lld buffers\n", n_buffers);
     array_data->buffers = reinterpret_cast<const void**>(
-      malloc(n_buffers * sizeof(const void**)));
+      malloc(n_buffers * sizeof(const void*)));
 
     if (array_data->buffers == nullptr) {
       geoarrow_builder_release_array_data_internal(array_data);
       throw util::IOException(
         "Failed to allocate array_data->buffers of size %lld", n_buffers);
     }
+
+    memset(array_data->buffers, 0, n_buffers * sizeof(const void*));
   }
 
   if (n_children > 0) {
@@ -210,6 +213,8 @@ inline void allocate_array_data(struct ArrowArray* array_data, int64_t n_buffers
       throw util::IOException(
         "Failed to allocate array_data->children of size %lld", n_children);
     }
+
+    memset(array_data->children, 0, n_children * sizeof(struct ArrowArray*));
 
     for (int64_t i = 0; i < n_children; i++) {
       array_data->children[i] = reinterpret_cast<struct ArrowArray*>(
@@ -301,7 +306,7 @@ public:
 
   virtual BufferT* release() {
     if (size_ != capacity_) {
-      memset(data_ + size_, 0, capacity_ - size_);
+      memset(data_at_cursor(), 0, remaining_capacity() * bitwidth);
     }
 
     BufferT* out = data_;
@@ -342,8 +347,7 @@ public:
     return data_;
   }
 
-  BufferT* data_at_cursor(int64_t* max_size) {
-    *max_size = remaining_capacity();
+  BufferT* data_at_cursor() {
     return data_ + size_;
   }
 
@@ -390,7 +394,11 @@ public:
       }
     }
 
-    return BufferBuilder<uint8_t, bool, 1>::release();
+    if (null_count_ == 0) {
+      return nullptr;
+    } else {
+      return BufferBuilder<uint8_t, bool, 1>::release();
+    }
   }
 
 private:
@@ -423,7 +431,7 @@ public:
 
   virtual void reserve(int64_t additional_capacity) {}
 
-  void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+  virtual void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     throw util::IOException("Not implemented");
   }
 
@@ -466,8 +474,8 @@ public:
     return data_buffer_builder_.remaining_capacity();
   }
 
-  uint8_t* data_at_cursor(int64_t* max_size) {
-    return data_buffer_builder_.data_at_cursor(max_size);
+  uint8_t* data_at_cursor() {
+    return data_buffer_builder_.data_at_cursor();
   }
 
   void write_buffer(const uint8_t* buffer, int64_t capacity) {
@@ -495,17 +503,22 @@ public:
     finalizer.allocate(3);
 
     finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
-    finalizer.array_data.buffers[2] = data_buffer_builder_.release();
-
+    // finalizer.array_data.buffers[2] = data_buffer_builder_.release();
     if (is_large_) {
       finalizer.schema.format = "U";
-      finalizer.array_data.buffers[1] = large_offset_buffer_builder_.release();
+      // finalizer.array_data.buffers[1] = large_offset_buffer_builder_.release();
     } else {
       finalizer.schema.format = "u";
-      finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
+      // finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
     }
 
+    printf("finalizer.array_data has %lld buffers\n", finalizer.array_data.n_buffers);
+    printf("finalizer.array_data.buffers[0] = %p\n", finalizer.array_data.buffers[0]);
+    printf("finalizer.array_data.buffers[1] = %p\n", finalizer.array_data.buffers[1]);
+    printf("finalizer.array_data.buffers[2] = %p\n", finalizer.array_data.buffers[2]);
+
     finalizer.release(array_data, schema);
+    printf("released!\n");
   }
 
 protected:
