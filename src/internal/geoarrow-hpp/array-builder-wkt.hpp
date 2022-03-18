@@ -105,7 +105,7 @@ public:
     }
 
     Result coords(const double* coord, int64_t n, int32_t coord_size) {
-        string_builder_.reserve_data(20 * n * coord_size);
+        string_builder_.reserve_data(32 * n * coord_size);
 
         for (int64_t i = 0; i < n; i++) {
             if (!is_first_coord_) {

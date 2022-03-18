@@ -345,7 +345,7 @@ public:
   void write_buffer(const BufferT* buffer, int64_t size) {
     reserve(size);
     memcpy(data_ + size_, buffer, size);
-    size_ += size;
+    advance(size);
   }
 
   const BufferT* data() {
@@ -483,6 +483,8 @@ public:
     if (needs_make_large(additional_data_size_guess)) {
       make_large();
     }
+
+    data_buffer_builder_.reserve(additional_data_size_guess);
   }
 
   int64_t remaining_data_capacity() {
