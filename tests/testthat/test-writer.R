@@ -35,18 +35,15 @@ test_that("geoarrow_writer() can write geoarrow.wkt", {
     "narrow_array"
   )
 
-  #
-  # expect_identical(
-  #   narrow::from_narrow_array(result),
-  #   c("POINT (0 1)", "POINT (1.1 2.2)")
-  # )
+  expect_identical(
+    narrow::from_narrow_array(result),
+    c("POINT (0 1)", "POINT (1.1 2.2)")
+  )
 
   # nc_narrow <- wk::wk_handle(
   #   geoarrow_example_wkt$nc,
   #   geoarrow_writer(geoarrow_schema_wkt())
   # )
-  #
-  # print(nc_narrow)
   #
   # expect_identical(
   #   narrow::from_narrow_array(nc_narrow),

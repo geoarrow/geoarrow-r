@@ -344,7 +344,7 @@ public:
 
   void write_buffer(const BufferT* buffer, int64_t size) {
     reserve(size);
-    memcpy(data_ + size_, buffer, size);
+    memcpy(data_ + size_, buffer, size * sizeof(BufferT));
     advance(size);
   }
 
