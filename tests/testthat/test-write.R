@@ -19,6 +19,21 @@ test_that("geoarrow_write_parquet() works", {
   unlink(f)
 })
 
+test_that("geoarrow_write_parquet() writes null points that can be read again", {
+  skip_if_not_installed("arrow")
+
+  f <- tempfile(fileext = ".parquet")
+  features <- wk::wkt(c("POINT (1 3)", "POINT (2 4)", NA))
+  write_geoarrow_parquet(features, f, schema = NULL)
+  df <- read_geoarrow_parquet(f, handler = wk::wkt_writer())
+  expect_identical(
+    df[[1]],
+    wk::wkt(c("POINT (1 3)", "POINT (2 4)", "POINT (nan nan)"))
+  )
+
+  unlink(f)
+})
+
 test_that("geoarrow_write_parquet() roundtrips metadata", {
   skip_if_not_installed("arrow")
 
