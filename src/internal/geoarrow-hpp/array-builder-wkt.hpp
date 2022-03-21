@@ -13,9 +13,11 @@ namespace geoarrow {
 class WKTArrayBuilder: public GeoArrayBuilder {
 public:
     WKTArrayBuilder(int64_t size = 1024, int64_t data_size_guess = 1024):
+        significant_digits_(16),
         string_builder_(size, data_size_guess),
         is_first_ring_(true),
-        is_first_coord_(true) {
+        is_first_coord_(true),
+        dimensions_(util::Dimensions::XY) {
         stack_.reserve(32);
     }
 
@@ -25,6 +27,10 @@ public:
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         string_builder_.release(array_data, schema);
+    }
+
+    void new_dimensions(util::Dimensions dimensions) {
+        dimensions_ = dimensions;
     }
 
     Result feat_start() {
@@ -80,6 +86,20 @@ public:
             }
 
             write_char(' ');
+
+            switch (dimensions_) {
+            case util::Dimensions::XYZM:
+                write_string("ZM ");
+                break;
+            case util::Dimensions::XYZ:
+                write_string("Z ");
+                break;
+            case util::Dimensions::XYM:
+                write_string("M ");
+                break;
+            default:
+                break;
+            }
         }
 
         if (size == 0) {
@@ -108,7 +128,7 @@ public:
     }
 
     Result coords(const double* coord, int64_t n, int32_t coord_size) {
-        string_builder_.reserve_data(32 * n * coord_size);
+        string_builder_.reserve_data((significant_digits_ + 4) * n * coord_size);
 
         for (int64_t i = 0; i < n; i++) {
             if (!is_first_coord_) {
@@ -157,17 +177,19 @@ private:
         int32_t part;
     };
 
+    int significant_digits_;
     builder::StringArrayBuilder string_builder_;
     std::vector<State> stack_;
     bool is_first_ring_;
     bool is_first_coord_;
+    util::Dimensions dimensions_;
 
     void write_coord(double value) {
         int64_t remaining = string_builder_.remaining_data_capacity();
         uint8_t* data_at_cursor = string_builder_.data_at_cursor();
         int n_needed = snprintf(
             reinterpret_cast<char*>(data_at_cursor),
-            remaining - 1, "%.16g", value);
+            remaining - 1, "%.*g", significant_digits_, value);
 
         if (n_needed > remaining) {
             throw util::IOException(
