@@ -8,6 +8,15 @@
 #include "handler.hpp"
 #include "array-builder.hpp"
 
+// using ryu for double -> char* is ~5x faster!
+#ifndef geoarrow_d2s_fixed_n
+static inline int geoarrow_compat_d2s_fixed_n(double f, uint32_t precision, char* result) {
+    return snprintf(result, 128, "%.*g", precision, f);
+}
+
+#define geoarrow_d2s_fixed_n geoarrow_compat_d2s_fixed_n
+#endif
+
 namespace geoarrow {
 
 class WKTArrayBuilder: public GeoArrayBuilder {
@@ -185,17 +194,11 @@ private:
     util::Dimensions dimensions_;
 
     void write_coord(double value) {
-        int64_t remaining = string_builder_.remaining_data_capacity();
         uint8_t* data_at_cursor = string_builder_.data_at_cursor();
-        int n_needed = snprintf(
-            reinterpret_cast<char*>(data_at_cursor),
-            remaining - 1, "%.*g", significant_digits_, value);
-
-        if (n_needed > remaining) {
-            throw util::IOException(
-                "Failed to reserve enough characters to write %g", value);
-        }
-
+        int n_needed = geoarrow_d2s_fixed_n(
+            value,
+            significant_digits_,
+            reinterpret_cast<char*>(data_at_cursor));
         string_builder_.advance_data(n_needed);
     }
 

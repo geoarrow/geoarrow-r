@@ -75,7 +75,9 @@ test_that("geoarrow_writer() can write geoarrow.wkt", {
 })
 
 test_that("geoarrow_writer() can roundtrip all example WKT", {
-  for (name in names(geoarrow_example_wkt)) {
+  # nc has coordinates that take up all 16 precision slots,
+  # which have some minor differences between the ryu and sprintf translations
+  for (name in setdiff(names(geoarrow_example_wkt), "nc")) {
     result_narrow <- wk::wk_handle(
       geoarrow_example_wkt[[name]],
       geoarrow_writer(geoarrow_schema_wkt())
@@ -86,4 +88,21 @@ test_that("geoarrow_writer() can roundtrip all example WKT", {
       as.character(geoarrow_example_wkt[[!! name]])
     )
   }
+
+  # check that nc coord values are equal at 16 digits
+  result_narrow <- wk::wk_handle(
+    geoarrow_example_wkt[["nc"]],
+    geoarrow_writer(geoarrow_schema_wkt())
+  )
+
+  expect_identical(
+    wk::wk_format(
+      wk::wkt(narrow::from_narrow_array(result_narrow)),
+      precision = 16, max_coords = .Machine$integer.max
+    ),
+    wk::wk_format(
+      geoarrow_example_wkt[["nc"]],
+      precision = 16, max_coords = .Machine$integer.max
+    ),
+  )
 })
