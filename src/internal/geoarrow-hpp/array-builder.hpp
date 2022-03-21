@@ -284,11 +284,11 @@ public:
   }
 };
 
-template<typename BufferT, typename T = BufferT, int bitwidth = 8 * sizeof(BufferT)>
+template<typename BufferT>
 class BufferBuilder {
 public:
   BufferBuilder(int64_t capacity = 1024): data_(nullptr), capacity_(-1),
-    size_(0), growth_factor_(1.5) {
+    size_(0), growth_factor_(2) {
     reallocate(capacity);
   }
 
@@ -298,9 +298,8 @@ public:
     }
   }
 
-  virtual void write_element(const T& item) {
-    BufferT item_buffer = item;
-    write_buffer(&item_buffer, 1);
+  void write_element(BufferT item) {
+    write_buffer(&item, 1);
   }
 
   virtual BufferT* release() {
@@ -325,13 +324,7 @@ public:
       return;
     }
 
-    int64_t n_bytes;
-    if (bitwidth == 1) {
-      n_bytes = ((capacity * bitwidth + 8) / 8);
-    } else {
-      n_bytes = ((capacity * bitwidth) / 8);
-    }
-
+    int64_t n_bytes = capacity * sizeof(BufferT);
     BufferT* new_data = reinterpret_cast<BufferT*>(realloc(data_, n_bytes));
     if (new_data == nullptr) {
       throw util::IOException(
@@ -339,7 +332,7 @@ public:
     }
 
     data_ = new_data;
-    capacity_ = n_bytes * 8 / bitwidth;
+    capacity_ = n_bytes / sizeof(BufferT);
   }
 
   void write_buffer(const BufferT* buffer, int64_t size) {
@@ -348,25 +341,12 @@ public:
     advance(size);
   }
 
-  const BufferT* data() {
-    return data_;
-  }
-
-  BufferT* data_at_cursor() {
-    return data_ + size_;
-  }
-
-  void advance(int64_t n) {
-    size_ += n;
-  }
-
-  int64_t size() {
-    return size_;
-  }
-
-  int64_t remaining_capacity() {
-    return capacity_ - size_;
-  }
+  const BufferT* data() { return data_; }
+  BufferT* data_at_cursor() { return data_ + size_; }
+  void advance(int64_t n) { size_ += n; }
+  int64_t capacity() { return capacity_; }
+  int64_t size() { return size_; }
+  int64_t remaining_capacity() { return capacity_ - size_; }
 
 protected:
   BufferT* data_;
@@ -375,59 +355,84 @@ protected:
   double growth_factor_;
 };
 
-class BitmapBuilder: public BufferBuilder<uint8_t, bool, 1> {
+class BitmapBuilder {
 public:
   BitmapBuilder(int64_t capacity, int64_t null_count_guess = 0):
-    BufferBuilder<uint8_t, bool, 1>(0), null_count_(0), buffer_(0), buffer_size_(0) {
+    buffer_builder_(0), null_count_(0), buffer_(0), buffer_size_(0), size_(0),
+    allocated_(false) {
     if (null_count_guess != 0) {
       trigger_alloc(capacity);
     }
   }
 
-  void write_element(const bool& value) {
-    if (null_count_) {
-      buffer_ = buffer_ | (((uint8_t) value) << buffer_size_);
+  virtual ~BitmapBuilder() {}
 
-      buffer_size_++;
-      if (buffer_size_ == 8) {
-        write_buffer(&buffer_, 1);
-        buffer_size_ = 0;
+  int64_t capacity() { return buffer_builder_.capacity() * 8; }
+  int64_t size() { return size_; }
+
+  void reallocate(int64_t capacity) {
+    if (capacity % 8 == 0) {
+      buffer_builder_.reallocate(capacity / 8);
+    } else {
+      buffer_builder_.reallocate(capacity / 8 + 1);
+    }
+  }
+
+  void reserve(int64_t additional_capacity) {
+    if (!allocated_) {
+      return;
+    }
+
+    buffer_builder_.reserve(additional_capacity / 8 + 1);
+  }
+
+  void write_element(bool value) {
+    size_++;
+    null_count_ += !value;
+    buffer_ = buffer_ | (((uint8_t) value) << buffer_size_);
+    buffer_size_++;
+    if (buffer_size_ == 8) {
+      if (buffer_ != 0xff && !allocated_) {
+        trigger_alloc(size_);
       }
+
+      buffer_builder_.write_element(buffer_);
+      buffer_size_ = 0;
+      buffer_ = 0;
     }
   }
 
   uint8_t* release() {
-    if (buffer_size_ != 0) {
-      for (int i = 0; i < (8 - buffer_size_); i++) {
+    if (allocated_ || null_count_ > 0) {
+      int remaining_bits = 8 - buffer_size_;
+      for (int i = 0; i < remaining_bits; i++) {
         write_element(false);
       }
     }
 
-    if (null_count_ == 0) {
-      return nullptr;
+    if (allocated_) {
+      return buffer_builder_.release();
     } else {
-      return BufferBuilder<uint8_t, bool, 1>::release();
+      return nullptr;
     }
   }
 
   int64_t null_count() { return null_count_; }
 
 private:
+  BufferBuilder<uint8_t> buffer_builder_;
   int64_t null_count_;
   uint8_t buffer_;
   int buffer_size_;
+  int64_t size_;
+  bool allocated_;
 
-  void trigger_alloc(int64_t logical_size) {
-    int64_t physical_size = logical_size / 8 + 1;
-    data_ = reinterpret_cast<uint8_t*>(malloc(physical_size));
-    if (data_ == nullptr) {
-      throw util::IOException(
-        "Failed to allocate BitmapBuilder::data_ of capacity %lld",
-          physical_size);
-    }
-
-    for (int64_t i = 0; i < physical_size; i++) {
-      data_[i] = 0xff;
+  void trigger_alloc(int64_t capacity) {
+    reallocate(capacity);
+    memset(buffer_builder_.data_at_cursor(), 0xff, buffer_builder_.capacity());
+    allocated_ = true;
+    if (size_ > 0) {
+      buffer_builder_.advance((size_ - 1) / 8);
     }
   }
 };
