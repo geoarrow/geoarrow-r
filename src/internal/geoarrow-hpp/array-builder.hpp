@@ -392,6 +392,12 @@ public:
     buffer_ = buffer_ | (((uint8_t) value) << buffer_size_);
     buffer_size_++;
     if (buffer_size_ == 8) {
+      if (buffer_ == 0xff && !allocated_) {
+        buffer_size_ = 0;
+        buffer_ = 0;
+        return;
+      }
+
       if (buffer_ != 0xff && !allocated_) {
         trigger_alloc(size_);
       }
