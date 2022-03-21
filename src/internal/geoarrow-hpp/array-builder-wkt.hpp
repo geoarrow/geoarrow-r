@@ -14,7 +14,6 @@ class WKTArrayBuilder: public GeoArrayBuilder {
 public:
     WKTArrayBuilder(int64_t size = 1024, int64_t data_size_guess = 1024):
         string_builder_(size, data_size_guess),
-        is_first_geom_(true),
         is_first_ring_(true),
         is_first_coord_(true) {
         stack_.reserve(32);
@@ -30,7 +29,6 @@ public:
 
     Result feat_start() {
         stack_.clear();
-        is_first_geom_ = true;
         is_first_ring_ = true;
         is_first_coord_ = true;
         return Result::CONTINUE;
@@ -42,14 +40,16 @@ public:
     }
 
     Result geom_start(util::GeometryType geometry_type, int32_t size) {
-        if (!is_first_geom_) {
+        if (stack_.size() > 0 && stack_.back().part > 0) {
             write_string(", ");
-        } else {
-            is_first_geom_ = false;
+        }
+
+        if (stack_.size() > 0) {
+            stack_.back().part++;
         }
 
         if (stack_.size() == 0 ||
-                stack_.back().first == util::GeometryType::GEOMETRYCOLLECTION) {
+                stack_.back().type == util::GeometryType::GEOMETRYCOLLECTION) {
             switch (geometry_type) {
             case util::GeometryType::POINT:
                 write_string("POINT");
@@ -88,7 +88,9 @@ public:
             write_char('(');
         }
 
-        stack_.push_back(std::pair<util::GeometryType, int32_t>(geometry_type, size));
+        stack_.push_back(State{geometry_type, size, 0});
+        is_first_ring_ = true;
+        is_first_coord_ = true;
         return Result::CONTINUE;
     }
 
@@ -101,6 +103,7 @@ public:
 
         write_char('(');
 
+        is_first_coord_ = true;
         return Result::CONTINUE;
     }
 
@@ -130,8 +133,11 @@ public:
     }
 
     Result geom_end() {
-        if (stack_.size() > 0 || stack_.back().second > 0) {
+        if (stack_.size() > 0 && stack_.back().size != 0) {
             write_char(')');
+        }
+
+        if (stack_.size() > 0) {
             stack_.pop_back();
         }
 
@@ -144,9 +150,15 @@ public:
     }
 
 private:
+    class State {
+    public:
+        util::GeometryType type;
+        int32_t size;
+        int32_t part;
+    };
+
     builder::StringArrayBuilder string_builder_;
-    std::vector<std::pair<util::GeometryType, int32_t>> stack_;
-    bool is_first_geom_;
+    std::vector<State> stack_;
     bool is_first_ring_;
     bool is_first_coord_;
 
@@ -155,7 +167,7 @@ private:
         uint8_t* data_at_cursor = string_builder_.data_at_cursor();
         int n_needed = snprintf(
             reinterpret_cast<char*>(data_at_cursor),
-            remaining - 1, "%g", value);
+            remaining - 1, "%.16g", value);
 
         if (n_needed > remaining) {
             throw util::IOException(
