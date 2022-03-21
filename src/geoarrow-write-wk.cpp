@@ -17,6 +17,7 @@ typedef struct {
 } builder_handler_t;
 
 int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   data->geometry_type = static_cast<geoarrow::util::GeometryType>(meta->geometry_type);
 
@@ -41,9 +42,11 @@ int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
   } else {
       return WK_CONTINUE;
   }
+  CPP_END_INT
 }
 
 SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   data->builder->array_end();
 
@@ -54,24 +57,32 @@ SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
 
   data->builder->release(array_data_out, schema_out);
   return data->array_sexp;
+  CPP_END
 }
 
 int builder_feature_start(const wk_vector_meta_t* meta, R_xlen_t feat_id, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   return static_cast<int>(data->builder->feat_start());
+  CPP_END_INT
 }
 
 int builder_feature_null(void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   return static_cast<int>(data->builder->null_feat());
+  CPP_END_INT
 }
 
 int builder_feature_end(const wk_vector_meta_t* meta, R_xlen_t feat_id, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   return static_cast<int>(data->builder->feat_end());
+  CPP_END_INT
 }
 
 int builder_geometry_start(const wk_meta_t* meta, uint32_t part_id, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
 
   auto geometry_type = static_cast<geoarrow::util::GeometryType>(meta->geometry_type);
@@ -109,30 +120,39 @@ int builder_geometry_start(const wk_meta_t* meta, uint32_t part_id, void* handle
   }
 
   return static_cast<int>(data->builder->geom_start(geometry_type, size));
+  CPP_END_INT
 }
 
 int builder_geometry_end(const wk_meta_t* meta, uint32_t part_id, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   return static_cast<int>(data->builder->geom_end());
+  CPP_END_INT
 }
 
 int builder_ring_start(const wk_meta_t* meta, uint32_t size, uint32_t ring_id, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   if (size == WK_SIZE_UNKNOWN) {
       return static_cast<int>(data->builder->ring_start(-1));
   } else {
       return static_cast<int>(data->builder->ring_start(size));
   }
+  CPP_END_INT
 }
 
 int builder_ring_end(const wk_meta_t* meta, uint32_t size, uint32_t ring_id, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   return static_cast<int>(data->builder->ring_end());
+  CPP_END_INT
 }
 
 int builder_coord(const wk_meta_t* meta, const double* coord, uint32_t coord_id, void* handler_data) {
+  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
   return static_cast<int>(data->builder->coords(coord, 1, data->coord_size));
+  CPP_END_INT
 }
 
 int builder_error(const char* message, void* handler_data) {

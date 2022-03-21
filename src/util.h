@@ -17,6 +17,13 @@
     Rf_error("%s", cpp_exception_error);                  \
     return R_NilValue;
 
+#define CPP_END_INT                                       \
+    } catch (std::exception& e) {                         \
+        strncpy(cpp_exception_error, e.what(), 8096 - 1); \
+    }                                                     \
+    Rf_error("%s", cpp_exception_error);                  \
+    return 0;
+
 
 void geoarrow_finalize_array_data(SEXP array_data_xptr);
 void delete_array_view_xptr(SEXP array_view_xptr);
