@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <cstdarg>
+#include <string>
 
 #ifndef ARROW_FLAG_DICTIONARY_ORDERED
 extern "C" {
@@ -54,6 +55,19 @@ namespace util {
 
 class Exception: public std::exception {
 public:
+  Exception() {
+    memset(error_, 0, sizeof(error_));
+  }
+
+  Exception(const std::string& error) {
+    memset(error_, 0, sizeof(error_));
+    if (error.size() >= (8096 - 1)) {
+      memcpy(error_, error.data(), 8096 - 1);
+    } else if (error.size() > 0) {
+      memcpy(error_, error.data(), error.size());
+    }
+  }
+
   Exception(const char* fmt, ...) {
     memset(error_, 0, sizeof(error_));
     va_list args;
@@ -66,7 +80,7 @@ public:
     return error_;
   }
 
-private:
+protected:
   char error_[8096];
 };
 

@@ -17,4 +17,14 @@ public:
   GeoArrayBuilder(int64_t capacity = 1024): ArrayBuilder(capacity) {}
 };
 
+class NullBuilder: public GeoArrayBuilder {
+public:
+  void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+    arrow::hpp::builder::CArrayFinalizer finalizer;
+    finalizer.allocate(0);
+    finalizer.schema.format = "n";
+    finalizer.release(array_data, schema);
+  }
+};
+
 }

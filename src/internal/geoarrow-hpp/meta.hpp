@@ -341,6 +341,10 @@ class Meta {
 
     void walk_format(const char* format) {
         switch (format[0]) {
+        case 'n':
+            storage_type_ = util::StorageType::Null;
+            expected_buffers_ = 0;
+            break;
         case 'f':
             storage_type_ = util::StorageType::Float32;
             expected_buffers_ = 2;

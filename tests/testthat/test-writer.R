@@ -106,3 +106,15 @@ test_that("geoarrow_writer() can roundtrip all example WKT", {
     ),
   )
 })
+
+test_that("geoarrow_writer() can read all examples using the null builder", {
+  for (name in names(geoarrow_example_wkt)) {
+    result_narrow <- wk::wk_handle(
+      geoarrow_example_wkt[[name]],
+      geoarrow_writer(narrow::narrow_schema("n"))
+    )
+
+    expect_identical(result_narrow$schema$format, "n")
+    expect_identical(result_narrow$array_data$length, 0L)
+  }
+})

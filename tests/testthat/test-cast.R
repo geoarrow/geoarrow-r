@@ -36,3 +36,15 @@ test_that("geoarrow_cast() can cast all the examples to WKT", {
     }
   }
 })
+
+test_that("geoarrow_cast() can cast all examples to null", {
+  for (name in names(geoarrow_example_wkt)) {
+    result_narrow <- wk::wk_handle(
+      geoarrow_create_narrow(geoarrow_example_wkt[[name]]),
+      geoarrow_writer(narrow::narrow_schema("n"))
+    )
+
+    expect_identical(result_narrow$schema$format, "n")
+    expect_identical(result_narrow$array_data$length, 0L)
+  }
+})
