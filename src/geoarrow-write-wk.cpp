@@ -8,17 +8,43 @@
 #include "geoarrow.h"
 #include "util.h"
 
+
+// The other versions of CPP_START and CPP_END stack-allocate the
+// error message buffer, which takes a non-trivial amount of time
+// when done at this scale (at worst 4 times per coordinate). By
+// keeping the buffer in the handler_data struct, we can call C++
+// from every handler method without measurable overhead.
+#define WK_METHOD_CPP_START                     \
+    try {
+
+#define WK_METHOD_CPP_END                                 \
+    } catch (std::exception& e) {                         \
+        strncpy(data->cpp_exception_error, e.what(), 8096 - 1); \
+    }                                                     \
+    Rf_error("%s", data->cpp_exception_error);            \
+    return R_NilValue;
+
+#define WK_METHOD_CPP_END_INT                                 \
+    } catch (std::exception& e) {                         \
+        strncpy(data->cpp_exception_error, e.what(), 8096 - 1); \
+    }                                                     \
+    Rf_error("%s", data->cpp_exception_error);            \
+    return WK_ABORT;
+
+
 typedef struct {
     geoarrow::GeoArrayBuilder* builder;
     int coord_size;
     geoarrow::util::Dimensions dim;
     geoarrow::util::GeometryType geometry_type;
     SEXP array_sexp;
+    char cpp_exception_error[8096];
 } builder_handler_t;
 
 int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
+
   data->geometry_type = static_cast<geoarrow::util::GeometryType>(meta->geometry_type);
 
   if (meta->flags & WK_FLAG_DIMS_UNKNOWN) {
@@ -42,12 +68,12 @@ int builder_vector_start(const wk_vector_meta_t* meta, void* handler_data) {
   } else {
       return WK_CONTINUE;
   }
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
   data->builder->array_end();
 
   struct ArrowSchema* schema_out = reinterpret_cast<struct ArrowSchema*>(
@@ -57,33 +83,33 @@ SEXP builder_vector_end(const wk_vector_meta_t* meta, void* handler_data) {
 
   data->builder->release(array_data_out, schema_out);
   return data->array_sexp;
-  CPP_END
+  WK_METHOD_CPP_END
 }
 
 int builder_feature_start(const wk_vector_meta_t* meta, R_xlen_t feat_id, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
   return static_cast<int>(data->builder->feat_start());
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_feature_null(void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
   return static_cast<int>(data->builder->null_feat());
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_feature_end(const wk_vector_meta_t* meta, R_xlen_t feat_id, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
   return static_cast<int>(data->builder->feat_end());
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_geometry_start(const wk_meta_t* meta, uint32_t part_id, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
 
   auto geometry_type = static_cast<geoarrow::util::GeometryType>(meta->geometry_type);
 
@@ -120,39 +146,40 @@ int builder_geometry_start(const wk_meta_t* meta, uint32_t part_id, void* handle
   }
 
   return static_cast<int>(data->builder->geom_start(geometry_type, size));
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_geometry_end(const wk_meta_t* meta, uint32_t part_id, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
   return static_cast<int>(data->builder->geom_end());
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_ring_start(const wk_meta_t* meta, uint32_t size, uint32_t ring_id, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
+
   if (size == WK_SIZE_UNKNOWN) {
       return static_cast<int>(data->builder->ring_start(-1));
   } else {
       return static_cast<int>(data->builder->ring_start(size));
   }
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_ring_end(const wk_meta_t* meta, uint32_t size, uint32_t ring_id, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
   return static_cast<int>(data->builder->ring_end());
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_coord(const wk_meta_t* meta, const double* coord, uint32_t coord_id, void* handler_data) {
-  CPP_START
   builder_handler_t* data = (builder_handler_t*) handler_data;
+  WK_METHOD_CPP_START
   return static_cast<int>(data->builder->coords(coord, 1, data->coord_size));
-  CPP_END_INT
+  WK_METHOD_CPP_END_INT
 }
 
 int builder_error(const char* message, void* handler_data) {
@@ -210,6 +237,8 @@ extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr, SEXP array_sexp
   data->geometry_type = geoarrow::util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
   data->builder = builder;
   data->array_sexp = array_sexp_out;
+  memset(data->cpp_exception_error, 0, 8096);
+
   handler->handler_data = data;
 
   // include the builder pointer as a tag for this external pointer
