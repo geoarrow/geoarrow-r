@@ -7,6 +7,7 @@
 
 #include "handler.hpp"
 #include "array-builder.hpp"
+#include "../arrow-hpp/builder.hpp"
 
 // using ryu for double -> char* is ~5x faster!
 #ifndef geoarrow_d2s_fixed_n
@@ -187,7 +188,7 @@ private:
     };
 
     int significant_digits_;
-    builder::StringArrayBuilder string_builder_;
+    arrow::hpp::builder::StringArrayBuilder string_builder_;
     std::vector<State> stack_;
     bool is_first_ring_;
     bool is_first_coord_;

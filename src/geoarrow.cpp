@@ -13,7 +13,7 @@
 #define geoarrow_d2s_fixed_n geoarrow_d2sfixed_buffered_n
 
 // For implementations of release callbacks
-#define GEOARROW_NO_HEADER_ONLY
+#define ARROW_HPP_NO_HEADER_ONLY
 
 #include "internal/geoarrow-hpp/factory.hpp"
 #include "internal/geoarrow-hpp/builder-factory.hpp"
