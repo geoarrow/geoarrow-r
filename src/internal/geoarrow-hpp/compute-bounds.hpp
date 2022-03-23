@@ -38,7 +38,6 @@ public:
         for (int64_t i = 0; i < n; i++) {
             for (int32_t j = 0; j < coord_size; j++) {
                 double ordinate = coord[i * coord_size + j];
-                printf("Adding ordinate %d = %g\n", j, ordinate);
                 min_values_[j] = std::min<double>(min_values_[j], ordinate);
                 max_values_[j] = std::max<double>(max_values_[j], ordinate);
             }

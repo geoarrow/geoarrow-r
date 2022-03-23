@@ -4,11 +4,11 @@ test_that("geoarrow_compute_handler() creates a new wk_handler", {
 
   expect_error(
     geoarrow_compute_handler("void", NULL),
-    "must be an object created with"
+    "must be a list"
   )
 
   expect_error(
-    geoarrow_compute_handler("cast", narrow::narrow_schema("i")),
+    geoarrow_compute_handler("cast", list(schema = narrow::narrow_schema("i"))),
     "Unsupported extension type"
   )
 
@@ -18,7 +18,7 @@ test_that("geoarrow_compute_handler() creates a new wk_handler", {
   )
 
   expect_error(
-    .Call(geoarrow_c_compute_handler_new, 100L, narrow::narrow_schema("n"), narrow::narrow_array()),
+    .Call(geoarrow_c_compute_handler_new, 100L, narrow::narrow_array(), list()),
     "Unsupported operation: 100"
   )
 })
@@ -28,7 +28,7 @@ test_that("geoarrow_compute_handler() can cast to geoarrow.wkt", {
   result_narrow <- expect_s3_class(
     wk::wk_handle(
       wk::wkt(character(), crs = NULL),
-      geoarrow_compute_handler("cast", geoarrow_schema_wkt())
+      geoarrow_compute_handler("cast", list(schema = geoarrow_schema_wkt()))
     ),
     "narrow_array"
   )
@@ -42,7 +42,7 @@ test_that("geoarrow_compute_handler() can cast to geoarrow.wkt", {
   result_narrow <- expect_s3_class(
     wk::wk_handle(
       wk::wkt("POINT (0 1)"),
-      geoarrow_compute_handler("cast", geoarrow_schema_wkt())
+      geoarrow_compute_handler("cast", list(schema = geoarrow_schema_wkt()))
     ),
     "narrow_array"
   )
@@ -56,7 +56,7 @@ test_that("geoarrow_compute_handler() can cast to geoarrow.wkt", {
   result_narrow <- expect_s3_class(
     wk::wk_handle(
       wk::wkt(NA_character_),
-      geoarrow_compute_handler("cast", geoarrow_schema_wkt())
+      geoarrow_compute_handler("cast", list(schema = geoarrow_schema_wkt()))
     ),
     "narrow_array"
   )
@@ -73,7 +73,7 @@ test_that("geoarrow_compute_handler() can cast to geoarrow.wkt", {
   result_narrow <- expect_s3_class(
     wk::wk_handle(
       points,
-      geoarrow_compute_handler("cast", geoarrow_schema_wkt())
+      geoarrow_compute_handler("cast", list(schema = geoarrow_schema_wkt()))
     ),
     "narrow_array"
   )
@@ -90,7 +90,7 @@ test_that("geoarrow_compute_handler() can roundtrip all example WKT", {
   for (name in setdiff(names(geoarrow_example_wkt), "nc")) {
     result_narrow <- wk::wk_handle(
       geoarrow_example_wkt[[name]],
-      geoarrow_compute_handler("cast", geoarrow_schema_wkt())
+      geoarrow_compute_handler("cast", list(schema = geoarrow_schema_wkt()))
     )
 
     expect_identical(
@@ -102,7 +102,7 @@ test_that("geoarrow_compute_handler() can roundtrip all example WKT", {
   # check that nc coord values are equal at 16 digits
   result_narrow <- wk::wk_handle(
     geoarrow_example_wkt[["nc"]],
-    geoarrow_compute_handler("cast", geoarrow_schema_wkt())
+    geoarrow_compute_handler("cast", list(schema = geoarrow_schema_wkt()))
   )
 
   expect_identical(

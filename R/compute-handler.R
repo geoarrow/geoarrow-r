@@ -1,5 +1,5 @@
 
-geoarrow_compute_handler <- function(op = "void", schema = narrow::narrow_schema("n")) {
+geoarrow_compute_handler <- function(op = "void", options = list()) {
   op <- geoarrow_compute_op(op)
 
   array_out <- narrow::narrow_array(
@@ -9,7 +9,7 @@ geoarrow_compute_handler <- function(op = "void", schema = narrow::narrow_schema
   )
 
   wk::new_wk_handler(
-    .Call(geoarrow_c_compute_handler_new, as.integer(op)[1], schema, array_out),
+    .Call(geoarrow_c_compute_handler_new, as.integer(op)[1], array_out, options),
     "geoarrow_compute_handler"
   )
 }
