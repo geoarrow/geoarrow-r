@@ -12,12 +12,12 @@
 
 namespace geoarrow {
 
-class GeoArrayBuilder: public arrow::hpp::builder::ArrayBuilder, public Handler {
+class ComputeBuilder: public arrow::hpp::builder::ArrayBuilder, public Handler {
 public:
-  GeoArrayBuilder(int64_t capacity = 1024): ArrayBuilder(capacity) {}
+  ComputeBuilder(int64_t capacity = 1024): ArrayBuilder(capacity) {}
 };
 
-class NullBuilder: public GeoArrayBuilder {
+class NullBuilder: public ComputeBuilder {
 public:
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     arrow::hpp::builder::CArrayFinalizer finalizer;

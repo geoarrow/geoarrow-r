@@ -3,7 +3,7 @@
 
 #include "internal/geoarrow-hpp/handler.hpp"
 #include "internal/geoarrow-hpp/array-view-base.hpp"
-#include "internal/geoarrow-hpp/array-builder.hpp"
+#include "internal/geoarrow-hpp/compute-builder.hpp"
 
 namespace geoarrow {
 
@@ -19,7 +19,7 @@ enum Operation {
 }
 
 ArrayView* create_view(struct ArrowSchema* schema);
-GeoArrayBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size);
+ComputeBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size);
 
 }
 

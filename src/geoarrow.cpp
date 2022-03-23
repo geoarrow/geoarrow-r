@@ -16,4 +16,4 @@
 #define ARROW_HPP_NO_HEADER_ONLY
 
 #include "internal/geoarrow-hpp/factory.hpp"
-#include "internal/geoarrow-hpp/builder-factory.hpp"
+#include "internal/geoarrow-hpp/compute-factory.hpp"

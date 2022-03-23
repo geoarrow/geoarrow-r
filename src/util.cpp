@@ -26,8 +26,8 @@ void delete_array_view_xptr(SEXP array_view_xptr) {
 }
 
 void delete_array_builder_xptr(SEXP array_builder_xptr) {
-    geoarrow::GeoArrayBuilder* array_builder =
-        reinterpret_cast<geoarrow::GeoArrayBuilder*>(R_ExternalPtrAddr(array_builder_xptr));
+    geoarrow::ComputeBuilder* array_builder =
+        reinterpret_cast<geoarrow::ComputeBuilder*>(R_ExternalPtrAddr(array_builder_xptr));
 
     if (array_builder != nullptr) {
         delete array_builder;

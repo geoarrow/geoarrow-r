@@ -3,7 +3,8 @@
 
 #include "common.hpp"
 #include "meta.hpp"
-#include "array-builder-wkt.hpp"
+#include "compute-builder.hpp"
+#include "compute-cast-wkt.hpp"
 #include "compute-bounds.hpp"
 
 namespace geoarrow {
@@ -19,7 +20,7 @@ enum Operation {
 
 }
 
-GeoArrayBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size) {
+ComputeBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size) {
     Meta geoarrow_meta(schema);
 
     switch (op) {

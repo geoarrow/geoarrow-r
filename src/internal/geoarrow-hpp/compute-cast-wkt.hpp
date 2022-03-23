@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "handler.hpp"
-#include "array-builder.hpp"
+#include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
 
 // using ryu for double -> char* is ~5x faster!
@@ -20,7 +20,7 @@ static inline int geoarrow_compat_d2s_fixed_n(double f, uint32_t precision, char
 
 namespace geoarrow {
 
-class WKTArrayBuilder: public GeoArrayBuilder {
+class WKTArrayBuilder: public ComputeBuilder {
 public:
     WKTArrayBuilder(int64_t size = 1024, int64_t data_size_guess = 1024):
         significant_digits_(16),

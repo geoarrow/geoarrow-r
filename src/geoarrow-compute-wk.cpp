@@ -33,7 +33,7 @@
 
 
 typedef struct {
-    geoarrow::GeoArrayBuilder* builder;
+    geoarrow::ComputeBuilder* builder;
     int coord_size;
     geoarrow::util::Dimensions dim;
     geoarrow::util::GeometryType geometry_type;
@@ -203,7 +203,7 @@ extern "C" SEXP geoarrow_c_compute_handler_new(SEXP op_sexp, SEXP schema_xptr, S
   }
 
   struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
-  geoarrow::GeoArrayBuilder* builder = geoarrow::create_builder(op, schema, 1024);
+  geoarrow::ComputeBuilder* builder = geoarrow::create_builder(op, schema, 1024);
 
   // Use an external pointer to make sure the builder and its data are
   // cleanded up.

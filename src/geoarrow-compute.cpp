@@ -35,7 +35,7 @@ extern "C" SEXP geoarrow_c_compute(SEXP op_sexp, SEXP array_from_sexp, SEXP arra
     R_RegisterCFinalizer(view_xptr, &delete_array_view_xptr);
 
     // Get the builder to build array_to
-    geoarrow::GeoArrayBuilder* builder = geoarrow::create_builder(op, schema_to, 1024);
+    geoarrow::ComputeBuilder* builder = geoarrow::create_builder(op, schema_to, 1024);
     SEXP builder_xptr = PROTECT(R_MakeExternalPtr(builder, array_to_sexp, R_NilValue));
     R_RegisterCFinalizer(builder_xptr, &delete_array_builder_xptr);
 

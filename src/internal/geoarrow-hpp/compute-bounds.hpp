@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "handler.hpp"
-#include "array-builder.hpp"
+#include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
 
 namespace geoarrow {
@@ -38,8 +38,9 @@ public:
         for (int64_t i = 0; i < n; i++) {
             for (int32_t j = 0; j < coord_size; j++) {
                 double ordinate = coord[i * coord_size + j];
+                printf("Adding ordinate %d = %g\n", j, ordinate);
                 min_values_[j] = std::min<double>(min_values_[j], ordinate);
-                min_values_[j] = std::max<double>(max_values_[j], ordinate);
+                max_values_[j] = std::max<double>(max_values_[j], ordinate);
             }
         }
     }
@@ -51,6 +52,13 @@ public:
             double max_ordinate_xyzm = other.max_xyzm(j);
             min_values_[coord_j] = std::min<double>(min_values_[coord_j], min_ordinate_xyzm);
             min_values_[coord_j] = std::max<double>(max_values_[coord_j], max_ordinate_xyzm);
+        }
+    }
+
+    void set_null() {
+        for (int j = 0; j < 4; j++) {
+            min_values_[j] = std::numeric_limits<double>::quiet_NaN();
+            max_values_[j] = std::numeric_limits<double>::quiet_NaN();
         }
     }
 
@@ -78,7 +86,7 @@ private:
 
 }
 
-class GlobalBounder: public GeoArrayBuilder {
+class GlobalBounder: public ComputeBuilder {
 public:
     GlobalBounder(bool null_is_empty = false):
         null_is_empty_(null_is_empty),
@@ -106,9 +114,8 @@ public:
             return Result::CONTINUE;
         }
 
-        double nans[4];
-        for (int i = 0; i < 4; i++) { nans[i] = NAN; }
-        bounder_->add_coords(nans, 1, 4);
+        bounder_xyzm_.set_null();
+        bounder_xym_.set_null();
         return Result::ABORT;
     }
 
