@@ -7,8 +7,19 @@
 
 namespace geoarrow {
 
+namespace compute {
+
+enum Operation {
+    VOID = 0,
+    CAST = 1,
+    GLOBAL_BOUNDS = 2,
+    OP_INVALID = 3
+};
+
+}
+
 ArrayView* create_view(struct ArrowSchema* schema);
-GeoArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size);
+GeoArrayBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size);
 
 }
 

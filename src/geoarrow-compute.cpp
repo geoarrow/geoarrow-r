@@ -8,8 +8,13 @@
 #include "util.h"
 
 
-extern "C" SEXP geoarrow_c_cast(SEXP array_from_sexp, SEXP array_to_sexp) {
+extern "C" SEXP geoarrow_c_compute(SEXP op_sexp, SEXP array_from_sexp, SEXP array_to_sexp) {
     CPP_START
+
+    auto op = static_cast<geoarrow::compute::Operation>(INTEGER(op_sexp)[0]);
+    if (op < 0 || op >= geoarrow::compute::Operation::OP_INVALID) {
+        Rf_error("Unsupported operation: %d", op);
+    }
 
     struct ArrowSchema* schema_from = schema_from_xptr(
         VECTOR_ELT(array_from_sexp, 0),
@@ -30,7 +35,7 @@ extern "C" SEXP geoarrow_c_cast(SEXP array_from_sexp, SEXP array_to_sexp) {
     R_RegisterCFinalizer(view_xptr, &delete_array_view_xptr);
 
     // Get the builder to build array_to
-    geoarrow::GeoArrayBuilder* builder = geoarrow::create_builder(schema_to, 1024);
+    geoarrow::GeoArrayBuilder* builder = geoarrow::create_builder(op, schema_to, 1024);
     SEXP builder_xptr = PROTECT(R_MakeExternalPtr(builder, array_to_sexp, R_NilValue));
     R_RegisterCFinalizer(builder_xptr, &delete_array_builder_xptr);
 

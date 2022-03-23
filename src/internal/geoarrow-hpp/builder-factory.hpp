@@ -4,22 +4,40 @@
 #include "common.hpp"
 #include "meta.hpp"
 #include "array-builder-wkt.hpp"
+#include "compute-bounds.hpp"
 
 namespace geoarrow {
 
-GeoArrayBuilder* create_builder(struct ArrowSchema* schema, int64_t size) {
+namespace compute {
+
+enum Operation {
+    VOID = 0,
+    CAST = 1,
+    GLOBAL_BOUNDS = 2,
+    OP_INVALID = 3
+};
+
+}
+
+GeoArrayBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size) {
     Meta geoarrow_meta(schema);
 
-    // Special-case the null builder, which is used for profiling overhead
-    if (geoarrow_meta.storage_type_ == util::StorageType::Null) {
+    switch (op) {
+    case compute::Operation::VOID:
         return new NullBuilder();
-    }
 
-    switch (geoarrow_meta.extension_) {
-    case util::Extension::WKT:
-        return new WKTArrayBuilder(size, size);
+    case compute::Operation::CAST:
+        switch (geoarrow_meta.extension_) {
+        case util::Extension::WKT:
+            return new WKTArrayBuilder(size, size);
+        default:
+            throw Meta::ValidationError("Unsupported extension type for operation CAST");
+        }
+
+    case compute::Operation::GLOBAL_BOUNDS:
+        return new GlobalBounder();
     default:
-        throw Meta::ValidationError("Unsupported extension type");
+        throw util::IOException("Unknown operation type");
     }
 }
 

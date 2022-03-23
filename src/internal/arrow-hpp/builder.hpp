@@ -5,6 +5,8 @@
 #include <limits>
 #include <cstring>
 #include <algorithm>
+#include <string>
+#include <vector>
 
 #include "common.hpp"
 
@@ -451,6 +453,8 @@ public:
 
   virtual ~ArrayBuilder() {}
 
+  int64_t size() { return size_; }
+
   virtual void reserve(int64_t additional_capacity) {}
 
   virtual void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
@@ -462,6 +466,42 @@ protected:
   builder::BitmapBuilder validity_buffer_builder_;
 };
 
+
+class Float64ArrayBuilder: public ArrayBuilder {
+public:
+  Float64ArrayBuilder(int64_t capacity = 1024):
+    ArrayBuilder(capacity), buffer_builder_(capacity) {}
+
+  void reserve(int64_t additional_capacity) {
+    buffer_builder_.reserve(additional_capacity);
+  }
+
+  void write_element(double value) {
+    buffer_builder_.write_element(value);
+  }
+
+  void write_buffer(const double* buffer, int64_t n) {
+    buffer_builder_.write_buffer(buffer, n);
+  }
+
+  void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+    CArrayFinalizer finalizer;
+    finalizer.allocate(2);
+    finalizer.schema.format = "g";
+
+    finalizer.array_data.length = buffer_builder_.size();
+    finalizer.array_data.null_count = validity_buffer_builder_.null_count();
+
+    finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
+    finalizer.array_data.buffers[1] = buffer_builder_.release();
+
+    finalizer.release(array_data, schema);
+  }
+
+private:
+  BufferBuilder<double> buffer_builder_;
+
+};
 
 class StringArrayBuilder: public ArrayBuilder {
 public:
@@ -571,6 +611,50 @@ protected:
     free(offset_buffer_builder_.release());
     is_large_ = true;
   }
+};
+
+class StructArrayBuilder: public ArrayBuilder {
+public:
+  StructArrayBuilder(int64_t capacity = 0): ArrayBuilder(capacity) {}
+
+  void add_child(std::unique_ptr<ArrayBuilder> child, const std::string& name = "") {
+    set_size(child->size());
+    child_names_.push_back(name);
+    children_.push_back(std::move(child));
+  }
+
+  int64_t num_children() { return child_names_.size(); }
+
+  void set_size(int64_t size) {
+    if (num_children() > 0 && size != size_) {
+      throw util::Exception(
+        "Attempt to resize a StructArrayBuilder from %lld to %lld",
+        size_, size);
+    }
+
+    size_ = size;
+  }
+
+  void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+    CArrayFinalizer finalizer;
+    finalizer.allocate(1, child_names_.size());
+    finalizer.schema.format = "+s";
+
+    finalizer.array_data.length = size();
+    finalizer.array_data.null_count = validity_buffer_builder_.null_count();
+
+    for (int64_t i = 0; i < num_children(); i++) {
+      children_[i]->release(
+        finalizer.array_data.children[i],
+        finalizer.schema.children[i]);
+    }
+
+    finalizer.release(array_data, schema);
+  }
+
+private:
+  std::vector<std::string> child_names_;
+  std::vector<std::unique_ptr<ArrayBuilder>> children_;
 };
 
 }

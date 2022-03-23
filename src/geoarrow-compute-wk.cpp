@@ -194,11 +194,16 @@ void builder_finalize(void* handler_data) {
   }
 }
 
-extern "C" SEXP geoarrow_c_builder_handler_new(SEXP schema_xptr, SEXP array_sexp_out) {
+extern "C" SEXP geoarrow_c_compute_handler_new(SEXP op_sexp, SEXP schema_xptr, SEXP array_sexp_out) {
   CPP_START
 
+  auto op = static_cast<geoarrow::compute::Operation>(INTEGER(op_sexp)[0]);
+  if (op < 0 || op >= geoarrow::compute::Operation::OP_INVALID) {
+      Rf_error("Unsupported operation: %d", op);
+  }
+
   struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
-  geoarrow::GeoArrayBuilder* builder = geoarrow::create_builder(schema, 1024);
+  geoarrow::GeoArrayBuilder* builder = geoarrow::create_builder(op, schema, 1024);
 
   // Use an external pointer to make sure the builder and its data are
   // cleanded up.
