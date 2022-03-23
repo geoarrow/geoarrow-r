@@ -22,7 +22,8 @@ public:
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     arrow::hpp::builder::CArrayFinalizer finalizer;
     finalizer.allocate(0);
-    finalizer.schema.format = "n";
+    finalizer.set_schema_format("n");
+    finalizer.array_data.null_count = 0;
     finalizer.release(array_data, schema);
   }
 };

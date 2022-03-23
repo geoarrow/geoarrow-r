@@ -49,6 +49,19 @@ test_that("geoarrow_compute() can cast all the examples to WKT", {
   }
 })
 
+test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
+  name <- "point"
+
+  for (name in names(geoarrow_example_wkt)) {
+    result_narrow <- geoarrow_compute(
+      geoarrow_create_narrow(geoarrow_example_wkt[[name]]),
+      "global_bounds"
+    )
+
+    result_r <- narrow::from_narrow_array(result_narrow)
+  }
+})
+
 test_that("geoarrow_compute(op = 'void') can handle all examples", {
   for (name in names(geoarrow_example_wkt)) {
     result_narrow <- geoarrow_compute(

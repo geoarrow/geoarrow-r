@@ -30,7 +30,9 @@ void arrow_hpp_builder_release_schema_internal(struct ArrowSchema* schema) {
     // schema->name and/or schema->format must be kept alive via
     // private_data if dynamically allocated
 
-    // metadata must be allocated with malloc()
+    // format, name, and metadata must be nullptr or allocated with malloc()
+    if (schema->format != nullptr) free((void*) schema->format);
+    if (schema->name != nullptr) free((void*) schema->name);
     if (schema->metadata != nullptr) free((void*) schema->metadata);
 
     // this object owns the memory for all the children, but those
@@ -133,10 +135,9 @@ namespace builder {
 // and its dictionary (i.e., the parent release() callback will call the
 // release() method of each child and then free() it).
 inline void allocate_schema(struct ArrowSchema* schema, int64_t n_children = 0) {
-  // schema->name and/or schema->format must be kept alive via
-  // private_data if dynamically allocated
-  schema->format = "";
-  schema->name = "";
+  // schema->name and/or schema->format must be allocated via malloc()
+  schema->format = nullptr;
+  schema->name = nullptr;
   schema->metadata = nullptr;
   schema->flags = ARROW_FLAG_NULLABLE;
   schema->n_children = n_children;
@@ -252,6 +253,32 @@ public:
   void allocate(int64_t n_buffers, int64_t n_children = 0) {
     allocate_array_data(&array_data, n_buffers, n_children);
     allocate_schema(&schema, n_children);
+    set_schema_format("");
+    set_schema_name("");
+  }
+
+  void set_schema_format(const char* format) {
+    size_t len = strlen(format);
+    char* format_owned = reinterpret_cast<char*>(malloc(len + 1));
+    if (format_owned == nullptr) {
+      throw util::Exception("Failed to allocate schema format");
+    }
+    memcpy(format_owned, format, len);
+    format_owned[len] = '\0';
+
+    schema.format = format_owned;
+  }
+
+  void set_schema_name(const char* name) {
+    size_t len = strlen(name);
+    char* name_owned = reinterpret_cast<char*>(malloc(len + 1));
+    if (name_owned == nullptr) {
+      throw util::Exception("Failed to allocate schema name");
+    }
+    memcpy(name_owned, name, len);
+    name_owned[len] = '\0';
+
+    schema.name = name_owned;
   }
 
   void release(struct ArrowArray* array_data_out, struct ArrowSchema* schema_out) {
@@ -449,11 +476,13 @@ private:
 class ArrayBuilder {
 public:
   ArrayBuilder(int64_t capacity = 1024):
-    size_(0), validity_buffer_builder_(capacity) {}
+    name_(""), size_(0), validity_buffer_builder_(capacity) {}
 
   virtual ~ArrayBuilder() {}
 
-  int64_t size() { return size_; }
+  int64_t size() const { return size_; }
+  const std::string& name() const { return name_; }
+  void set_name(const std::string& name) { name_ = name; }
 
   virtual void reserve(int64_t additional_capacity) {}
 
@@ -462,6 +491,7 @@ public:
   }
 
 protected:
+  std::string name_;
   int64_t size_;
   builder::BitmapBuilder validity_buffer_builder_;
 };
@@ -478,16 +508,19 @@ public:
 
   void write_element(double value) {
     buffer_builder_.write_element(value);
+    size_++;
   }
 
   void write_buffer(const double* buffer, int64_t n) {
     buffer_builder_.write_buffer(buffer, n);
+    size_+= n;
   }
 
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     CArrayFinalizer finalizer;
     finalizer.allocate(2);
-    finalizer.schema.format = "g";
+    finalizer.set_schema_format("g");
+    finalizer.set_schema_name(name().c_str());
 
     finalizer.array_data.length = buffer_builder_.size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();
@@ -578,13 +611,14 @@ public:
     finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
     finalizer.array_data.buffers[2] = data_buffer_builder_.release();
     if (is_large_) {
-      finalizer.schema.format = "U";
+      finalizer.set_schema_format("U");
       finalizer.array_data.buffers[1] = large_offset_buffer_builder_.release();
     } else {
-      finalizer.schema.format = "u";
+      finalizer.set_schema_format("u");
       finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
     }
 
+    finalizer.set_schema_name(name().c_str());
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();
     finalizer.array_data.length = size_;
 
@@ -619,11 +653,11 @@ public:
 
   void add_child(std::unique_ptr<ArrayBuilder> child, const std::string& name = "") {
     set_size(child->size());
-    child_names_.push_back(name);
+    child->set_name(name);
     children_.push_back(std::move(child));
   }
 
-  int64_t num_children() { return child_names_.size(); }
+  int64_t num_children() { return children_.size(); }
 
   void set_size(int64_t size) {
     if (num_children() > 0 && size != size_) {
@@ -637,8 +671,8 @@ public:
 
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     CArrayFinalizer finalizer;
-    finalizer.allocate(1, child_names_.size());
-    finalizer.schema.format = "+s";
+    finalizer.allocate(1, num_children());
+    finalizer.set_schema_format("+s");
 
     finalizer.array_data.length = size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();
@@ -653,7 +687,6 @@ public:
   }
 
 private:
-  std::vector<std::string> child_names_;
   std::vector<std::unique_ptr<ArrayBuilder>> children_;
 };
 
