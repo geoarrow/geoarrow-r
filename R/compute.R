@@ -1,27 +1,15 @@
 
-geoarrow_compute <- function(x, op = "void", schema = narrow::narrow_schema("n")) {
+geoarrow_compute <- function(x, op = "void", options = list()) {
   x <- narrow::as_narrow_array(x)
   op <- geoarrow_compute_op(op)
-  schema <- narrow::as_narrow_schema(schema)
-
-  if (op == 1L) {
-    schemas_identical <- identical(
-      narrow::narrow_schema_info(x$schema, recursive = TRUE),
-      narrow::narrow_schema_info(schema)
-    )
-
-    if (schemas_identical) {
-      return(x)
-    }
-  }
 
   array_out <- narrow::narrow_array(
-    schema,
+    narrow::narrow_allocate_schema(),
     narrow::narrow_allocate_array_data(),
     validate = FALSE
   )
 
-  .Call(geoarrow_c_compute, op, x, array_out)
+  .Call(geoarrow_c_compute, op, x, array_out, options)
 }
 
 geoarrow_compute_op <- function(op) {

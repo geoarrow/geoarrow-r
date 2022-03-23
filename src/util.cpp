@@ -33,3 +33,12 @@ void delete_array_builder_xptr(SEXP array_builder_xptr) {
         delete array_builder;
     }
 }
+
+void delete_compute_options_xptr(SEXP compute_options_xptr) {
+    geoarrow::ComputeOptions* compute_options =
+        reinterpret_cast<geoarrow::ComputeOptions*>(R_ExternalPtrAddr(compute_options_xptr));
+
+    if (compute_options != nullptr) {
+        delete compute_options;
+    }
+}

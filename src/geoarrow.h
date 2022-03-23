@@ -19,7 +19,7 @@ enum Operation {
 }
 
 ArrayView* create_view(struct ArrowSchema* schema);
-ComputeBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size);
+ComputeBuilder* create_builder(compute::Operation op, const ComputeOptions& options);
 
 }
 

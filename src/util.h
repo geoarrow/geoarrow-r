@@ -17,9 +17,9 @@
     Rf_error("%s", cpp_exception_error);                  \
     return R_NilValue;
 
-
 void geoarrow_finalize_array_data(SEXP array_data_xptr);
 void delete_array_view_xptr(SEXP array_view_xptr);
 void delete_array_builder_xptr(SEXP array_builder_xptr);
+void delete_compute_options_xptr(SEXP compute_options_xptr);
 
 #endif

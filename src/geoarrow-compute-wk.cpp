@@ -7,6 +7,7 @@
 #include "narrow.h"
 #include "geoarrow.h"
 #include "util.h"
+#include "compute-util.h"
 
 
 // The other versions of CPP_START and CPP_END stack-allocate the
@@ -194,7 +195,7 @@ void builder_finalize(void* handler_data) {
   }
 }
 
-extern "C" SEXP geoarrow_c_compute_handler_new(SEXP op_sexp, SEXP schema_xptr, SEXP array_sexp_out) {
+extern "C" SEXP geoarrow_c_compute_handler_new(SEXP op_sexp, SEXP array_sexp_out, SEXP options_sexp) {
   CPP_START
 
   auto op = static_cast<geoarrow::compute::Operation>(INTEGER(op_sexp)[0]);
@@ -202,12 +203,11 @@ extern "C" SEXP geoarrow_c_compute_handler_new(SEXP op_sexp, SEXP schema_xptr, S
       Rf_error("Unsupported operation: %d", op);
   }
 
-  struct ArrowSchema* schema = schema_from_xptr(schema_xptr, "schema");
-  geoarrow::ComputeBuilder* builder = geoarrow::create_builder(op, schema, 1024);
+  SEXP options_xptr = PROTECT(compute_options_from_sexp(options_sexp));
+  auto options = reinterpret_cast<geoarrow::ComputeOptions*>(R_ExternalPtrAddr(options_xptr));
 
-  // Use an external pointer to make sure the builder and its data are
-  // cleanded up.
-  SEXP builder_xptr = PROTECT(R_MakeExternalPtr(builder, schema_xptr, R_NilValue));
+  geoarrow::ComputeBuilder* builder = geoarrow::create_builder(op, *options);
+  SEXP builder_xptr = PROTECT(R_MakeExternalPtr(builder, options_xptr, R_NilValue));
   R_RegisterCFinalizer(builder_xptr, &delete_array_builder_xptr);
 
   wk_handler_t* handler = wk_handler_create();
@@ -250,7 +250,7 @@ extern "C" SEXP geoarrow_c_compute_handler_new(SEXP op_sexp, SEXP schema_xptr, S
   // which guarnatees that it will not be garbage collected until
   // this object is garbage collected
   SEXP handler_xptr = wk_handler_create_xptr(handler, builder_xptr, array_sexp_out);
-  UNPROTECT(1);
+  UNPROTECT(2);
   return handler_xptr;
 
   CPP_END

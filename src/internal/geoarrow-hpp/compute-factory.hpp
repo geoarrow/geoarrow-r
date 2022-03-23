@@ -20,25 +20,22 @@ enum Operation {
 
 }
 
-ComputeBuilder* create_builder(compute::Operation op, struct ArrowSchema* schema, int64_t size) {
-    Meta geoarrow_meta(schema);
-
-    switch (op) {
-    case compute::Operation::VOID:
+ComputeBuilder* create_builder(compute::Operation op, const ComputeOptions& options) {
+    if (op == compute::Operation::VOID) {
         return new NullBuilder();
+    } else if (op == compute::Operation::CAST) {
+        Meta geoarrow_meta(options.get_schema("schema"));
 
-    case compute::Operation::CAST:
         switch (geoarrow_meta.extension_) {
         case util::Extension::WKT:
-            return new WKTArrayBuilder(size, size);
+            return new WKTArrayBuilder();
         default:
             throw Meta::ValidationError("Unsupported extension type for operation CAST");
         }
-
-    case compute::Operation::GLOBAL_BOUNDS:
+    } else if (op == compute::Operation::GLOBAL_BOUNDS) {
         return new GlobalBounder();
-    default:
-        throw util::IOException("Unknown operation type");
+    } else {
+        throw util::IOException("Unsupported operation identifier");
     }
 }
 
