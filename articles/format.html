@@ -122,7 +122,7 @@
 </h3>
 <p>The field-level metadata for points in geoarrow must contain an extension type of “geoarrow.point” and extension metadata specifying an optional coordinate reference system.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"EPSG:4326"</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -143,7 +143,7 @@
 </h3>
 <p>Points are represented by default in geoarrow as a <a href="https://arrow.apache.org/docs/format/Columnar.html#fixed-size-list-layout" class="external-link">fixed-size list</a> of float64 (i.e., <code>double</code>) values. Conceptually this is much like storing coordinates as a (row-major) matrix with one row per feature and one column per dimension.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (0 1)"</span>, <span class="st">"POINT (2 3)"</span><span class="op">)</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -167,7 +167,7 @@
 <span class="co">#&gt; [1] 0 1 2 3</span></code></pre></div>
 <p>Points can also be represented in geoarrow as a <a href="https://arrow.apache.org/docs/format/Columnar.html#struct-layout" class="external-link">struct</a>. Conceptually this is much like storing points as a data frame with one column per dimension (i.e., all x values are stored next to all the other x values).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (0 1)"</span>, <span class="st">"POINT (2 3)"</span><span class="op">)</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point_struct</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -210,7 +210,7 @@
 </h3>
 <p>The field-level metadata for linestrings in geoarrow must contain an extension type of “geoarrow.linestring” and extension metadata specifying an optional “edges” flag (see parent ‘Metadata’ section above).</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -232,7 +232,7 @@
 </h3>
 <p>Linestrings are stored as a <code>list&lt;vertices: &lt;geoarrow.point&gt;&gt;</code>. The exact storage type of the geoarrow.point can vary as described above. Conceptually this is attaching buffer of (<code>int32_t</code>) offsets to an exiting array of points, where each offset points to the first vertex in a linestring.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"LINESTRING (1 2, 3 4)"</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -269,7 +269,7 @@
 </h3>
 <p>The field-level metadata for polygons in geoarrow must contain an extension type of “geoarrow.polygon” and extension metadata specifying an optional “edges” flag (see parent ‘Metadata’ section above).</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_polygon</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -290,7 +290,7 @@
 </h3>
 <p>Linestrings are stored as a <code>list&lt;rings: &lt;list&lt;vertices: &lt;geoarrow.point&gt;&gt;&gt;</code>. The exact storage type of the geoarrow.point can vary as described above. Conceptually this is attaching buffer of (<code>int32_t</code>) offsets to an exiting array of points, where each offset points to the first vertex in a linear ring. The outer list then contains offsets to the start of each polygon in the rings array. Just like WKB, rings must be closed (i.e., the first coordinate must equal the last coordinate).</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"POLYGON ((0 0, 1 0, 0 1, 0 0))"</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_polygon</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -348,7 +348,7 @@
 </ul>
 <p>Collections do not carry extension metadata of their own (i.e., the CRS and edges flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_multipoint</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>
@@ -374,7 +374,7 @@
 </ul>
 <p>Conceptually this is attaching a buffer of (<code>int32_t</code>) offsets to an existing array of points, lines, or polygons.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
+<code class="sourceCode R"><span class="va">carray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow_from_buffers</a></span><span class="op">(</span>
   <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="st">"MULTIPOINT (1 2, 3 4)"</span><span class="op">)</span>,
   schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_multipoint</a></span><span class="op">(</span><span class="op">)</span>
 <span class="op">)</span>

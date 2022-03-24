@@ -59,8 +59,7 @@
   strict <span class="op">=</span> <span class="cn">FALSE</span>
 <span class="op">)</span>
 
-<span class="co"># S3 method for default</span>
-<span class="fu">geoarrow_create_narrow</span><span class="op">(</span>
+<span class="fu">geoarrow_create_narrow_from_buffers</span><span class="op">(</span>
   <span class="va">handleable</span>,
   <span class="va">...</span>,
   schema <span class="op">=</span> <span class="fu">geoarrow_schema_default</span><span class="op">(</span><span class="va">handleable</span><span class="op">)</span>,
@@ -97,10 +96,10 @@ readers.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu">geoarrow_create_narrow</span><span class="op">(</span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/xy.html" class="external-link">xy</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu">geoarrow_create_narrow_from_buffers</span><span class="op">(</span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/xy.html" class="external-link">xy</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;narrow_array +w:2[5]&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - schema:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+w:2' at 0x55f0dc2f5610&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_schema '+w:2' at 0x5557fdc3dfa0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - format: +w:2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - name: </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - flags: nullable</span>
@@ -109,7 +108,7 @@ readers.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   $ ARROW:extension:metadata: raw [1:4] 00 00 00 00</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema 'g' at 0x55f0dc2f3640&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_schema 'g' at 0x5557fd818700&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - format: g</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - name: xy</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - flags: nullable</span>
@@ -117,7 +116,7 @@ readers.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - children[0]:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> - array_data:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_array_data at 0x55f0dc301a80&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   &lt;narrow_array_data at 0x5557fe1a14c0&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - length: 5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - null_count: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - offset: 0</span>
@@ -125,7 +124,7 @@ readers.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     $ : NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - dictionary: NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   - children[1]:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_array_data at 0x55f0dc2feef0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;narrow_array_data at 0x5557fe144590&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - length: 10</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - null_count: 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     - offset: 0</span>
