@@ -1,6 +1,6 @@
 
-test_that("geoarrow_create_narrow() works for geoarrow::wkt", {
-  array <- geoarrow_create_narrow(
+test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::wkt", {
+  array <- geoarrow_create_narrow_from_buffers(
     wk::xy(1:2, 1:2),
     schema = geoarrow_schema_wkt()
   )
@@ -11,8 +11,8 @@ test_that("geoarrow_create_narrow() works for geoarrow::wkt", {
   )
 })
 
-test_that("geoarrow_create_narrow() works for geoarrow::wkb", {
-  array <- geoarrow_create_narrow(
+test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::wkb", {
+  array <- geoarrow_create_narrow_from_buffers(
     wk::xy(1:2, 1:2),
     schema = geoarrow_schema_wkb(format = "z"),
     strict = TRUE
@@ -24,8 +24,8 @@ test_that("geoarrow_create_narrow() works for geoarrow::wkb", {
   )
 })
 
-test_that("geoarrow_create_narrow() works for geoarrow::point", {
-  array <- geoarrow_create_narrow(
+test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::point", {
+  array <- geoarrow_create_narrow_from_buffers(
     wk::xy(1:5, 1:5),
     schema = geoarrow_schema_point_struct()
   )
@@ -36,8 +36,8 @@ test_that("geoarrow_create_narrow() works for geoarrow::point", {
   )
 })
 
-test_that("geoarrow_create_narrow() works for geoarrow::linestring", {
-  array <- geoarrow_create_narrow(
+test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::linestring", {
+  array <- geoarrow_create_narrow_from_buffers(
     wk::wkt(c("LINESTRING (0 1, 2 3)", "LINESTRING (4 5, 6 7, 8 9)")),
     schema = geoarrow_schema_linestring(
       point = geoarrow_schema_point_struct()
@@ -50,13 +50,13 @@ test_that("geoarrow_create_narrow() works for geoarrow::linestring", {
   )
 })
 
-test_that("geoarrow_create_narrow() works for geoarrow::polygon", {
+test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::polygon", {
   poly <- c(
     "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))",
     "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10))"
   )
 
-  array <- geoarrow_create_narrow(
+  array <- geoarrow_create_narrow_from_buffers(
     wk::wkt(poly),
     schema = geoarrow_schema_polygon(
       point = geoarrow_schema_point_struct()
@@ -68,8 +68,8 @@ test_that("geoarrow_create_narrow() works for geoarrow::polygon", {
   expect_identical(as.numeric(array$array_data$children[[1]]$buffers[[2]]), c(0, 5, 9, 14))
 })
 
-test_that("geoarrow_create_narrow() works for geoarrow::multi / geoarrow::point", {
-  array <- geoarrow_create_narrow(
+test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::multi / geoarrow::point", {
+  array <- geoarrow_create_narrow_from_buffers(
     wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (4 5, 6 7, 8 9)")),
     schema = geoarrow_schema_multipoint_struct()
   )
@@ -81,8 +81,8 @@ test_that("geoarrow_create_narrow() works for geoarrow::multi / geoarrow::point"
 })
 
 
-test_that("geoarrow_create_narrow() works for geoarrow::multi / geoarrow::linestring", {
-  array <- geoarrow_create_narrow(
+test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::multi / geoarrow::linestring", {
+  array <- geoarrow_create_narrow_from_buffers(
     wk::wkt(
       c("MULTILINESTRING ((0 1, 2 3))",
         "MULTILINESTRING ((4 5, 6 7, 8 9), (10 11, 12 13))")
@@ -103,13 +103,13 @@ test_that("geoarrow_create_narrow() works for geoarrow::multi / geoarrow::linest
   )
 })
 
-test_that("geoarrow_create_narrow() works for goearrow::multi / geoarrow::polygon", {
+test_that("geoarrow_create_narrow_from_buffers() works for goearrow::multi / geoarrow::polygon", {
   poly_text <- c(
     "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)), ((20 30, 35 35, 30 20, 20 30)))",
     "MULTIPOLYGON (((35 10, 45 45, 15 40, 10 20, 35 10)))"
   )
 
-  poly <- geoarrow_create_narrow(
+  poly <- geoarrow_create_narrow_from_buffers(
     wk::wkt(poly_text),
     schema = geoarrow_schema_multipolygon(
       point = geoarrow_schema_point_struct()
@@ -129,8 +129,8 @@ test_that("geoarrow_create_narrow() works for goearrow::multi / geoarrow::polygo
 })
 
 
-test_that("geoarrow_create_narrow() works for empty geometries", {
-  array_point <- geoarrow_create_narrow(wk::wkt("POINT EMPTY"))
+test_that("geoarrow_create_narrow_from_buffers() works for empty geometries", {
+  array_point <- geoarrow_create_narrow_from_buffers(wk::wkt("POINT EMPTY"))
   expect_identical(wk::as_wkt(array_point), wk::wkt("POINT (nan nan)"))
 
   empties <- wk::wkt(
@@ -143,19 +143,19 @@ test_that("geoarrow_create_narrow() works for empty geometries", {
 
   for (i in seq_along(empties)) {
     expect_identical(
-      wk::as_wkt(geoarrow_create_narrow(!! empties[i])),
+      wk::as_wkt(geoarrow_create_narrow_from_buffers(!! empties[i])),
       !! empties[i]
     )
   }
 })
 
-test_that("geoarrow_create_narrow() errors for invalid schemas", {
+test_that("geoarrow_create_narrow_from_buffers() errors for invalid schemas", {
   expect_error(
-    geoarrow_create_narrow(wk::xy(), schema = narrow::narrow_schema("i")),
+    geoarrow_create_narrow_from_buffers(wk::xy(), schema = narrow::narrow_schema("i")),
     "is not TRUE"
   )
   expect_error(
-    geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(
       wk::xy(),
       schema = narrow::narrow_schema(
         "i",
@@ -165,7 +165,7 @@ test_that("geoarrow_create_narrow() errors for invalid schemas", {
     "Extension 'not an extension' not supported by geoarrow_create_narrow"
   )
   expect_error(
-    geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(
       wk::xy(),
       schema = geoarrow_schema_collection(
         narrow::narrow_schema(

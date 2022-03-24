@@ -10,7 +10,7 @@ test_that("geoarrow_compute() can cast all the examples to WKT", {
   # nc has coordinates that take up all 16 precision slots,
   # which have some minor differences between the ryu and sprintf translations
   for (name in setdiff(names(geoarrow_example_wkt), character())) {
-    src_narrow <- geoarrow_create_narrow(geoarrow_example_wkt[[name]])
+    src_narrow <- geoarrow_create_narrow_from_buffers(geoarrow_example_wkt[[name]])
     dst_narrow <- geoarrow_compute(
       src_narrow,
       "cast",
@@ -43,7 +43,7 @@ test_that("geoarrow_compute() can cast all the examples to WKB", {
   skip_if_not_installed("geos")
 
   for (name in names(geoarrow_example_wkt)) {
-    src_narrow <- geoarrow_create_narrow(geoarrow_example_wkt[[name]])
+    src_narrow <- geoarrow_create_narrow_from_buffers(geoarrow_example_wkt[[name]])
     dst_narrow <- geoarrow_compute(
       src_narrow,
       "cast",
@@ -70,7 +70,7 @@ test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
 
     # with null_is_empty = FALSE
     result_narrow <- geoarrow_compute(
-      geoarrow_create_narrow(src_wkt),
+      geoarrow_create_narrow_from_buffers(src_wkt),
       "global_bounds",
       list(null_is_empty = FALSE)
     )
@@ -97,7 +97,7 @@ test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
 
     # with null_is_empty = TRUE
     result_narrow <- geoarrow_compute(
-      geoarrow_create_narrow(src_wkt),
+      geoarrow_create_narrow_from_buffers(src_wkt),
       "global_bounds",
       list(null_is_empty = TRUE)
     )
@@ -115,7 +115,7 @@ test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
 test_that("geoarrow_compute(op = 'void') can handle all examples", {
   for (name in names(geoarrow_example_wkt)) {
     result_narrow <- geoarrow_compute(
-      geoarrow_create_narrow(geoarrow_example_wkt[[name]]),
+      geoarrow_create_narrow_from_buffers(geoarrow_example_wkt[[name]]),
       "void"
     )
 

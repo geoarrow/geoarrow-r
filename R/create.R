@@ -13,17 +13,23 @@
 #' @export
 #'
 #' @examples
-#' geoarrow_create_narrow(wk::xy(1:5, 1:5))
+#' geoarrow_create_narrow_from_buffers(wk::xy(1:5, 1:5))
 #'
 geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
                                    strict = FALSE) {
-  UseMethod("geoarrow_create_narrow")
+  extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
+  geoarrow_create_narrow_from_buffers(
+    handleable, ...,
+    schema = schema,
+    strict = strict
+  )
 }
 
 #' @rdname geoarrow_create_narrow
 #' @export
-geoarrow_create_narrow.default <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
-                                    strict = FALSE) {
+geoarrow_create_narrow_from_buffers <- function(handleable, ...,
+                                                schema = geoarrow_schema_default(handleable),
+                                                strict = FALSE) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
   # set CRS and geodesic attributes from handleable
@@ -164,7 +170,7 @@ geoarrow_create_narrow.default <- function(handleable, ..., schema = geoarrow_sc
 
 
   stop(
-    sprintf("Extension '%s' not supported by geoarrow_create_narrow()", extension),
+    sprintf("Extension '%s' not supported by geoarrow_create_narrow_from_buffers()", extension),
     call. = FALSE
   )
 }
