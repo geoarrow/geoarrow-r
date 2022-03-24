@@ -50,7 +50,7 @@ enum GeometryType {
     GEOMETRYCOLLECTION = 7
 };
 
-enum Dimensions {DIMENSIONS_UNKNOWN = 0, XY = 1, XYZ = 2, XYM = 3, XYZM = 4};
+enum Dimensions {DIMENSIONS_UNKNOWN = 10000, XY = 0, XYZ = 1000, XYM = 2000, XYZM = 3000};
 
 enum Edges {Planar, Spherical, Ellipsoidal, EdgesUnknown};
 

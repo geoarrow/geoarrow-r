@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include "builder.hpp"
 
 namespace arrow {
@@ -7,9 +9,9 @@ namespace hpp {
 
 namespace builder {
 
-class StringArrayBuilder: public ArrayBuilder {
+class BinaryArrayBuilder: public ArrayBuilder {
 public:
-  StringArrayBuilder(int64_t capacity = 1024, int64_t data_size_guess = 1024):
+  BinaryArrayBuilder(int64_t capacity = 1024, int64_t data_size_guess = 1024):
       ArrayBuilder(capacity),
       is_large_(false),
       item_size_(0),
@@ -46,12 +48,20 @@ public:
     return data_buffer_builder_.remaining_capacity();
   }
 
+  uint8_t* mutable_data() {
+    return data_buffer_builder_.mutable_data();
+  }
+
   uint8_t* data_at_cursor() {
     return data_buffer_builder_.data_at_cursor();
   }
 
   void advance_data(int64_t n) {
     data_buffer_builder_.advance(n);
+  }
+
+  int64_t data_size() {
+    return data_buffer_builder_.size();
   }
 
   void write_buffer(const uint8_t* buffer, int64_t capacity) {
@@ -79,13 +89,13 @@ public:
     CArrayFinalizer finalizer;
     finalizer.allocate(3);
 
+    finalizer.set_schema_format(get_format());
+
     finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
     finalizer.array_data.buffers[2] = data_buffer_builder_.release();
     if (is_large_) {
-      finalizer.set_schema_format("U");
       finalizer.array_data.buffers[1] = large_offset_buffer_builder_.release();
     } else {
-      finalizer.set_schema_format("u");
       finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
     }
 
@@ -103,6 +113,14 @@ protected:
   builder::BufferBuilder<int64_t> large_offset_buffer_builder_;
   builder::BufferBuilder<uint8_t> data_buffer_builder_;
 
+  virtual const char* get_format() {
+    if (is_large_) {
+      return "Z";
+    } else {
+      return "z";
+    }
+  }
+
   bool needs_make_large(int64_t capacity) {
     return !is_large_ &&
       ((data_buffer_builder_.size() + capacity) > std::numeric_limits<int32_t>::max());
@@ -116,6 +134,23 @@ protected:
     free(offset_buffer_builder_.release());
     is_large_ = true;
   }
+};
+
+class StringArrayBuilder: public BinaryArrayBuilder {
+public:
+  StringArrayBuilder(int64_t capacity = 1024, int64_t data_size_guess = 1024)
+    : BinaryArrayBuilder(capacity, data_size_guess) {}
+
+protected:
+
+  const char* get_format() {
+    if (is_large_) {
+      return "U";
+    } else {
+      return "u";
+    }
+  }
+
 };
 
 }

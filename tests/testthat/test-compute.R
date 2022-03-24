@@ -39,6 +39,31 @@ test_that("geoarrow_compute() can cast all the examples to WKT", {
   }
 })
 
+test_that("geoarrow_compute() can cast all the examples to WKB", {
+  skip_if_not_installed("geos")
+
+  for (name in names(geoarrow_example_wkt)) {
+    src_narrow <- geoarrow_create_narrow(geoarrow_example_wkt[[name]])
+    dst_narrow <- geoarrow_compute(
+      src_narrow,
+      "cast",
+      list(schema = geoarrow_schema_wkb())
+    )
+
+    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.wkb")
+
+    expect_identical(
+      wk::wk_count(dst_narrow),
+      wk::wk_count(wk::as_wkb(geoarrow_example_wkt[[name]]))
+    )
+
+    expect_identical(
+      wk::wk_coords(dst_narrow),
+      wk::wk_coords(wk::as_wkb(geoarrow_example_wkt[[name]]))
+    )
+  }
+})
+
 test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
   for (name in names(geoarrow_example_wkt)) {
     src_wkt <- geoarrow_example_wkt[[name]]

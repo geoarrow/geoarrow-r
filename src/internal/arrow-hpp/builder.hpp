@@ -370,6 +370,7 @@ public:
   }
 
   const BufferT* data() { return data_; }
+  BufferT* mutable_data() { return data_; }
   BufferT* data_at_cursor() { return data_ + size_; }
   void advance(int64_t n) { size_ += n; }
   int64_t capacity() { return capacity_; }
@@ -438,10 +439,16 @@ public:
 
   uint8_t* release() {
     if (allocated_ || null_count_ > 0) {
+      // when we call write_element() we might end up with extra
+      // nulls in the null_count that shouldn't be there
+      int64_t actual_null_count_ = null_count_;
+
       int remaining_bits = 8 - buffer_size_;
       for (int i = 0; i < remaining_bits; i++) {
         write_element(false);
       }
+
+      null_count_ = actual_null_count_;
     }
 
     if (allocated_) {
@@ -463,7 +470,10 @@ private:
 
   void trigger_alloc(int64_t capacity) {
     reallocate(capacity);
-    memset(buffer_builder_.data_at_cursor(), 0xff, buffer_builder_.capacity());
+    memset(
+      buffer_builder_.mutable_data() + buffer_builder_.size(),
+      0xff,
+      buffer_builder_.capacity());
     allocated_ = true;
     if (size_ > 0) {
       buffer_builder_.advance((size_ - 1) / 8);
