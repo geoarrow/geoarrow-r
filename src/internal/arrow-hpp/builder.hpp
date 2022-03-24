@@ -254,6 +254,10 @@ public:
   }
 
   void set_schema_format(const char* format) {
+    if (schema.format != nullptr) {
+      free((void*) schema.format);
+    }
+
     size_t len = strlen(format);
     char* format_owned = reinterpret_cast<char*>(malloc(len + 1));
     if (format_owned == nullptr) {
@@ -266,6 +270,10 @@ public:
   }
 
   void set_schema_name(const char* name) {
+    if (schema.name != nullptr) {
+      free((void*) schema.name);
+    }
+
     size_t len = strlen(name);
     char* name_owned = reinterpret_cast<char*>(malloc(len + 1));
     if (name_owned == nullptr) {
