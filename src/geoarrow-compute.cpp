@@ -13,7 +13,7 @@ extern "C" SEXP geoarrow_c_compute(SEXP op_sexp, SEXP array_from_sexp, SEXP arra
                                    SEXP options_sexp) {
     CPP_START
 
-    std::string op(Rf_translateCharUTF8(STRING_ELT(op_sexp, 0)));
+    const char* op = Rf_translateCharUTF8(STRING_ELT(op_sexp, 0));
 
     SEXP options_xptr = PROTECT(compute_options_from_sexp(options_sexp));
     auto options = reinterpret_cast<geoarrow::ComputeOptions*>(R_ExternalPtrAddr(options_xptr));
