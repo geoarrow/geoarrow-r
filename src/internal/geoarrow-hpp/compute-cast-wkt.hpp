@@ -36,7 +36,10 @@ public:
         string_builder_.reserve(additional_capacity);
     }
 
-    void shrink() { string_builder_.shrink(); }
+    void shrink() {
+        ArrayBuilder::shrink();
+        string_builder_.shrink();
+    }
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         shrink();

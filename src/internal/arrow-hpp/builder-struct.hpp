@@ -35,6 +35,7 @@ public:
   }
 
   void shrink() {
+    ArrayBuilder::shrink();
     for (int64_t i = 0; i < num_children(); i++) {
       children_[i]->shrink();
     }

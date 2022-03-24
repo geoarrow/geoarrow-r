@@ -37,6 +37,8 @@ public:
   }
 
   void shrink() {
+    ArrayBuilder::shrink();
+
     if (is_large_) {
       large_offset_buffer_builder_.shrink();
     } else {

@@ -431,6 +431,12 @@ public:
     buffer_builder_.reserve(additional_capacity / 8 + 1);
   }
 
+  void shrink() {
+    if (allocated_) {
+      buffer_builder_.shrink();
+    }
+  }
+
   void write_element(bool value) {
     size_++;
     null_count_ += !value;
@@ -511,7 +517,9 @@ public:
 
   virtual void reserve(int64_t additional_capacity) {}
 
-  virtual void shrink() {}
+  virtual void shrink() {
+    validity_buffer_builder_.shrink();
+  }
 
   virtual void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     throw util::Exception("Not implemented");
@@ -533,7 +541,10 @@ public:
     buffer_builder_.reserve(additional_capacity);
   }
 
-  void shrink() { buffer_builder_.shrink(); }
+  void shrink() {
+    ArrayBuilder::shrink();
+    buffer_builder_.shrink();
+  }
 
   void write_element(double value) {
     buffer_builder_.write_element(value);

@@ -89,7 +89,6 @@ private:
 
 class NullBuilder: public ComputeBuilder {
 public:
-
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     arrow::hpp::builder::CArrayFinalizer finalizer;
     finalizer.allocate(0);
