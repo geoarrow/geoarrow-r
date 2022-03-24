@@ -36,6 +36,16 @@ public:
     }
   }
 
+  void shrink() {
+    if (is_large_) {
+      large_offset_buffer_builder_.shrink();
+    } else {
+      offset_buffer_builder_.shrink();
+    }
+
+    data_buffer_builder_.shrink();
+  }
+
   void reserve_data(int64_t additional_data_size_guess) {
     if (needs_make_large(additional_data_size_guess)) {
       make_large();

@@ -340,6 +340,8 @@ public:
     write_buffer(&item, 1);
   }
 
+  void shrink() { reallocate(size_); }
+
   virtual BufferT* release() {
     BufferT* out = data_;
     data_ = nullptr;
@@ -363,6 +365,10 @@ public:
     }
 
     int64_t n_bytes = capacity * sizeof(BufferT);
+    if (n_bytes <= 0) {
+      n_bytes = 1;
+    }
+
     BufferT* new_data = reinterpret_cast<BufferT*>(realloc(data_, n_bytes));
     if (new_data == nullptr) {
       throw util::Exception(
@@ -505,6 +511,8 @@ public:
 
   virtual void reserve(int64_t additional_capacity) {}
 
+  virtual void shrink() {}
+
   virtual void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     throw util::Exception("Not implemented");
   }
@@ -524,6 +532,8 @@ public:
   void reserve(int64_t additional_capacity) {
     buffer_builder_.reserve(additional_capacity);
   }
+
+  void shrink() { buffer_builder_.shrink(); }
 
   void write_element(double value) {
     buffer_builder_.write_element(value);

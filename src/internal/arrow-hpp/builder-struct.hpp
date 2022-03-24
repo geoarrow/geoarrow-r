@@ -34,6 +34,12 @@ public:
     size_ = size;
   }
 
+  void shrink() {
+    for (int64_t i = 0; i < num_children(); i++) {
+      children_[i]->shrink();
+    }
+  }
+
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     CArrayFinalizer finalizer;
     finalizer.allocate(1, num_children());
@@ -58,6 +64,5 @@ private:
 }
 
 }
-
 
 }
