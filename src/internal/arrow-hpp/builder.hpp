@@ -26,9 +26,6 @@ void arrow_hpp_builder_release_array_data_internal(struct ArrowArray* array_data
 // The .release() callback for all struct ArrowSchemas populated here
 void arrow_hpp_builder_release_schema_internal(struct ArrowSchema* schema) {
   if (schema != nullptr && schema->release != nullptr) {
-    // schema->name and/or schema->format must be kept alive via
-    // private_data if dynamically allocated
-
     // format, name, and metadata must be nullptr or allocated with malloc()
     if (schema->format != nullptr) free((void*) schema->format);
     if (schema->name != nullptr) free((void*) schema->name);
@@ -307,8 +304,13 @@ public:
   }
 
   ~CArrayFinalizer() {
-    arrow_hpp_builder_release_array_data_internal(&array_data);
-    arrow_hpp_builder_release_schema_internal(&schema);
+    if (array_data.release != nullptr) {
+      array_data.release(&array_data);
+    }
+
+    if (schema.release != nullptr) {
+      schema.release(&schema);
+    }
   }
 };
 
