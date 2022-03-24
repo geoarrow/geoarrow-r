@@ -8,6 +8,7 @@
 #include "handler.hpp"
 #include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
+#include "../arrow-hpp/builder-struct.hpp"
 
 namespace geoarrow {
 namespace util {
@@ -46,11 +47,11 @@ public:
 
     void add_bounder(const GenericBounder& other) {
         for (int j = 0; j < 4; j++) {
-            int coord_j = xyzm_map_[j];
             double min_ordinate_xyzm = other.min_xyzm(j);
             double max_ordinate_xyzm = other.max_xyzm(j);
+            int coord_j = xyzm_map_[j];
             min_values_[coord_j] = std::min<double>(min_values_[coord_j], min_ordinate_xyzm);
-            min_values_[coord_j] = std::max<double>(max_values_[coord_j], max_ordinate_xyzm);
+            max_values_[coord_j] = std::max<double>(max_values_[coord_j], max_ordinate_xyzm);
         }
     }
 
@@ -87,11 +88,12 @@ private:
 
 class GlobalBounder: public ComputeBuilder {
 public:
-    GlobalBounder(bool null_is_empty = false):
-        null_is_empty_(null_is_empty),
+    GlobalBounder(const ComputeOptions& options):
         bounder_xyzm_(util::Dimensions::XYZM),
         bounder_xym_(util::Dimensions::XYM),
         bounder_(nullptr) {
+
+        null_is_empty_ = options.get_bool("null_is_empty");
 
         bounder_ = &bounder_xyzm_;
         for (int i = 0; i < 8; i++) {

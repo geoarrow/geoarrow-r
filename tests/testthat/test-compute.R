@@ -1,19 +1,8 @@
 
 test_that("geoarrow_compute() errors for invalid operation", {
   expect_error(
-    geoarrow_compute(narrow::narrow_array(), "not an op!"),
-    "Unsupported operation: 'not an op!'"
-  )
-
-  expect_error(
-    .Call(
-      geoarrow_c_compute,
-      100L,
-      narrow::narrow_array(),
-      narrow::narrow_array(),
-      list()
-    ),
-    "Unsupported operation: 100"
+    geoarrow_compute(geoarrow_example_narrow("point"), "not an op!"),
+    "Unknown operation: 'not an op!'"
   )
 })
 
@@ -51,15 +40,50 @@ test_that("geoarrow_compute() can cast all the examples to WKT", {
 })
 
 test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
-  name <- "point"
-
   for (name in names(geoarrow_example_wkt)) {
+    src_wkt <- geoarrow_example_wkt[[name]]
+
+    # with null_is_empty = FALSE
     result_narrow <- geoarrow_compute(
-      geoarrow_create_narrow(geoarrow_example_wkt[[name]]),
-      "global_bounds"
+      geoarrow_create_narrow(src_wkt),
+      "global_bounds",
+      list(null_is_empty = FALSE)
     )
 
     result_r <- narrow::from_narrow_array(result_narrow)
+    expect_named(
+      result_r,
+      c("xmin", "xmax", "ymin", "ymax", "zmin", "zmax", "mmin", "mmax")
+    )
+
+    if (any(is.na(src_wkt))) {
+      expect_identical(
+        unlist(result_r, use.names = FALSE),
+        rep(NaN, 8)
+      )
+    } else {
+      bbox <- wk::wk_bbox(src_wkt)
+      result_r <- result_r[names(unclass(bbox))]
+      attributes(bbox) <- NULL
+      attributes(result_r) <- NULL
+
+      expect_identical(result_r, bbox)
+    }
+
+    # with null_is_empty = TRUE
+    result_narrow <- geoarrow_compute(
+      geoarrow_create_narrow(src_wkt),
+      "global_bounds",
+      list(null_is_empty = TRUE)
+    )
+
+    result_r <- narrow::from_narrow_array(result_narrow)
+    bbox <- wk::wk_bbox(src_wkt[!is.na(src_wkt)])
+    result_r <- result_r[names(unclass(bbox))]
+    attributes(bbox) <- NULL
+    attributes(result_r) <- NULL
+
+    expect_identical(result_r, bbox)
   }
 })
 

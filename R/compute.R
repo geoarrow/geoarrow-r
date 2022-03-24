@@ -14,11 +14,5 @@ geoarrow_compute <- function(x, op = "void", options = list()) {
 
 geoarrow_compute_op <- function(op) {
   stopifnot(is.character(op), length(op) == 1)
-  switch(
-    tolower(op),
-    "void" = 0L,
-    "cast" = 1L,
-    "global_bounds" = 2L,
-    stop(sprintf("Unsupported operation: '%s'", op))
-  )
+  op
 }

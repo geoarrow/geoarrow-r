@@ -9,21 +9,10 @@
 
 namespace geoarrow {
 
-namespace compute {
-
-enum Operation {
-    VOID = 0,
-    CAST = 1,
-    GLOBAL_BOUNDS = 2,
-    OP_INVALID = 3
-};
-
-}
-
-ComputeBuilder* create_builder(compute::Operation op, const ComputeOptions& options) {
-    if (op == compute::Operation::VOID) {
+ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& options) {
+    if (op == "void") {
         return new NullBuilder();
-    } else if (op == compute::Operation::CAST) {
+    } else if (op == "cast") {
         Meta geoarrow_meta(options.get_schema("schema"));
 
         switch (geoarrow_meta.extension_) {
@@ -32,10 +21,10 @@ ComputeBuilder* create_builder(compute::Operation op, const ComputeOptions& opti
         default:
             throw Meta::ValidationError("Unsupported extension type for operation CAST");
         }
-    } else if (op == compute::Operation::GLOBAL_BOUNDS) {
-        return new GlobalBounder();
+    } else if (op == "global_bounds") {
+        return new GlobalBounder(options);
     } else {
-        throw util::IOException("Unsupported operation identifier");
+        throw util::IOException("Unknown operation: '%s'", op.c_str());
     }
 }
 

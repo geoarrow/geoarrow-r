@@ -9,7 +9,7 @@ geoarrow_compute_handler <- function(op = "void", options = list()) {
   )
 
   wk::new_wk_handler(
-    .Call(geoarrow_c_compute_handler_new, as.integer(op)[1], array_out, options),
+    .Call(geoarrow_c_compute_handler_new, op, array_out, options),
     "geoarrow_compute_handler"
   )
 }

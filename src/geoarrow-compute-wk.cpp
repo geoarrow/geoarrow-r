@@ -198,10 +198,7 @@ void builder_finalize(void* handler_data) {
 extern "C" SEXP geoarrow_c_compute_handler_new(SEXP op_sexp, SEXP array_sexp_out, SEXP options_sexp) {
   CPP_START
 
-  auto op = static_cast<geoarrow::compute::Operation>(INTEGER(op_sexp)[0]);
-  if (op < 0 || op >= geoarrow::compute::Operation::OP_INVALID) {
-      Rf_error("Unsupported operation: %d", op);
-  }
+  std::string op(Rf_translateCharUTF8(STRING_ELT(op_sexp, 0)));
 
   SEXP options_xptr = PROTECT(compute_options_from_sexp(options_sexp));
   auto options = reinterpret_cast<geoarrow::ComputeOptions*>(R_ExternalPtrAddr(options_xptr));

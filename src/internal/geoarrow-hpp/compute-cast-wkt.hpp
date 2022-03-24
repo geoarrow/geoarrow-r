@@ -8,6 +8,7 @@
 #include "handler.hpp"
 #include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
+#include "../arrow-hpp/builder-string.hpp"
 
 // using ryu for double -> char* is ~5x faster!
 #ifndef geoarrow_d2s_fixed_n

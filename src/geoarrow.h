@@ -7,19 +7,8 @@
 
 namespace geoarrow {
 
-namespace compute {
-
-enum Operation {
-    VOID = 0,
-    CAST = 1,
-    GLOBAL_BOUNDS = 2,
-    OP_INVALID = 3
-};
-
-}
-
 ArrayView* create_view(struct ArrowSchema* schema);
-ComputeBuilder* create_builder(compute::Operation op, const ComputeOptions& options);
+ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& options);
 
 }
 
