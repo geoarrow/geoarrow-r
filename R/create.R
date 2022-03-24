@@ -7,6 +7,9 @@
 #' @param strict Use `TRUE` to respect choices of storage type, dimensions,
 #'   and CRS provided by `schema`. The default, `FALSE`, updates these values
 #'   to match the data.
+#' @param null_point_as_empty Use `TRUE` when creating point arrays for Parquet
+#'   to work around a bug whereby null items cannot be re-read by Arrow Parquet
+#'   readers.
 #' @inheritParams geoarrow_schema_point
 #'
 #' @return A [narrow::narrow_array()]
@@ -74,7 +77,7 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
 #' @export
 geoarrow_create_narrow_from_buffers <- function(handleable, ...,
                                                 schema = geoarrow_schema_default(handleable),
-                                                strict = FALSE) {
+                                                strict = FALSE, null_point_as_empty = FALSE) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
   # set CRS and geodesic attributes from handleable
@@ -102,14 +105,19 @@ geoarrow_create_narrow_from_buffers <- function(handleable, ...,
   # minimal allocs. For now, this is going to generate some copying.
 
   if (identical(extension, "geoarrow.point")) {
-    # this is probably slow but is needed to distinguish between null and
-    # empty!
-    point_is_null <- wk::wk_count(handleable)$n_geom == 0
+    if (null_point_as_empty) {
+      can_be_null <- FALSE
+    } else {
+      # this is probably slow but is needed to distinguish between null and
+      # empty since wk::xy() can't do that
+      can_be_null <- wk::wk_count(handleable)$n_geom == 0
+    }
+
     return(
       geoarrow_create_point_array(
         wk::as_xy(handleable),
         schema,
-        can_be_null = point_is_null
+        can_be_null = can_be_null
       )
     )
   }

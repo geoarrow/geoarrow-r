@@ -632,6 +632,29 @@ test_that("point arrays can be created", {
   )
 })
 
+test_that("point arrays can be created with null_point_as_empty = TRUE and FALSE", {
+  features <- wk::wkt(c("POINT (1 3)", "POINT (2 4)", NA))
+
+  array_with_nulls <- geoarrow_create_narrow(
+    features,
+    schema = geoarrow_schema_point(),
+    null_point_as_empty = FALSE
+  )
+  expect_identical(array_with_nulls$array_data$null_count, 1L)
+  expect_identical(
+    as.logical(array_with_nulls$array_data$buffers[[1]])[1:length(features)],
+    c(TRUE, TRUE, FALSE)
+  )
+
+  array_with_empty <- geoarrow_create_narrow(
+    features,
+    schema = geoarrow_schema_point(),
+    null_point_as_empty = TRUE
+  )
+  expect_identical(array_with_empty$array_data$null_count, 0L)
+  expect_null(array_with_empty$array_data$buffers[[1]])
+})
+
 test_that("point struct arrays can be created", {
   coords <- wk::xy(c(1:2, NA), c(3:4, NA))
 

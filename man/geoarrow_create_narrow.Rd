@@ -17,7 +17,8 @@ geoarrow_create_narrow_from_buffers(
   handleable,
   ...,
   schema = geoarrow_schema_default(handleable),
-  strict = FALSE
+  strict = FALSE,
+  null_point_as_empty = FALSE
 )
 
 geoarrow_schema_default(handleable, point = geoarrow_schema_point())
@@ -32,6 +33,10 @@ geoarrow_schema_default(handleable, point = geoarrow_schema_point())
 \item{strict}{Use \code{TRUE} to respect choices of storage type, dimensions,
 and CRS provided by \code{schema}. The default, \code{FALSE}, updates these values
 to match the data.}
+
+\item{null_point_as_empty}{Use \code{TRUE} when creating point arrays for Parquet
+to work around a bug whereby null items cannot be re-read by Arrow Parquet
+readers.}
 
 \item{point}{The point schema to use for coordinates}
 }

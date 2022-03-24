@@ -96,12 +96,6 @@ test_that("all example parquet files can be read", {
   )
 
   for (file in files) {
-    if (grepl("^point.*?-default", basename(file))) {
-      # currently fail because NULL values in a fixed-width list
-      # aren't supported
-      next
-    }
-
     name <- gsub("-.*?\\.parquet$", "", basename(file))
     result <- read_geoarrow_parquet(
       file,
@@ -111,11 +105,12 @@ test_that("all example parquet files can be read", {
     if (startsWith(basename(file), "nc_spherical")) {
       # no nc_spherical in geoarrow_example_wkt
     } else if (grepl("^point", basename(file))) {
-      # because an EMTPY point and a null point have different representations
-      is_empty <- grepl("EMPTY$", geoarrow_example_wkt[[name]])
+      # null points become empty when written to Parquet until
+      # https://issues.apache.org/jira/browse/ARROW-8228 is resolved,
+      # but wk::xy() represents them both the same way
       expect_identical(
-        wk::as_wkb(result$geometry[!is_empty]),
-        wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
+        wk::as_xy(result$geometry),
+        wk::as_xy(geoarrow_example_wkt[[!! name]])
       )
     } else {
       expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])

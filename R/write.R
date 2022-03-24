@@ -12,7 +12,15 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
     stop("Package 'arrow' required for write_geoarrow_parquet()", call. = FALSE) # nocov
   }
 
-  batch <- geoarrow_make_batch(handleable, schema, strict)
+  batch <- geoarrow_make_batch(
+    handleable,
+    schema,
+    strict,
+    # workaround because Arrow Parquet can't roundtrip null fixed-width list
+    # elements (https://issues.apache.org/jira/browse/ARROW-8228)
+    null_point_as_empty = is.null(schema) ||
+      startsWith(schema$format, "+w:")
+  )
 
   # write!
   arrow::write_parquet(batch, ...)
@@ -44,7 +52,8 @@ write_geoarrow_ipc_stream <- function(handleable, ..., schema = NULL, strict = F
   arrow::write_ipc_stream(batch, ...)
 }
 
-geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE) {
+geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
+                                null_point_as_empty = FALSE) {
   if (!is.data.frame(handleable)) {
     handleable <- data.frame(geometry = handleable)
   } else {
@@ -56,13 +65,18 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE) {
   df_handleable <- handleable[is_handleable]
 
   if (is.null(schema)) {
-    arrays_handleable <- lapply(df_handleable, geoarrow_create_narrow)
+    arrays_handleable <- lapply(
+      df_handleable,
+      geoarrow_create_narrow,
+      null_point_as_empty = null_point_as_empty
+    )
   } else {
     arrays_handleable <- lapply(
       df_handleable,
       geoarrow_create_narrow,
       schema = schema,
-      strict = strict
+      strict = strict,
+      null_point_as_empty = null_point_as_empty
     )
   }
 
