@@ -49,7 +49,7 @@ public:
             stack_.back().size++;
         }
 
-        string_builder_.reserve(1 + 2 * sizeof(int32_t) + 2 * sizeof(double));
+        string_builder_.reserve_data(1 + 2 * sizeof(int32_t) + 2 * sizeof(double));
         memcpy(string_builder_.data_at_cursor(), &endian_, sizeof(uint8_t));
         string_builder_.advance_data(1);
 
@@ -96,8 +96,10 @@ public:
             stack_.back().size++;
         }
 
+        string_builder_.reserve_data(sizeof(uint32_t));
+
         uint32_t size_to_write = 0;
-        memcpy(string_builder_.data_at_cursor(), &size_to_write, sizeof(int32_t));
+        memcpy(string_builder_.data_at_cursor(), &size_to_write, sizeof(uint32_t));
         stack_.push_back(State{util::GeometryType::LINESTRING, string_builder_.data_size(), 0});
         string_builder_.advance_data(sizeof(uint32_t));
 
