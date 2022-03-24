@@ -1,4 +1,81 @@
 
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for WKT", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::xy(1:2, 1:2)),
+    schema = geoarrow_schema_wkt()
+  )
+
+  expect_identical(
+    as.character(narrow::from_narrow_array(array)),
+    c("POINT (1 1)", "POINT (2 2)")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for WKB", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::xy(1:2, 1:2)),
+    schema = geoarrow_schema_wkb()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKT", {
+  array <- geoarrow_create_narrow(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_wkt()
+  )
+
+  expect_identical(
+    as.character(narrow::from_narrow_array(array)),
+    c("POINT (1 1)", "POINT (2 2)")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKB", {
+  array <- geoarrow_create_narrow(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_wkb()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() propagates CRS/geodesic", {
+  array <- geoarrow_create_narrow(
+    wk::xy(1:2, 1:2, crs = "EPSG:1234"),
+    schema = geoarrow_schema_wkt()
+  )
+
+  expect_identical(wk::wk_crs(array), "EPSG:1234")
+
+  array <- geoarrow_create_narrow(
+    wk::wkt("LINESTRING (0 0, 1 1)", geodesic = TRUE),
+    schema = geoarrow_schema_wkt()
+  )
+
+  expect_true(wk::wk_is_geodesic(array))
+})
+
+test_that("goearrow_create_narrow() falls back to geoarrow_create_narrow_from_buffers()", {
+  array <- geoarrow_create_narrow(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_wkb(),
+    strict = TRUE
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
 test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::wkt", {
   array <- geoarrow_create_narrow_from_buffers(
     wk::xy(1:2, 1:2),

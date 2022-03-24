@@ -63,7 +63,7 @@ test_that("geoarrow_write_parquet() works with explicit schema", {
 
   table <- arrow::read_parquet(f, as_data_frame = FALSE)
   schema <- narrow::as_narrow_schema(table$schema)
-  expect_identical(schema$children[[1]]$format, "w:21")
+  expect_identical(schema$children[[1]]$format, "z")
 
   unlink(f)
 })

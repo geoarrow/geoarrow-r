@@ -18,6 +18,51 @@
 geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
                                    strict = FALSE) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
+
+  if (!strict) {
+    crs <- wk::wk_crs(handleable)
+    if (inherits(crs, "wk_crs_inherit")) {
+      crs <- NULL
+    }
+
+    schema <- geoarrow_schema_set_crs(
+      schema,
+      wk::wk_crs_proj_definition(crs, verbose = TRUE)
+    )
+    schema <- geoarrow_schema_set_geodesic(schema, wk::wk_is_geodesic(handleable))
+  }
+
+  # use geoarrow_compute() or geoarrow_compute_handler() if possible since
+  # these are much faster!
+  if (!strict && inherits(handleable, c("narrow_array", "narrow_vctr", "Array"))) {
+    switch(
+      extension,
+      "geoarrow.wkt" = ,
+      "geoarrow.wkb" = {
+        # until the compute function properly sets the extension metadata
+        handleable <- narrow::as_narrow_array(handleable)
+        result <- geoarrow_compute(handleable, "cast", list(schema = schema))
+        result$schema$metadata <- schema$metadata
+        return(result)
+      }
+    )
+  } else if (!strict) {
+    switch(
+      extension,
+      "geoarrow.wkt" = ,
+      "geoarrow.wkb" = {
+        # until the compute function properly sets the extension metadata
+        result <- wk::wk_handle(
+          handleable,
+          geoarrow_compute_handler("cast", list(schema = schema))
+        )
+        result$schema$metadata <- schema$metadata
+        return(result)
+      }
+    )
+  }
+
+  # fall back to creating from buffers
   geoarrow_create_narrow_from_buffers(
     handleable, ...,
     schema = schema,
@@ -107,7 +152,8 @@ geoarrow_create_narrow_from_buffers <- function(handleable, ...,
 
     return(array)
 
-  } else if (startsWith(extension, "geoarrow.multi") || identical(extension, "geoarrow.geometrycollection")) {
+  } else if (startsWith(extension, "geoarrow.multi") ||
+             identical(extension, "geoarrow.geometrycollection")) {
     child_schema <- schema$children[[1]]
     sub_extension <- scalar_chr(child_schema$metadata[["ARROW:extension:name"]])
 
