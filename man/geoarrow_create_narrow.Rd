@@ -2,7 +2,7 @@
 % Please edit documentation in R/create.R
 \name{geoarrow_create_narrow}
 \alias{geoarrow_create_narrow}
-\alias{geoarrow_create_narrow.default}
+\alias{geoarrow_create_narrow_from_buffers}
 \alias{geoarrow_schema_default}
 \title{Create GeoArrow Arrays}
 \usage{
@@ -13,7 +13,7 @@ geoarrow_create_narrow(
   strict = FALSE
 )
 
-\method{geoarrow_create_narrow}{default}(
+geoarrow_create_narrow_from_buffers(
   handleable,
   ...,
   schema = geoarrow_schema_default(handleable),
@@ -47,6 +47,6 @@ A \code{\link[narrow:narrow_array]{narrow::narrow_array()}}
 Create GeoArrow Arrays
 }
 \examples{
-geoarrow_create_narrow(wk::xy(1:5, 1:5))
+geoarrow_create_narrow_from_buffers(wk::xy(1:5, 1:5))
 
 }

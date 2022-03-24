@@ -61,7 +61,7 @@ command-line utility (e.g., "OGC:CRS84").}
 using the shortest geodesic path (great circle on a sphere).}
 }
 \value{
-The result of \code{\link[=geoarrow_create_narrow]{geoarrow_create_narrow()}} with the specified example type.
+The result of \code{\link[=geoarrow_create_narrow_from_buffers]{geoarrow_create_narrow_from_buffers()}} with the specified example type.
 }
 \description{
 Create example geometry objects

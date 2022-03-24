@@ -53,7 +53,7 @@ geoarrow_schema_linestring(edges = "spherical")$metadata
 The field-level metadata for points in geoarrow must contain an extension type of "geoarrow.point" and extension metadata specifying an optional coordinate reference system.
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt(crs = "EPSG:4326"),
   schema = geoarrow_schema_point()
 )
@@ -69,7 +69,7 @@ The coordinate reference system in geoarrow is always stored with the point arra
 Points are represented by default in geoarrow as a [fixed-size list](https://arrow.apache.org/docs/format/Columnar.html#fixed-size-list-layout) of float64 (i.e., `double`) values. Conceptually this is much like storing coordinates as a (row-major) matrix with one row per feature and one column per dimension.
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt(c("POINT (0 1)", "POINT (2 3)")),
   schema = geoarrow_schema_point()
 )
@@ -86,7 +86,7 @@ carray$array_data$children[[1]]$buffers[[2]]
 Points can also be represented in geoarrow as a [struct](https://arrow.apache.org/docs/format/Columnar.html#struct-layout). Conceptually this is much like storing points as a data frame with one column per dimension (i.e., all x values are stored next to all the other x values).
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt(c("POINT (0 1)", "POINT (2 3)")),
   schema = geoarrow_schema_point_struct()
 )
@@ -117,7 +117,7 @@ Future representations of points by the reference implementation will provide ef
 The field-level metadata for linestrings in geoarrow must contain an extension type of "geoarrow.linestring" and extension metadata specifying an optional "edges" flag (see parent 'Metadata' section above).
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt(geodesic = TRUE),
   schema = geoarrow_schema_linestring()
 )
@@ -133,7 +133,7 @@ The coordinate reference system in geoarrow is always stored with the point arra
 Linestrings are stored as a `list<vertices: <geoarrow.point>>`. The exact storage type of the geoarrow.point can vary as described above. Conceptually this is attaching buffer of (`int32_t`) offsets to an exiting array of points, where each offset points to the first vertex in a linestring.
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt("LINESTRING (1 2, 3 4)"),
   schema = geoarrow_schema_linestring()
 )
@@ -155,7 +155,7 @@ carray$array_data$children[[1]]$children[[1]]$buffers[[2]]
 The field-level metadata for polygons in geoarrow must contain an extension type of "geoarrow.polygon" and extension metadata specifying an optional "edges" flag (see parent 'Metadata' section above).
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt(geodesic = TRUE),
   schema = geoarrow_schema_polygon()
 )
@@ -169,7 +169,7 @@ geoarrow_metadata(carray$schema)
 Linestrings are stored as a `list<rings: <list<vertices: <geoarrow.point>>>`. The exact storage type of the geoarrow.point can vary as described above. Conceptually this is attaching buffer of (`int32_t`) offsets to an exiting array of points, where each offset points to the first vertex in a linear ring. The outer list then contains offsets to the start of each polygon in the rings array. Just like WKB, rings must be closed (i.e., the first coordinate must equal the last coordinate).
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))"),
   schema = geoarrow_schema_polygon()
 )
@@ -201,7 +201,7 @@ Just like WKB, multipoints, multilinestrings, multipolygons, and geometrycollect
 Collections do not carry extension metadata of their own (i.e., the CRS and edges flags stay with the array for which they are relevant). The metadata string should not be omitted and must be empty (i.e., 0 as a 32-bit integer).
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt(geodesic = TRUE),
   schema = geoarrow_schema_multipoint()
 )
@@ -220,7 +220,7 @@ carray$schema$metadata
 Conceptually this is attaching a buffer of (`int32_t`) offsets to an existing array of points, lines, or polygons.
 
 ```{r}
-carray <- geoarrow_create_narrow(
+carray <- geoarrow_create_narrow_from_buffers(
   wk::wkt("MULTIPOINT (1 2, 3 4)"),
   schema = geoarrow_schema_multipoint()
 )

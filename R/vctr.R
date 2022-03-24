@@ -10,7 +10,7 @@
 #'
 geoarrow_create <- function(x, ..., schema = geoarrow_schema_default(x),
                             strict = FALSE) {
-  array <- geoarrow_create_narrow(x, schema = schema, strict = strict)
+  array <- geoarrow_create_narrow(x, ..., schema = schema, strict = strict)
   narrow::narrow_vctr(array)
 }
 

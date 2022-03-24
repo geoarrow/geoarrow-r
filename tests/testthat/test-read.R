@@ -88,6 +88,8 @@ test_that("geoarrow_read_ipc_stream() works", {
 
 
 test_that("all example parquet files can be read", {
+  skip_if_not_installed("arrow")
+
   files <- list.files(
     system.file("example_parquet", package = "geoarrow"),
     full.names = TRUE
@@ -117,6 +119,8 @@ test_that("all example parquet files can be read", {
 })
 
 test_that("all example feather files can be read", {
+  skip_if_not_installed("arrow")
+
   files <- list.files(
     system.file("example_feather", package = "geoarrow"),
     full.names = TRUE
@@ -145,6 +149,8 @@ test_that("all example feather files can be read", {
 })
 
 test_that("all example ipc_stream files can be read", {
+  skip_if_not_installed("arrow")
+
   files <- list.files(
     system.file("example_ipc_stream", package = "geoarrow"),
     full.names = TRUE
