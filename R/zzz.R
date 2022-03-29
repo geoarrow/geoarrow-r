@@ -6,6 +6,10 @@
     s3_register("vctrs::vec_proxy", cls, vctr_proxy)
     s3_register("vctrs::vec_restore", cls, vctr_restore)
   }
+
+  if (requireNamespace("arrow", quietly = TRUE)) {
+    try(register_arrow_extension_type())
+  }
 }
 
 s3_register <- function(generic, class, method = NULL) {
