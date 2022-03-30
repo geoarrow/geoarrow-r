@@ -114,13 +114,6 @@ public:
     finalizer.release(array_data, schema);
   }
 
-protected:
-  bool is_large_;
-  int64_t item_size_;
-  builder::BufferBuilder<int32_t> offset_buffer_builder_;
-  builder::BufferBuilder<int64_t> large_offset_buffer_builder_;
-  builder::BufferBuilder<uint8_t> data_buffer_builder_;
-
   virtual const char* get_format() {
     if (is_large_) {
       return "Z";
@@ -128,6 +121,13 @@ protected:
       return "z";
     }
   }
+
+protected:
+  bool is_large_;
+  int64_t item_size_;
+  builder::BufferBuilder<int32_t> offset_buffer_builder_;
+  builder::BufferBuilder<int64_t> large_offset_buffer_builder_;
+  builder::BufferBuilder<uint8_t> data_buffer_builder_;
 
   bool needs_make_large(int64_t capacity) {
     return !is_large_ &&
@@ -147,8 +147,6 @@ protected:
 class StringArrayBuilder: public BinaryArrayBuilder {
 public:
   StringArrayBuilder() {}
-
-protected:
 
   const char* get_format() {
     if (is_large_) {

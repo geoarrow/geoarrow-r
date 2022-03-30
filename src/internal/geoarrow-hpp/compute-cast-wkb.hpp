@@ -35,6 +35,10 @@ public:
         string_builder_.release(array_data, schema);
     }
 
+    const char* get_format() {
+        return string_builder_.get_format();
+    }
+
     void new_dimensions(util::Dimensions dimensions) {
         dimensions_ = dimensions;
     }

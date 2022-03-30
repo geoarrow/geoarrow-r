@@ -410,6 +410,7 @@ public:
 
   int64_t capacity() { return buffer_builder_.capacity() * 8; }
   int64_t size() { return size_; }
+  bool is_allocated() { return allocated_; }
 
   void reallocate(int64_t capacity) {
     if (capacity % 8 == 0) {
@@ -430,6 +431,13 @@ public:
   void shrink() {
     if (allocated_) {
       buffer_builder_.shrink();
+    }
+  }
+
+  void write_elements(int64_t n, bool value) {
+    // Could be more efficient!
+    for (int64_t i = 0; i < n; i++) {
+      write_element(value);
     }
   }
 
@@ -522,12 +530,12 @@ public:
     throw util::Exception("Not implemented");
   }
 
+  virtual const char* get_format() { return ""; }
+
 protected:
   std::string name_;
   int64_t size_;
   builder::BitmapBuilder validity_buffer_builder_;
-
-  virtual const char* get_format() { return ""; }
 };
 
 
@@ -577,7 +585,7 @@ private:
 };
 
 class Float64ArrayBuilder: public FixedSizeLayoutArrayBuilder<double> {
-protected:
+public:
   virtual const char* get_format() { return "g"; }
 };
 
