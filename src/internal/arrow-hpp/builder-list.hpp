@@ -52,6 +52,7 @@ public:
 
     finalizer.array_data.length = size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();
+    finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
 
     child_builder_.release(
         finalizer.array_data.children[0],

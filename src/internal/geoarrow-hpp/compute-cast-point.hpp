@@ -36,14 +36,20 @@ public:
         if (builder_.item_size() == -1) {
             switch (dimensions) {
             case util::Dimensions::XYZ:
+                builder_.set_item_size(3);
+                builder_.child().set_name("xyz");
+                break;
             case util::Dimensions::XYM:
                 builder_.set_item_size(3);
+                builder_.child().set_name("xym");
                 break;
             case util::Dimensions::XYZM:
                 builder_.set_item_size(4);
+                builder_.child().set_name("xyzm");
                 break;
             default:
                 builder_.set_item_size(2);
+                builder_.child().set_name("xy");
                 break;
             }
         } else if (dimensions != dimensions_) {
@@ -55,6 +61,8 @@ public:
     }
 
     Result null_feat() {
+        double empty_coord[] = {NAN, NAN, NAN, NAN};
+        builder_.child().write_buffer(empty_coord, builder_.item_size());
         builder_.finish_elements(1, false);
         return Result::ABORT_FEATURE;
     }
