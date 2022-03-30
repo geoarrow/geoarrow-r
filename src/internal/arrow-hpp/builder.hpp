@@ -402,13 +402,9 @@ protected:
 
 class BitmapBuilder {
 public:
-  BitmapBuilder(int64_t capacity, int64_t null_count_guess = 0):
+  BitmapBuilder():
     buffer_builder_(0), null_count_(0), buffer_(0), buffer_size_(0), size_(0),
-    allocated_(false) {
-    if (null_count_guess != 0) {
-      trigger_alloc(capacity);
-    }
-  }
+    allocated_(false) {}
 
   virtual ~BitmapBuilder() {}
 
@@ -506,8 +502,7 @@ private:
 
 class ArrayBuilder {
 public:
-  ArrayBuilder(int64_t capacity = 1024):
-    name_(""), size_(0), validity_buffer_builder_(capacity) {}
+  ArrayBuilder(): name_(""), size_(0) {}
 
   virtual ~ArrayBuilder() {}
 
@@ -515,7 +510,9 @@ public:
   const std::string& name() const { return name_; }
   void set_name(const std::string& name) { name_ = name; }
 
-  virtual void reserve(int64_t additional_capacity) {}
+  virtual void reserve(int64_t additional_capacity) {
+    validity_buffer_builder_.reserve(additional_capacity);
+  }
 
   virtual void shrink() {
     validity_buffer_builder_.shrink();
@@ -529,15 +526,18 @@ protected:
   std::string name_;
   int64_t size_;
   builder::BitmapBuilder validity_buffer_builder_;
+
+  virtual const char* get_format() { return ""; }
 };
 
 
-class Float64ArrayBuilder: public ArrayBuilder {
+template <typename BufferT>
+class FixedSizeLayoutArrayBuilder: public ArrayBuilder {
 public:
-  Float64ArrayBuilder(int64_t capacity = 1024):
-    ArrayBuilder(capacity), buffer_builder_(capacity) {}
+  FixedSizeLayoutArrayBuilder() {}
 
   void reserve(int64_t additional_capacity) {
+    ArrayBuilder::reserve(additional_capacity);
     buffer_builder_.reserve(additional_capacity);
   }
 
@@ -546,7 +546,7 @@ public:
     buffer_builder_.shrink();
   }
 
-  void write_element(double value) {
+  void write_element(BufferT value) {
     buffer_builder_.write_element(value);
     size_++;
   }
@@ -559,7 +559,7 @@ public:
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     CArrayFinalizer finalizer;
     finalizer.allocate(2);
-    finalizer.set_schema_format("g");
+    finalizer.set_schema_format(get_format());
     finalizer.set_schema_name(name().c_str());
 
     finalizer.array_data.length = buffer_builder_.size();
@@ -572,8 +572,13 @@ public:
   }
 
 private:
-  BufferBuilder<double> buffer_builder_;
+  BufferBuilder<BufferT> buffer_builder_;
 
+};
+
+class Float64ArrayBuilder: public FixedSizeLayoutArrayBuilder<double> {
+protected:
+  virtual const char* get_format() { return "g"; }
 };
 
 }

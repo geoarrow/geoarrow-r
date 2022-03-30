@@ -15,9 +15,8 @@ namespace geoarrow {
 
 class WKBArrayBuilder: public ComputeBuilder {
 public:
-    WKBArrayBuilder(int64_t size = 1024, int64_t data_size_guess = 1024):
+    WKBArrayBuilder():
         endian_(0x01),
-        string_builder_(size, data_size_guess),
         dimensions_(util::Dimensions::XY) {
         stack_.reserve(32);
     }

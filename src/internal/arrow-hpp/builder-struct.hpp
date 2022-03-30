@@ -14,7 +14,7 @@ namespace builder {
 
 class StructArrayBuilder: public ArrayBuilder {
 public:
-  StructArrayBuilder(int64_t capacity = 0): ArrayBuilder(capacity) {}
+  StructArrayBuilder() {}
 
   void add_child(std::unique_ptr<ArrayBuilder> child, const std::string& name = "") {
     set_size(child->size());
@@ -38,6 +38,13 @@ public:
     ArrayBuilder::shrink();
     for (int64_t i = 0; i < num_children(); i++) {
       children_[i]->shrink();
+    }
+  }
+
+  void reserve(int64_t additional_capacity) {
+    ArrayBuilder::reserve(additional_capacity);
+    for (auto& child: children_) {
+      child->reserve(additional_capacity);
     }
   }
 
