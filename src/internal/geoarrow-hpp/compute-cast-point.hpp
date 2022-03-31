@@ -13,13 +13,16 @@ namespace geoarrow {
 
 class PointArrayBuilder: public ComputeBuilder {
 public:
-    PointArrayBuilder():
+    PointArrayBuilder(const ComputeOptions& options = ComputeOptions()):
+      null_is_empty_(false),
       dimensions_(util::Dimensions::DIMENSIONS_UNKNOWN),
       builder_xy_(2),
       builder_xyz_(3),
       builder_xym_(3),
       builder_xyzm_(4),
       builder_(&builder_xy_) {
+        null_is_empty_ = options.get_bool("null_is_empty", false);
+
         builder_xy_.child().set_name("xy");
         builder_xyz_.child().set_name("xyz");
         builder_xym_.child().set_name("xym");
@@ -76,7 +79,7 @@ public:
     Result null_feat() {
         double empty_coord[] = {NAN, NAN, NAN, NAN};
         builder_->child().write_buffer(empty_coord, builder_->item_size());
-        builder_->finish_elements(1, false);
+        builder_->finish_elements(1, null_is_empty_);
         size_++;
         return Result::ABORT_FEATURE;
     }
@@ -104,6 +107,7 @@ public:
 private:
     using Float64ListBuilder =
         arrow::hpp::builder::FixedSizeListArrayBuilder<arrow::hpp::builder::Float64ArrayBuilder>;
+    bool null_is_empty_;
     util::Dimensions dimensions_;
     Float64ListBuilder builder_xy_;
     Float64ListBuilder builder_xyz_;

@@ -23,7 +23,7 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
         case util::Extension::WKB:
             return new WKBArrayBuilder();
         case util::Extension::Point:
-            return new PointArrayBuilder();
+            return new PointArrayBuilder(options);
         default:
             throw Meta::ValidationError("Unsupported extension type for operation CAST");
         }
