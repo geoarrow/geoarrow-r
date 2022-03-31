@@ -81,6 +81,27 @@ test_that("geoarrow_compute() can cast point examples to point", {
   }
 })
 
+test_that("geoarrow_compute() errors when casting points with multiple dims", {
+  all_points <- c(
+    geoarrow_example_wkt[["point"]],
+    geoarrow_example_wkt[["point_z"]],
+    geoarrow_example_wkt[["point_m"]],
+    geoarrow_example_wkt[["point_zm"]]
+  )
+
+  expect_error(
+    geoarrow_compute(
+      geoarrow_create_narrow_from_buffers(
+        all_points,
+        schema = geoarrow_schema_wkb()
+      ),
+      "cast",
+      list(schema = geoarrow_schema_point())
+    ),
+    "Point builder with multiple dimensions not implemented"
+  )
+})
+
 test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
   for (name in names(geoarrow_example_wkt)) {
     src_wkt <- geoarrow_example_wkt[[name]]

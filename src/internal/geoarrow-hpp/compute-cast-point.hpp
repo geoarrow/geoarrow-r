@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cmath>
+#include <vector>
 
 #include "handler.hpp"
 #include "compute-builder.hpp"
@@ -35,6 +36,11 @@ public:
     }
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+        if (ranges_.size() > 1) {
+            throw util::IOException(
+                "Point builder with multiple dimensions not implemented");
+        }
+
         shrink();
         builder_->release(array_data, schema);
     }
@@ -44,26 +50,22 @@ public:
     }
 
     void new_dimensions(util::Dimensions dimensions) {
-        if (dimensions_ == util::Dimensions::DIMENSIONS_UNKNOWN) {
-            switch (dimensions) {
-            case util::Dimensions::XYZ:
-                builder_ = &builder_xyz_;
-                break;
-            case util::Dimensions::XYM:
-                builder_ = &builder_xym_;
-                break;
-            case util::Dimensions::XYZM:
-                builder_ = &builder_xyzm_;
-                break;
-            default:
-                builder_ = &builder_xy_;
-                break;
-            }
-        } else if (dimensions != dimensions_) {
-            throw util::IOException(
-                "PointBuilder adapting to multiple dimensions not implemented");
+        switch (dimensions) {
+        case util::Dimensions::XYZ:
+            builder_ = &builder_xyz_;
+            break;
+        case util::Dimensions::XYM:
+            builder_ = &builder_xym_;
+            break;
+        case util::Dimensions::XYZM:
+            builder_ = &builder_xyzm_;
+            break;
+        default:
+            builder_ = &builder_xy_;
+            break;
         }
 
+        ranges_.push_back(std::pair<util::Dimensions, int64_t>(dimensions, size()));
         dimensions_ = dimensions;
     }
 
@@ -71,6 +73,7 @@ public:
         double empty_coord[] = {NAN, NAN, NAN, NAN};
         builder_->child().write_buffer(empty_coord, builder_->item_size());
         builder_->finish_elements(1, false);
+        size_++;
         return Result::ABORT_FEATURE;
     }
 
@@ -90,6 +93,7 @@ public:
     Result coords(const double* coord, int64_t n, int32_t coord_size) {
         builder_->child().write_buffer(coord, n * coord_size);
         builder_->finish_elements(n);
+        size_++;
         return Result::CONTINUE;
     }
 
@@ -102,6 +106,7 @@ private:
     Float64ListBuilder builder_xym_;
     Float64ListBuilder builder_xyzm_;
     Float64ListBuilder* builder_;
+    std::vector<std::pair<util::Dimensions, int64_t>> ranges_;
 };
 
 }
