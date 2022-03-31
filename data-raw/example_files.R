@@ -39,15 +39,6 @@ for (name in names(example_tbl)) {
 
   write_geoarrow_ipc_stream(
     example_tbl[[name]],
-    glue::glue("inst/example_ipc_stream/{name}-point-struct.ipc"),
-    schema = geoarrow_schema_default(
-      example_tbl[[name]],
-      point = geoarrow_schema_point_struct()
-    )
-  )
-
-  write_geoarrow_ipc_stream(
-    example_tbl[[name]],
     glue::glue("inst/example_ipc_stream/{name}-wkt.ipc"),
     compression = "uncompressed",
     schema = geoarrow_schema_wkt()
@@ -73,15 +64,6 @@ for (name in names(example_tbl)) {
 
   write_geoarrow_feather(
     example_tbl[[name]],
-    glue::glue("inst/example_feather/{name}-point-struct.feather"),
-    schema = geoarrow_schema_default(
-      example_tbl[[name]],
-      point = geoarrow_schema_point_struct()
-    )
-  )
-
-  write_geoarrow_feather(
-    example_tbl[[name]],
     glue::glue("inst/example_feather/{name}-wkt.feather"),
     compression = "uncompressed",
     schema = geoarrow_schema_wkt()
@@ -102,15 +84,6 @@ for (name in names(example_tbl)) {
     schema = geoarrow_schema_default(
       example_tbl[[name]],
       point = geoarrow_schema_point()
-    )
-  )
-
-  write_geoarrow_parquet(
-    example_tbl[[name]],
-    glue::glue("inst/example_parquet/{name}-point-struct.parquet"),
-    schema = geoarrow_schema_default(
-      example_tbl[[name]],
-      point = geoarrow_schema_point_struct()
     )
   )
 
