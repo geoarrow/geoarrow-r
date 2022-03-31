@@ -23,6 +23,18 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute() for WKB", {
   )
 })
 
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for point", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::xy(1:2, 1:2)),
+    schema = geoarrow_schema_point()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
 test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKT", {
   array <- geoarrow_create_narrow(
     wk::xy(1:2, 1:2),
@@ -39,6 +51,18 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKB",
   array <- geoarrow_create_narrow(
     wk::xy(1:2, 1:2),
     schema = geoarrow_schema_wkb()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for point", {
+  array <- geoarrow_create_narrow(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_point()
   )
 
   expect_identical(
@@ -635,7 +659,7 @@ test_that("point arrays can be created", {
 test_that("point arrays can be created with null_point_as_empty = TRUE and FALSE", {
   features <- wk::wkt(c("POINT (1 3)", "POINT (2 4)", NA))
 
-  array_with_nulls <- geoarrow_create_narrow(
+  array_with_nulls <- geoarrow_create_narrow_from_buffers(
     features,
     schema = geoarrow_schema_point(),
     null_point_as_empty = FALSE
@@ -646,7 +670,7 @@ test_that("point arrays can be created with null_point_as_empty = TRUE and FALSE
     c(TRUE, TRUE, FALSE)
   )
 
-  array_with_empty <- geoarrow_create_narrow(
+  array_with_empty <- geoarrow_create_narrow_from_buffers(
     features,
     schema = geoarrow_schema_point(),
     null_point_as_empty = TRUE

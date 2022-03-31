@@ -50,6 +50,10 @@ public:
     }
 
     void new_dimensions(util::Dimensions dimensions) {
+        if (dimensions == dimensions_) {
+            return;
+        }
+
         switch (dimensions) {
         case util::Dimensions::XYZ:
             builder_ = &builder_xyz_;
