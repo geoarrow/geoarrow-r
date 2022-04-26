@@ -1,10 +1,5 @@
 
-
 #pragma once
-
-#include <vector>
-
-#include <vector>
 
 #include "handler.hpp"
 #include "compute-builder.hpp"
@@ -22,17 +17,15 @@ public:
         builder_.child().child().new_dimensions(dimensions);
     }
 
-    Result feat_start() {
-        return Result::CONTINUE;
-    }
-
     Result null_feat() {
+        size_++;
         builder_.finish_element(false);
         return Result::ABORT_FEATURE;
     }
 
     Result geom_start(util::GeometryType geometry_type, int32_t size) {
         if (size == 0) {
+            size_++;
             builder_.finish_element();
             return Result::ABORT_FEATURE;
         } else if (geometry_type == util::GeometryType::POLYGON) {
@@ -65,6 +58,7 @@ public:
     }
 
     Result feat_end() {
+        size_++;
         builder_.finish_element();
         return Result::CONTINUE;
     }

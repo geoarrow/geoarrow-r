@@ -9,6 +9,7 @@
 #include "compute-cast-point.hpp"
 #include "compute-cast-linestring.hpp"
 #include "compute-cast-polygon.hpp"
+#include "compute-cast-collection.hpp"
 #include "compute-bounds.hpp"
 
 namespace geoarrow {
@@ -30,6 +31,12 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
             return new LinestringArrayBuilder();
         case util::Extension::Polygon:
             return new PolygonArrayBuilder();
+        case util::Extension::MultiPoint:
+            return new MultiPointArrayBuilder();
+        case util::Extension::MultiLinestring:
+            return new MultiLinestringArrayBuilder();
+        case util::Extension::MultiPolygon:
+            return new MultiPolygonArrayBuilder();
         default:
             throw Meta::ValidationError("Unsupported extension type for operation CAST");
         }

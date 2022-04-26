@@ -44,7 +44,10 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
       "geoarrow.wkb" = ,
       "geoarrow.point" = ,
       "geoarrow.linestring" = ,
-      "geoarrow.polygon" = {
+      "geoarrow.polygon" = ,
+      "geoarrow.multipoint" = ,
+      "geoarrow.multilinestring" = ,
+      "geoarrow.multipolygon" = {
         # until the compute function properly sets the extension metadata
         handleable <- narrow::as_narrow_array(handleable)
         result <- geoarrow_compute(
@@ -63,7 +66,10 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
       "geoarrow.wkb" = ,
       "geoarrow.point" = ,
       "geoarrow.linestring" = ,
-      "geoarrow.polygon" = {
+      "geoarrow.polygon" = ,
+      "geoarrow.multipoint" = ,
+      "geoarrow.multilinestring" = ,
+      "geoarrow.multipolygon" = {
         # until the compute function properly sets the extension metadata
         result <- wk::wk_handle(
           handleable,
