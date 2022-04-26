@@ -35,6 +35,18 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute() for point", {
   )
 })
 
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for linestring", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::wkt("LINESTRING (0 1, 2 3)")),
+    schema = geoarrow_schema_linestring()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("LINESTRING (0 1, 2 3)")
+  )
+})
+
 test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKT", {
   array <- geoarrow_create_narrow(
     wk::xy(1:2, 1:2),
@@ -68,6 +80,18 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for point
   expect_identical(
     wk::as_wkt(array),
     wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for linestring", {
+  array <- geoarrow_create_narrow(
+    wk::wkt("LINESTRING (0 1, 2 3)"),
+    schema = geoarrow_schema_linestring()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("LINESTRING (0 1, 2 3)")
   )
 })
 

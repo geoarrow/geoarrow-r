@@ -75,6 +75,58 @@ private:
   char format_[128];
 };
 
+template <typename ChildBuilderT>
+class ListArrayBuilder: public ArrayBuilder {
+public:
+  ListArrayBuilder() {
+    offset_buffer_builder_.write_element(0);
+  }
+
+  ChildBuilderT& child() { return child_builder_; }
+
+  void finish_element(bool not_null = true) {
+    size_ += 1;
+    validity_buffer_builder_.write_element(not_null);
+    offset_buffer_builder_.write_element(child_builder_.size());
+  }
+
+  void shrink() {
+    ArrayBuilder::shrink();
+    child_builder_.shrink();
+    offset_buffer_builder_.shrink();
+  }
+
+  void reserve(int64_t additional_capacity) {
+    ArrayBuilder::reserve(additional_capacity);
+    offset_buffer_builder_.reserve(additional_capacity);
+  }
+
+  void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
+    CArrayFinalizer finalizer;
+    finalizer.allocate(2, 1);
+    finalizer.set_schema_format(get_format());
+
+    finalizer.array_data.length = size();
+    finalizer.array_data.null_count = validity_buffer_builder_.null_count();
+    finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
+    finalizer.array_data.buffers[1] = offset_buffer_builder_.release();
+
+    child_builder_.release(
+        finalizer.array_data.children[0],
+        finalizer.schema.children[0]);
+
+    finalizer.release(array_data, schema);
+  }
+
+  const char* get_format() {
+      return "+l";
+  }
+
+protected:
+  builder::BufferBuilder<int32_t> offset_buffer_builder_;
+  ChildBuilderT child_builder_;
+};
+
 }
 
 }

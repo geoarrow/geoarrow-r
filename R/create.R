@@ -42,7 +42,8 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
       extension,
       "geoarrow.wkt" = ,
       "geoarrow.wkb" = ,
-      "geoarrow.point" = {
+      "geoarrow.point" = ,
+      "geoarrow.linestring" = {
         # until the compute function properly sets the extension metadata
         handleable <- narrow::as_narrow_array(handleable)
         result <- geoarrow_compute(
@@ -50,7 +51,7 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
           "cast",
           list(schema = schema, null_is_empty = null_point_as_empty)
         )
-        result$schema$metadata <- schema$metadata
+        result$schema <- geoarrow_copy_metadata(result$schema, schema)
         return(result)
       }
     )
@@ -59,7 +60,8 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
       extension,
       "geoarrow.wkt" = ,
       "geoarrow.wkb" = ,
-      "geoarrow.point" = {
+      "geoarrow.point" = ,
+      "geoarrow.linestring" = {
         # until the compute function properly sets the extension metadata
         result <- wk::wk_handle(
           handleable,
@@ -68,7 +70,7 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
             list(schema = schema, null_is_empty = null_point_as_empty)
           )
         )
-        result$schema$metadata <- schema$metadata
+        result$schema <- geoarrow_copy_metadata(result$schema, schema)
         return(result)
       },
     )

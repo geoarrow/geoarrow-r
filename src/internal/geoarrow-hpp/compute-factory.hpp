@@ -7,6 +7,7 @@
 #include "compute-cast-wkt.hpp"
 #include "compute-cast-wkb.hpp"
 #include "compute-cast-point.hpp"
+#include "compute-cast-linestring.hpp"
 #include "compute-bounds.hpp"
 
 namespace geoarrow {
@@ -24,6 +25,8 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
             return new WKBArrayBuilder();
         case util::Extension::Point:
             return new PointArrayBuilder(options);
+        case util::Extension::Linestring:
+            return new LinestringArrayBuilder();
         default:
             throw Meta::ValidationError("Unsupported extension type for operation CAST");
         }

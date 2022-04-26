@@ -100,7 +100,7 @@ public:
     Result coords(const double* coord, int64_t n, int32_t coord_size) {
         builder_->child().write_buffer(coord, n * coord_size);
         builder_->finish_elements(n);
-        size_++;
+        size_ += n;
         return Result::CONTINUE;
     }
 
