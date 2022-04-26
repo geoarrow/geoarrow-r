@@ -122,6 +122,26 @@ test_that("geoarrow_compute() can cast linestring examples to linestring", {
   }
 })
 
+test_that("geoarrow_compute() can cast polygon examples to polygon", {
+  for (name in c("polygon", "polygon_z", "polygon_m", "polygon_zm")) {
+    src_wkt <- geoarrow_example_wkt[[name]]
+    dst_narrow <- geoarrow_compute(
+      geoarrow_create_narrow_from_buffers(src_wkt),
+      "cast",
+      list(schema = geoarrow_schema_polygon())
+    )
+    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.polygon")
+    dst_narrow$schema$children[[1]]$children[[1]]$metadata <- list(
+      "ARROW:extension:name" = "geoarrow.point"
+    )
+
+    expect_identical(
+      wk::as_wkb(dst_narrow),
+      wk::as_wkb(geoarrow_create_narrow_from_buffers(src_wkt))
+    )
+  }
+})
+
 test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
   for (name in names(geoarrow_example_wkt)) {
     src_wkt <- geoarrow_example_wkt[[name]]

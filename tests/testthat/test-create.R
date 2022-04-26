@@ -47,6 +47,18 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute() for linestring", 
   )
 })
 
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for polygon", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))")),
+    schema = geoarrow_schema_polygon()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))")
+  )
+})
+
 test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKT", {
   array <- geoarrow_create_narrow(
     wk::xy(1:2, 1:2),
@@ -92,6 +104,18 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for lines
   expect_identical(
     wk::as_wkt(array),
     wk::wkt("LINESTRING (0 1, 2 3)")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for polygon", {
+  array <- geoarrow_create_narrow(
+    wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))"),
+    schema = geoarrow_schema_polygon()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))")
   )
 })
 
