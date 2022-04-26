@@ -35,17 +35,16 @@ public:
         if (size == 0) {
             builder_.finish_element();
             return Result::ABORT_FEATURE;
-        } else if (size > 1 && geometry_type == util::GeometryType::MULTIPOLYGON) {
-            throw util::IOException("Can't write MULTIPOLYGON[%d] as POLYGON", size);
-        } else if (geometry_type != util::GeometryType::POLYGON) {
-            throw util::IOException("Can't write non-linestring as POLYGON");
+        } else if (geometry_type == util::GeometryType::POLYGON) {
+            if (size > 0) {
+                builder_.child().reserve(size);
+            }
+            return Result::CONTINUE;
+        } else if (size == 1 && geometry_type == util::GeometryType::MULTIPOLYGON) {
+            return Result::CONTINUE;
+        } else {
+            throw util::IOException("Can't write non-polygon (%d[%d]) as POLYGON", geometry_type, size);
         }
-
-        if (size > 0) {
-            builder_.child().reserve(size);
-        }
-
-        return Result::CONTINUE;
     }
 
     Result ring_start(int32_t size) {

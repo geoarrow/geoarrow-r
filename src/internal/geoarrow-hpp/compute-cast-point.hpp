@@ -88,13 +88,14 @@ public:
         if (size == 0) {
             double empty_coord[] = {NAN, NAN, NAN, NAN};
             coords(empty_coord, 1, builder_->item_size());
-        } else if (size > 1 && geometry_type == util::GeometryType::MULTIPOINT) {
-            throw util::IOException("Can't write MULTIPOINT[%d] as POINT", size);
-        } else if (geometry_type != util::GeometryType::POINT) {
+            return Result::CONTINUE;
+        } else if (geometry_type == util::GeometryType::POINT) {
+            return Result::CONTINUE;
+        } else if (size == 1 && geometry_type == util::GeometryType::MULTIPOINT) {
+            return Result::CONTINUE;
+        } else {
             throw util::IOException("Can't write non-point as POINT");
         }
-
-        return Result::CONTINUE;
     }
 
     Result coords(const double* coord, int64_t n, int32_t coord_size) {

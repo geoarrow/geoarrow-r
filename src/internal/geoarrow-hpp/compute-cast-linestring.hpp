@@ -34,17 +34,16 @@ public:
         if (size == 0) {
             builder_.finish_element();
             return Result::ABORT_FEATURE;
-        } else if (size > 1 && geometry_type == util::GeometryType::MULTILINESTRING) {
-            throw util::IOException("Can't write MULTILINESTRING[%d] as LINESTRING", size);
-        } else if (geometry_type != util::GeometryType::LINESTRING) {
-            throw util::IOException("Can't write non-linestring as LINESTRING");
+        } else if (geometry_type == util::GeometryType::LINESTRING) {
+            if (size > 0) {
+                builder_.child().reserve(size);
+            }
+            return Result::CONTINUE;
+        } else if (size == 1 && geometry_type == util::GeometryType::MULTILINESTRING) {
+            return Result::CONTINUE;
+        } else {
+            throw util::IOException("Can't write non-linestring (%d[%d]) as LINESTRING", geometry_type, size);
         }
-
-        if (size > 0) {
-            builder_.child().reserve(size);
-        }
-
-        return Result::CONTINUE;
     }
 
     Result coords(const double* coord, int64_t n, int32_t coord_size) {
