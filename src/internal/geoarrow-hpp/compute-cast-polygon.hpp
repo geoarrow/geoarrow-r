@@ -11,7 +11,10 @@ namespace geoarrow {
 
 class PolygonArrayBuilder: public ComputeBuilder {
 public:
-    PolygonArrayBuilder() {}
+    PolygonArrayBuilder() {
+        builder_.child().set_name("rings");
+        builder_.child().child().set_name("vertices");
+    }
 
     void new_dimensions(util::Dimensions dimensions) {
         builder_.child().child().new_dimensions(dimensions);

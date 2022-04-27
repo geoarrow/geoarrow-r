@@ -11,7 +11,9 @@ namespace geoarrow {
 
 class LinestringArrayBuilder: public ComputeBuilder {
 public:
-    LinestringArrayBuilder() {}
+    LinestringArrayBuilder() {
+        builder_.child().set_name("vertices");
+    }
 
     void new_dimensions(util::Dimensions dimensions) {
         builder_.child().new_dimensions(dimensions);

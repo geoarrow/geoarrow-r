@@ -15,7 +15,22 @@ namespace geoarrow {
 template <typename Child, util::GeometryType ParentType, util::GeometryType ChildType>
 class MultiArrayBuilder: public ComputeBuilder {
 public:
-    MultiArrayBuilder(): level_(0) {}
+    MultiArrayBuilder(): level_(0) {
+        // Probably should live with subclasses
+        switch (ParentType) {
+        case util::GeometryType::MULTIPOINT:
+            builder_.set_name("points");
+            break;
+        case util::GeometryType::MULTILINESTRING:
+            builder_.set_name("linestrings");
+            break;
+        case util::GeometryType::MULTIPOLYGON:
+            builder_.set_name("polygons");
+            break;
+        default:
+            throw util::IOException("Unknown ParentType");
+        }
+    }
 
     void new_dimensions(util::Dimensions dimensions) {
         builder_.child().new_dimensions(dimensions);
