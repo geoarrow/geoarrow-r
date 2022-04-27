@@ -49,6 +49,8 @@ public:
     CArrayFinalizer finalizer;
     finalizer.allocate(1, 1);
     finalizer.set_schema_format(get_format());
+    finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.length = size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();
@@ -105,6 +107,8 @@ public:
     CArrayFinalizer finalizer;
     finalizer.allocate(2, 1);
     finalizer.set_schema_format(get_format());
+    finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.length = size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();

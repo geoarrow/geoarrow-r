@@ -52,6 +52,8 @@ public:
     CArrayFinalizer finalizer;
     finalizer.allocate(1, num_children());
     finalizer.set_schema_format("+s");
+    finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.length = size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();

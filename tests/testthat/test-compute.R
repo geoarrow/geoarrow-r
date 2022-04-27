@@ -64,6 +64,24 @@ test_that("geoarrow_compute() can cast all the examples to WKB", {
   }
 })
 
+test_that("geoarrow_compute() generates correct metadata for points", {
+  skip("for now")
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("POINT (0 1)")
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_point())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
 test_that("geoarrow_compute() can cast point examples to point", {
   for (name in c("point", "point_z", "point_m", "point_zm")) {
     src_wkt <- geoarrow_example_wkt[[name]]

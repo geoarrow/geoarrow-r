@@ -8,6 +8,7 @@
 #include <string>
 
 #include "common.hpp"
+#include "schema.hpp"
 
 // The classes and functions in this file are all about building
 // struct ArrowArray and struct ArrowSchema objects. All memory
@@ -285,6 +286,18 @@ public:
     schema.name = name_owned;
   }
 
+  void set_schema_metadata(const std::vector<std::string>& names,
+                           const std::vector<std::string>& values) {
+    if (schema.metadata != nullptr) {
+      free((void*) schema.metadata);
+      schema.metadata = nullptr;
+    }
+
+    if (names.size() > 0) {
+      schema.metadata = schema_metadata_create(names, values);
+    }
+  }
+
   void release(struct ArrowArray* array_data_out, struct ArrowSchema* schema_out) {
     // The output pointers must be non-null but must be released before they
     // get here (or else they will leak).
@@ -517,6 +530,10 @@ public:
   int64_t size() const { return size_; }
   const std::string& name() const { return name_; }
   void set_name(const std::string& name) { name_ = name; }
+  void set_metadata(const std::string& name, const std::string& value) {
+    metadata_names_.push_back(name);
+    metadata_values_.push_back(value);
+  }
 
   virtual void reserve(int64_t additional_capacity) {
     validity_buffer_builder_.reserve(additional_capacity);
@@ -534,6 +551,8 @@ public:
 
 protected:
   std::string name_;
+  std::vector<std::string> metadata_names_;
+  std::vector<std::string> metadata_values_;
   int64_t size_;
   builder::BitmapBuilder validity_buffer_builder_;
 };
@@ -569,6 +588,7 @@ public:
     finalizer.allocate(2);
     finalizer.set_schema_format(get_format());
     finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.length = buffer_builder_.size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();

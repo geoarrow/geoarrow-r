@@ -98,6 +98,8 @@ public:
     finalizer.allocate(3);
 
     finalizer.set_schema_format(get_format());
+    finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
     finalizer.array_data.buffers[2] = data_buffer_builder_.release();
