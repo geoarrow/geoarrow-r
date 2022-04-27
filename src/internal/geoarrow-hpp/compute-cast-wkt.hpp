@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "handler.hpp"
+#include "schema.hpp"
 #include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
 #include "../arrow-hpp/builder-string.hpp"
@@ -23,9 +24,8 @@ namespace geoarrow {
 
 class WKTArrayBuilder: public ComputeBuilder {
 public:
-    WKTArrayBuilder(int64_t size = 1024, int64_t data_size_guess = 1024):
+    WKTArrayBuilder():
         significant_digits_(16),
-        string_builder_(size, data_size_guess),
         is_first_ring_(true),
         is_first_coord_(true),
         dimensions_(util::Dimensions::XY) {
@@ -43,6 +43,9 @@ public:
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         shrink();
+        string_builder_.set_name(name());
+        string_builder_.set_metadata("ARROW:extension:name", "geoarrow.wkt");
+        string_builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         string_builder_.release(array_data, schema);
     }
 

@@ -7,6 +7,7 @@
 #include <cmath>
 
 #include "handler.hpp"
+#include "schema.hpp"
 #include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
 #include "../arrow-hpp/builder-string.hpp"
@@ -15,9 +16,8 @@ namespace geoarrow {
 
 class WKBArrayBuilder: public ComputeBuilder {
 public:
-    WKBArrayBuilder(int64_t size = 1024, int64_t data_size_guess = 1024):
+    WKBArrayBuilder():
         endian_(0x01),
-        string_builder_(size, data_size_guess),
         dimensions_(util::Dimensions::XY) {
         stack_.reserve(32);
     }
@@ -33,7 +33,14 @@ public:
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         shrink();
+        string_builder_.set_name(name());
+        string_builder_.set_metadata("ARROW:extension:name", "geoarrow.wkb");
+        string_builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         string_builder_.release(array_data, schema);
+    }
+
+    const char* get_format() {
+        return string_builder_.get_format();
     }
 
     void new_dimensions(util::Dimensions dimensions) {

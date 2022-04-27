@@ -23,6 +23,78 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute() for WKB", {
   )
 })
 
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for point", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::xy(1:2, 1:2)),
+    schema = geoarrow_schema_point()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for linestring", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::wkt("LINESTRING (0 1, 2 3)")),
+    schema = geoarrow_schema_linestring()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("LINESTRING (0 1, 2 3)")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for polygon", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))")),
+    schema = geoarrow_schema_polygon()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for multipoint", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::wkt("MULTIPOINT ((0 0), (1 0), (0 1), (0 0))")),
+    schema = geoarrow_schema_multipoint()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("MULTIPOINT ((0 0), (1 0), (0 1), (0 0))")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for multilinestring", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::wkt("MULTILINESTRING ((0 0, 1 0, 0 1, 0 0))")),
+    schema = geoarrow_schema_multilinestring()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("MULTILINESTRING ((0 0, 1 0, 0 1, 0 0))")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for multipolygon", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow_from_buffers(wk::wkt("MULTIPOLYGON (((0 0, 1 0, 0 1, 0 0)))")),
+    schema = geoarrow_schema_multipolygon()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("MULTIPOLYGON (((0 0, 1 0, 0 1, 0 0)))")
+  )
+})
+
 test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKT", {
   array <- geoarrow_create_narrow(
     wk::xy(1:2, 1:2),
@@ -44,6 +116,78 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for WKB",
   expect_identical(
     wk::as_wkt(array),
     wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for point", {
+  array <- geoarrow_create_narrow(
+    wk::xy(1:2, 1:2),
+    schema = geoarrow_schema_point()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for linestring", {
+  array <- geoarrow_create_narrow(
+    wk::wkt("LINESTRING (0 1, 2 3)"),
+    schema = geoarrow_schema_linestring()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("LINESTRING (0 1, 2 3)")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for polygon", {
+  array <- geoarrow_create_narrow(
+    wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))"),
+    schema = geoarrow_schema_polygon()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("POLYGON ((0 0, 1 0, 0 1, 0 0))")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for multipoint", {
+  array <- geoarrow_create_narrow(
+    wk::wkt("MULTIPOINT ((0 0), (1 0), (0 1), (0 0))"),
+    schema = geoarrow_schema_multipoint()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("MULTIPOINT ((0 0), (1 0), (0 1), (0 0))")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for multilinestring", {
+  array <- geoarrow_create_narrow(
+    wk::wkt("MULTILINESTRING ((0 0, 1 0, 0 1, 0 0))"),
+    schema = geoarrow_schema_multilinestring()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("MULTILINESTRING ((0 0, 1 0, 0 1, 0 0))")
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute_handler() for multipolygon", {
+  array <- geoarrow_create_narrow(
+    wk::wkt("MULTIPOLYGON (((0 0, 1 0, 0 1, 0 0)))"),
+    schema = geoarrow_schema_multipolygon()
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt("MULTIPOLYGON (((0 0, 1 0, 0 1, 0 0)))")
   )
 })
 
@@ -635,7 +779,7 @@ test_that("point arrays can be created", {
 test_that("point arrays can be created with null_point_as_empty = TRUE and FALSE", {
   features <- wk::wkt(c("POINT (1 3)", "POINT (2 4)", NA))
 
-  array_with_nulls <- geoarrow_create_narrow(
+  array_with_nulls <- geoarrow_create_narrow_from_buffers(
     features,
     schema = geoarrow_schema_point(),
     null_point_as_empty = FALSE
@@ -646,7 +790,7 @@ test_that("point arrays can be created with null_point_as_empty = TRUE and FALSE
     c(TRUE, TRUE, FALSE)
   )
 
-  array_with_empty <- geoarrow_create_narrow(
+  array_with_empty <- geoarrow_create_narrow_from_buffers(
     features,
     schema = geoarrow_schema_point(),
     null_point_as_empty = TRUE

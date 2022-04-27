@@ -30,6 +30,14 @@ public:
     }
   }
 
+  bool get_bool(const std::string& key, bool default_value) const {
+    try {
+      return get_bool(key);
+    } catch (util::IOException& e) {
+      return default_value;
+    }
+  }
+
   void set_schema(const std::string& key, struct ArrowSchema* value) {
     Item item;
     item.type_ = Type::SCHEMA;

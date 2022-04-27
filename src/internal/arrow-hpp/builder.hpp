@@ -8,6 +8,7 @@
 #include <string>
 
 #include "common.hpp"
+#include "schema.hpp"
 
 // The classes and functions in this file are all about building
 // struct ArrowArray and struct ArrowSchema objects. All memory
@@ -285,6 +286,18 @@ public:
     schema.name = name_owned;
   }
 
+  void set_schema_metadata(const std::vector<std::string>& names,
+                           const std::vector<std::string>& values) {
+    if (schema.metadata != nullptr) {
+      free((void*) schema.metadata);
+      schema.metadata = nullptr;
+    }
+
+    if (names.size() > 0) {
+      schema.metadata = schema_metadata_create(names, values);
+    }
+  }
+
   void release(struct ArrowArray* array_data_out, struct ArrowSchema* schema_out) {
     // The output pointers must be non-null but must be released before they
     // get here (or else they will leak).
@@ -402,18 +415,15 @@ protected:
 
 class BitmapBuilder {
 public:
-  BitmapBuilder(int64_t capacity, int64_t null_count_guess = 0):
+  BitmapBuilder():
     buffer_builder_(0), null_count_(0), buffer_(0), buffer_size_(0), size_(0),
-    allocated_(false) {
-    if (null_count_guess != 0) {
-      trigger_alloc(capacity);
-    }
-  }
+    allocated_(false) {}
 
   virtual ~BitmapBuilder() {}
 
   int64_t capacity() { return buffer_builder_.capacity() * 8; }
   int64_t size() { return size_; }
+  bool is_allocated() { return allocated_; }
 
   void reallocate(int64_t capacity) {
     if (capacity % 8 == 0) {
@@ -434,6 +444,13 @@ public:
   void shrink() {
     if (allocated_) {
       buffer_builder_.shrink();
+    }
+  }
+
+  void write_elements(int64_t n, bool value) {
+    // Could be more efficient!
+    for (int64_t i = 0; i < n; i++) {
+      write_element(value);
     }
   }
 
@@ -506,16 +523,21 @@ private:
 
 class ArrayBuilder {
 public:
-  ArrayBuilder(int64_t capacity = 1024):
-    name_(""), size_(0), validity_buffer_builder_(capacity) {}
+  ArrayBuilder(): name_(""), size_(0) {}
 
   virtual ~ArrayBuilder() {}
 
   int64_t size() const { return size_; }
   const std::string& name() const { return name_; }
   void set_name(const std::string& name) { name_ = name; }
+  void set_metadata(const std::string& name, const std::string& value) {
+    metadata_names_.push_back(name);
+    metadata_values_.push_back(value);
+  }
 
-  virtual void reserve(int64_t additional_capacity) {}
+  virtual void reserve(int64_t additional_capacity) {
+    validity_buffer_builder_.reserve(additional_capacity);
+  }
 
   virtual void shrink() {
     validity_buffer_builder_.shrink();
@@ -525,19 +547,24 @@ public:
     throw util::Exception("Not implemented");
   }
 
+  virtual const char* get_format() { return ""; }
+
 protected:
   std::string name_;
+  std::vector<std::string> metadata_names_;
+  std::vector<std::string> metadata_values_;
   int64_t size_;
   builder::BitmapBuilder validity_buffer_builder_;
 };
 
 
-class Float64ArrayBuilder: public ArrayBuilder {
+template <typename BufferT>
+class FixedSizeLayoutArrayBuilder: public ArrayBuilder {
 public:
-  Float64ArrayBuilder(int64_t capacity = 1024):
-    ArrayBuilder(capacity), buffer_builder_(capacity) {}
+  FixedSizeLayoutArrayBuilder() {}
 
   void reserve(int64_t additional_capacity) {
+    ArrayBuilder::reserve(additional_capacity);
     buffer_builder_.reserve(additional_capacity);
   }
 
@@ -546,7 +573,7 @@ public:
     buffer_builder_.shrink();
   }
 
-  void write_element(double value) {
+  void write_element(BufferT value) {
     buffer_builder_.write_element(value);
     size_++;
   }
@@ -559,8 +586,9 @@ public:
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     CArrayFinalizer finalizer;
     finalizer.allocate(2);
-    finalizer.set_schema_format("g");
+    finalizer.set_schema_format(get_format());
     finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.length = buffer_builder_.size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();
@@ -572,8 +600,13 @@ public:
   }
 
 private:
-  BufferBuilder<double> buffer_builder_;
+  BufferBuilder<BufferT> buffer_builder_;
 
+};
+
+class Float64ArrayBuilder: public FixedSizeLayoutArrayBuilder<double> {
+public:
+  virtual const char* get_format() { return "g"; }
 };
 
 }

@@ -77,7 +77,7 @@ geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_linestring <- function(name = "", edges = "planar",
+geoarrow_schema_linestring <- function(name = "", edges = NULL,
                                        point = geoarrow_schema_point()) {
   point$name <- "vertices"
 
@@ -94,7 +94,7 @@ geoarrow_schema_linestring <- function(name = "", edges = "planar",
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_polygon <- function(name = "", edges = "planar",
+geoarrow_schema_polygon <- function(name = "", edges = NULL,
                                     point = geoarrow_schema_point()) {
   point$name <- "vertices"
 
@@ -147,7 +147,7 @@ geoarrow_schema_multipoint_struct <- function(child, name = "", dim = "xy",
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multilinestring <- function(child, name = "", edges = "planar",
+geoarrow_schema_multilinestring <- function(child, name = "", edges = NULL,
                                             point = geoarrow_schema_point()) {
   geoarrow_schema_collection(
     geoarrow_schema_linestring(
@@ -161,7 +161,7 @@ geoarrow_schema_multilinestring <- function(child, name = "", edges = "planar",
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multipolygon <- function(child, name = "", edges = "planar",
+geoarrow_schema_multipolygon <- function(child, name = "", edges = NULL,
                                          point = geoarrow_schema_point()) {
   geoarrow_schema_collection(
     geoarrow_schema_polygon(
@@ -204,7 +204,7 @@ geoarrow_schema_collection <- function(child, name = "") {
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, edges = "planar") {
+geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, edges = NULL) {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z")))
 
   narrow::narrow_schema(
@@ -219,7 +219,7 @@ geoarrow_schema_wkb <- function(name = "", format = "z", crs = NULL, edges = "pl
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, edges = "planar") {
+geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, edges = NULL) {
   stopifnot(startsWith(format, "w:") || isTRUE(format %in% c("z", "Z", "u", "U")))
 
   narrow::narrow_schema(

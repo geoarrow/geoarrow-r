@@ -112,10 +112,6 @@ schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(
     edges <- meta$edges
   }
 
-  if (is.null(edges)) {
-    edges <- "planar"
-  }
-
   switch(
     encoding,
     "WKB" = geoarrow_schema_wkb(

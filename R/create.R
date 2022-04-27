@@ -19,7 +19,7 @@
 #' geoarrow_create_narrow_from_buffers(wk::xy(1:5, 1:5))
 #'
 geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
-                                   strict = FALSE) {
+                                   strict = FALSE, null_point_as_empty = FALSE) {
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
   if (!strict) {
@@ -41,11 +41,21 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
     switch(
       extension,
       "geoarrow.wkt" = ,
-      "geoarrow.wkb" = {
+      "geoarrow.wkb" = ,
+      "geoarrow.point" = ,
+      "geoarrow.linestring" = ,
+      "geoarrow.polygon" = ,
+      "geoarrow.multipoint" = ,
+      "geoarrow.multilinestring" = ,
+      "geoarrow.multipolygon" = {
         # until the compute function properly sets the extension metadata
         handleable <- narrow::as_narrow_array(handleable)
-        result <- geoarrow_compute(handleable, "cast", list(schema = schema))
-        result$schema$metadata <- schema$metadata
+        result <- geoarrow_compute(
+          handleable,
+          "cast",
+          list(schema = schema, null_is_empty = null_point_as_empty)
+        )
+        result$schema <- geoarrow_copy_metadata(result$schema, schema)
         return(result)
       }
     )
@@ -53,15 +63,24 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
     switch(
       extension,
       "geoarrow.wkt" = ,
-      "geoarrow.wkb" = {
+      "geoarrow.wkb" = ,
+      "geoarrow.point" = ,
+      "geoarrow.linestring" = ,
+      "geoarrow.polygon" = ,
+      "geoarrow.multipoint" = ,
+      "geoarrow.multilinestring" = ,
+      "geoarrow.multipolygon" = {
         # until the compute function properly sets the extension metadata
         result <- wk::wk_handle(
           handleable,
-          geoarrow_compute_handler("cast", list(schema = schema))
+          geoarrow_compute_handler(
+            "cast",
+            list(schema = schema, null_is_empty = null_point_as_empty)
+          )
         )
-        result$schema$metadata <- schema$metadata
+        result$schema <- geoarrow_copy_metadata(result$schema, schema)
         return(result)
-      }
+      },
     )
   }
 
@@ -69,7 +88,8 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
   geoarrow_create_narrow_from_buffers(
     handleable, ...,
     schema = schema,
-    strict = strict
+    strict = strict,
+    null_point_as_empty = null_point_as_empty
   )
 }
 

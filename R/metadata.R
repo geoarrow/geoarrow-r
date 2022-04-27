@@ -33,6 +33,18 @@ geoarrow_set_metadata <- function(schema, crs, geodesic, edges) {
   schema
 }
 
+geoarrow_copy_metadata <- function(schema_to, schema_from) {
+  schema_to$metadata <- schema_from$metadata
+  for (i in seq_along(schema_from$children)) {
+    schema_to$children[[i]] <- geoarrow_copy_metadata(
+      schema_to$children[[i]],
+      schema_from$children[[i]]
+    )
+  }
+
+  schema_to
+}
+
 geoarrow_metadata_serialize <- function(crs = NULL, geodesic = NULL, edges = NULL) {
   if (!is.null(geodesic)) {
     geodesic <- scalar_lgl(geodesic)

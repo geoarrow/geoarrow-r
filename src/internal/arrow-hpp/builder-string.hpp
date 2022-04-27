@@ -11,13 +11,7 @@ namespace builder {
 
 class BinaryArrayBuilder: public ArrayBuilder {
 public:
-  BinaryArrayBuilder(int64_t capacity = 1024, int64_t data_size_guess = 1024):
-      ArrayBuilder(capacity),
-      is_large_(false),
-      item_size_(0),
-      offset_buffer_builder_(capacity),
-      large_offset_buffer_builder_(capacity),
-      data_buffer_builder_(data_size_guess) {
+  BinaryArrayBuilder(): is_large_(false), item_size_(0) {
     if (is_large_) {
       large_offset_buffer_builder_.write_element(0);
     } else {
@@ -26,6 +20,8 @@ public:
   }
 
   void reserve(int64_t additional_capacity) {
+    ArrayBuilder::reserve(additional_capacity);
+
     if (is_large_) {
       large_offset_buffer_builder_.reserve(additional_capacity);
     } else if (needs_make_large(additional_capacity)) {
@@ -34,6 +30,14 @@ public:
     } else {
       offset_buffer_builder_.reserve(additional_capacity);
     }
+  }
+
+  void reserve_data(int64_t additional_data_size_guess) {
+    if (needs_make_large(additional_data_size_guess)) {
+      make_large();
+    }
+
+    data_buffer_builder_.reserve(additional_data_size_guess);
   }
 
   void shrink() {
@@ -46,14 +50,6 @@ public:
     }
 
     data_buffer_builder_.shrink();
-  }
-
-  void reserve_data(int64_t additional_data_size_guess) {
-    if (needs_make_large(additional_data_size_guess)) {
-      make_large();
-    }
-
-    data_buffer_builder_.reserve(additional_data_size_guess);
   }
 
   int64_t remaining_data_capacity() {
@@ -102,6 +98,8 @@ public:
     finalizer.allocate(3);
 
     finalizer.set_schema_format(get_format());
+    finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.buffers[0] = validity_buffer_builder_.release();
     finalizer.array_data.buffers[2] = data_buffer_builder_.release();
@@ -118,13 +116,6 @@ public:
     finalizer.release(array_data, schema);
   }
 
-protected:
-  bool is_large_;
-  int64_t item_size_;
-  builder::BufferBuilder<int32_t> offset_buffer_builder_;
-  builder::BufferBuilder<int64_t> large_offset_buffer_builder_;
-  builder::BufferBuilder<uint8_t> data_buffer_builder_;
-
   virtual const char* get_format() {
     if (is_large_) {
       return "Z";
@@ -132,6 +123,13 @@ protected:
       return "z";
     }
   }
+
+protected:
+  bool is_large_;
+  int64_t item_size_;
+  builder::BufferBuilder<int32_t> offset_buffer_builder_;
+  builder::BufferBuilder<int64_t> large_offset_buffer_builder_;
+  builder::BufferBuilder<uint8_t> data_buffer_builder_;
 
   bool needs_make_large(int64_t capacity) {
     return !is_large_ &&
@@ -150,10 +148,7 @@ protected:
 
 class StringArrayBuilder: public BinaryArrayBuilder {
 public:
-  StringArrayBuilder(int64_t capacity = 1024, int64_t data_size_guess = 1024)
-    : BinaryArrayBuilder(capacity, data_size_guess) {}
-
-protected:
+  StringArrayBuilder() {}
 
   const char* get_format() {
     if (is_large_) {

@@ -98,7 +98,7 @@ public:
         bounder_ = &bounder_xyzm_;
         for (int i = 0; i < 8; i++) {
             builders_[i] = std::unique_ptr<arrow::hpp::builder::Float64ArrayBuilder>(
-                new arrow::hpp::builder::Float64ArrayBuilder(1));
+                new arrow::hpp::builder::Float64ArrayBuilder());
         }
     }
 

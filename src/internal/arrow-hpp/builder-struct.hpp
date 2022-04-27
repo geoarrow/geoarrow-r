@@ -14,7 +14,7 @@ namespace builder {
 
 class StructArrayBuilder: public ArrayBuilder {
 public:
-  StructArrayBuilder(int64_t capacity = 0): ArrayBuilder(capacity) {}
+  StructArrayBuilder() {}
 
   void add_child(std::unique_ptr<ArrayBuilder> child, const std::string& name = "") {
     set_size(child->size());
@@ -41,10 +41,19 @@ public:
     }
   }
 
+  void reserve(int64_t additional_capacity) {
+    ArrayBuilder::reserve(additional_capacity);
+    for (auto& child: children_) {
+      child->reserve(additional_capacity);
+    }
+  }
+
   void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
     CArrayFinalizer finalizer;
     finalizer.allocate(1, num_children());
     finalizer.set_schema_format("+s");
+    finalizer.set_schema_name(name().c_str());
+    finalizer.set_schema_metadata(metadata_names_, metadata_values_);
 
     finalizer.array_data.length = size();
     finalizer.array_data.null_count = validity_buffer_builder_.null_count();

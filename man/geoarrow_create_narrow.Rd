@@ -10,7 +10,8 @@ geoarrow_create_narrow(
   handleable,
   ...,
   schema = geoarrow_schema_default(handleable),
-  strict = FALSE
+  strict = FALSE,
+  null_point_as_empty = FALSE
 )
 
 geoarrow_create_narrow_from_buffers(
