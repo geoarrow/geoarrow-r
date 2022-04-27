@@ -147,46 +147,6 @@ static inline char* schema_metadata_create(const std::vector<std::string>& names
     return metadata;
 }
 
-class SchemaView {
-public:
-    SchemaView(): schema_(nullptr), metadata_size_(-1), child_(nullptr) {}
-    SchemaView(const ArrowSchema* schema) {
-        set_schema(schema);
-    }
-
-    void set_schema(const ArrowSchema* schema) {
-        if (schema == nullptr || schema->release == nullptr) {
-            throw util::Exception("ArrowSchema* is null or released");
-        }
-
-        schema_ = schema;
-        child_ = std::unique_ptr<SchemaView>(new SchemaView());
-    }
-
-    int64_t n_children() { return schema_->n_children; }
-
-    const SchemaView& child(int64_t i) {
-        child_->set_schema(schema_->children[i]);
-        return *child_;
-    }
-
-    bool has_dictionary() { return schema_->dictionary != nullptr; }
-
-    const SchemaView& dictionary() {
-        child_->set_schema(schema_->dictionary);
-        return *child_;
-    }
-
-    std::string metadata(const std::string& key, const std::string& default_value = "") {
-        return schema_metadata_key(schema_->metadata, key, metadata_size_, default_value);
-    }
-
-private:
-    const ArrowSchema* schema_;
-    int64_t metadata_size_;
-    std::unique_ptr<SchemaView> child_;
-};
-
 }
 
 }
