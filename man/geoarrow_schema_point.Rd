@@ -25,13 +25,13 @@ geoarrow_schema_point_struct(
 
 geoarrow_schema_linestring(
   name = "",
-  edges = "planar",
+  edges = NULL,
   point = geoarrow_schema_point()
 )
 
 geoarrow_schema_polygon(
   name = "",
-  edges = "planar",
+  edges = NULL,
   point = geoarrow_schema_point()
 )
 
@@ -54,22 +54,22 @@ geoarrow_schema_multipoint_struct(
 geoarrow_schema_multilinestring(
   child,
   name = "",
-  edges = "planar",
+  edges = NULL,
   point = geoarrow_schema_point()
 )
 
 geoarrow_schema_multipolygon(
   child,
   name = "",
-  edges = "planar",
+  edges = NULL,
   point = geoarrow_schema_point()
 )
 
 geoarrow_schema_collection(child, name = "")
 
-geoarrow_schema_wkb(name = "", format = "z", crs = NULL, edges = "planar")
+geoarrow_schema_wkb(name = "", format = "z", crs = NULL, edges = NULL)
 
-geoarrow_schema_wkt(name = "", format = "u", crs = NULL, edges = "planar")
+geoarrow_schema_wkt(name = "", format = "u", crs = NULL, edges = NULL)
 }
 \arguments{
 \item{name}{An optional name}
