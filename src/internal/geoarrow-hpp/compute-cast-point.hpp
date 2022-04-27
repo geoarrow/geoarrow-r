@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "handler.hpp"
+#include "schema.hpp"
 #include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
 #include "../arrow-hpp/builder-list.hpp"
@@ -45,6 +46,9 @@ public:
         }
 
         shrink();
+        builder_->set_name(name());
+        builder_->set_metadata("ARROW:extension:name", "geoarrow.point");
+        builder_->set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_->release(array_data, schema);
     }
 

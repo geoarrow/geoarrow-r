@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "handler.hpp"
+#include "schema.hpp"
 #include "compute-builder.hpp"
 #include "../arrow-hpp/builder.hpp"
 #include "../arrow-hpp/builder-string.hpp"
@@ -42,6 +43,9 @@ public:
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         shrink();
+        string_builder_.set_name(name());
+        string_builder_.set_metadata("ARROW:extension:name", "geoarrow.wkt");
+        string_builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         string_builder_.release(array_data, schema);
     }
 

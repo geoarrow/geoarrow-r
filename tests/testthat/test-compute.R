@@ -50,8 +50,6 @@ test_that("geoarrow_compute() can cast all the examples to WKB", {
       list(schema = geoarrow_schema_wkb())
     )
 
-    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.wkb")
-
     expect_identical(
       wk::wk_count(dst_narrow),
       wk::wk_count(wk::as_wkb(geoarrow_example_wkt[[name]]))
@@ -64,8 +62,44 @@ test_that("geoarrow_compute() can cast all the examples to WKB", {
   }
 })
 
+test_that("geoarrow_compute() generates correct metadata for WKT", {
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("POINT (0 1)"),
+    schema = geoarrow_schema_wkt()
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_wkt())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
+test_that("geoarrow_compute() generates correct metadata for WKB", {
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("POINT (0 1)"),
+    schema = geoarrow_schema_wkb(),
+    strict = TRUE
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_wkb())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
 test_that("geoarrow_compute() generates correct metadata for points", {
-  skip("for now")
   narrow_template <- geoarrow_create_narrow_from_buffers(
     wk::wkt("POINT (0 1)")
   )
@@ -82,6 +116,91 @@ test_that("geoarrow_compute() generates correct metadata for points", {
   )
 })
 
+test_that("geoarrow_compute() generates correct metadata for linestrings", {
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("LINESTRING (0 1, 2 3)")
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_linestring())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
+test_that("geoarrow_compute() generates correct metadata for polygon", {
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("POLYGON ((0 0, 0 1, 1 0, 0 0))")
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_polygon())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
+test_that("geoarrow_compute() generates correct metadata for multipoint", {
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("MULTIPOINT ((0 0))")
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_multipoint())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
+test_that("geoarrow_compute() generates correct metadata for multilinestring", {
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("MULTILINESTRING ((0 0))")
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_multilinestring())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
+test_that("geoarrow_compute() generates correct metadata for multipolygon", {
+  narrow_template <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("MULTIPOLYGON (((0 0, 0 1, 1 0, 0 0)))")
+  )
+
+  narrow_compute <- geoarrow_compute(
+    narrow_template,
+    "cast",
+    list(schema = geoarrow_schema_multipolygon())
+  )
+
+  expect_identical(
+    narrow::narrow_schema_info(narrow_compute$schema, recursive = TRUE),
+    narrow::narrow_schema_info(narrow_template$schema, recursive = TRUE)
+  )
+})
+
 test_that("geoarrow_compute() can cast point examples to point", {
   for (name in c("point", "point_z", "point_m", "point_zm")) {
     src_wkt <- geoarrow_example_wkt[[name]]
@@ -90,7 +209,6 @@ test_that("geoarrow_compute() can cast point examples to point", {
       "cast",
       list(schema = geoarrow_schema_point())
     )
-    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.point")
 
     expect_identical(
       wk::as_wkb(dst_narrow),
@@ -130,7 +248,6 @@ test_that("geoarrow_compute() can cast (some) multipoint to point", {
     "cast",
     list(schema = geoarrow_schema_point())
   )
-  dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.point")
 
   expect_identical(wk::as_wkt(dst_narrow), wk::wkt("POINT (0 1)"))
 
@@ -155,10 +272,6 @@ test_that("geoarrow_compute() can cast linestring examples to linestring", {
       "cast",
       list(schema = geoarrow_schema_linestring())
     )
-    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.linestring")
-    dst_narrow$schema$children[[1]]$metadata <- list(
-      "ARROW:extension:name" = "geoarrow.point"
-    )
 
     expect_identical(
       wk::as_wkb(dst_narrow),
@@ -176,10 +289,6 @@ test_that("geoarrow_compute() can cast (some) multilinestring to linestring", {
     array,
     "cast",
     list(schema = geoarrow_schema_linestring())
-  )
-  dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.linestring")
-  dst_narrow$schema$children[[1]]$metadata <- list(
-    "ARROW:extension:name" = "geoarrow.point"
   )
 
   expect_identical(
@@ -208,10 +317,6 @@ test_that("geoarrow_compute() can cast polygon examples to polygon", {
       "cast",
       list(schema = geoarrow_schema_polygon())
     )
-    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.polygon")
-    dst_narrow$schema$children[[1]]$children[[1]]$metadata <- list(
-      "ARROW:extension:name" = "geoarrow.point"
-    )
 
     expect_identical(
       wk::as_wkb(dst_narrow),
@@ -229,10 +334,6 @@ test_that("geoarrow_compute() can cast (some) multipolygon to polygon", {
     array,
     "cast",
     list(schema = geoarrow_schema_polygon())
-  )
-  dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.polygon")
-  dst_narrow$schema$children[[1]]$children[[1]]$metadata <- list(
-    "ARROW:extension:name" = "geoarrow.point"
   )
 
   expect_identical(
@@ -261,10 +362,6 @@ test_that("geoarrow_compute() can cast (multi)point examples", {
       "cast",
       list(schema = geoarrow_schema_multipoint())
     )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multipoint()
-    )
 
     expect_identical(
       wk::as_wkb(dst_narrow),
@@ -278,10 +375,6 @@ test_that("geoarrow_compute() can cast (multi)point examples", {
       geoarrow_create_narrow_from_buffers(src_wkt, schema = geoarrow_schema_wkt()),
       "cast",
       list(schema = geoarrow_schema_multipoint())
-    )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multipoint()
     )
 
     expected <- gsub("POINT", "MULTIPOINT", as.character(src_wkt))
@@ -303,10 +396,6 @@ test_that("geoarrow_compute() can cast (multi)linestring examples", {
       "cast",
       list(schema = geoarrow_schema_multilinestring())
     )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multilinestring()
-    )
 
     expect_identical(
       wk::as_wkt(dst_narrow),
@@ -320,10 +409,6 @@ test_that("geoarrow_compute() can cast (multi)linestring examples", {
       geoarrow_create_narrow_from_buffers(src_wkt),
       "cast",
       list(schema = geoarrow_schema_multilinestring())
-    )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multilinestring()
     )
 
     expected <- gsub("LINESTRING", "MULTILINESTRING", as.character(src_wkt))
@@ -345,10 +430,6 @@ test_that("geoarrow_compute() can cast (multi)polygon examples", {
       "cast",
       list(schema = geoarrow_schema_multipolygon())
     )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multipolygon()
-    )
 
     expect_identical(
       wk::as_wkt(dst_narrow),
@@ -362,10 +443,6 @@ test_that("geoarrow_compute() can cast (multi)polygon examples", {
       geoarrow_create_narrow_from_buffers(src_wkt),
       "cast",
       list(schema = geoarrow_schema_multipolygon())
-    )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multipolygon()
     )
 
     expected <- gsub("POLYGON", "MULTIPOLYGON", as.character(src_wkt))
@@ -400,7 +477,6 @@ test_that("geoarrow_compute() can cast all null/empty examples", {
       "cast",
       list(schema = geoarrow_schema_point())
     )
-    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.point")
 
     dst_wkt <- wk::as_wkt(dst_narrow)
     expect_identical(is.na(dst_wkt), is.na(src_wkt))
@@ -413,10 +489,6 @@ test_that("geoarrow_compute() can cast all null/empty examples", {
       ),
       "cast",
       list(schema = geoarrow_schema_linestring())
-    )
-    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.linestring")
-    dst_narrow$schema$children[[1]]$metadata <- list(
-      "ARROW:extension:name" = "geoarrow.point"
     )
 
     dst_wkt <- wk::as_wkt(dst_narrow)
@@ -431,10 +503,6 @@ test_that("geoarrow_compute() can cast all null/empty examples", {
       "cast",
       list(schema = geoarrow_schema_polygon())
     )
-    dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.polygon")
-    dst_narrow$schema$children[[1]]$children[[1]]$metadata <- list(
-      "ARROW:extension:name" = "geoarrow.point"
-    )
 
     dst_wkt <- wk::as_wkt(dst_narrow)
     expect_identical(is.na(dst_wkt), is.na(src_wkt))
@@ -447,10 +515,6 @@ test_that("geoarrow_compute() can cast all null/empty examples", {
       ),
       "cast",
       list(schema = geoarrow_schema_multipoint())
-    )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multipoint()
     )
 
     dst_wkt <- wk::as_wkt(dst_narrow)
@@ -465,10 +529,6 @@ test_that("geoarrow_compute() can cast all null/empty examples", {
       "cast",
       list(schema = geoarrow_schema_multilinestring())
     )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multilinestring()
-    )
 
     dst_wkt <- wk::as_wkt(dst_narrow)
     expect_identical(is.na(dst_wkt), is.na(src_wkt))
@@ -481,10 +541,6 @@ test_that("geoarrow_compute() can cast all null/empty examples", {
       ),
       "cast",
       list(schema = geoarrow_schema_multipolygon())
-    )
-    dst_narrow$schema <- geoarrow_copy_metadata(
-      dst_narrow$schema,
-      geoarrow_schema_multipolygon()
     )
 
     dst_wkt <- wk::as_wkt(dst_narrow)

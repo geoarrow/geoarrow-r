@@ -3,6 +3,7 @@
 #pragma once
 
 #include "handler.hpp"
+#include "schema.hpp"
 #include "compute-builder.hpp"
 #include "compute-cast-point.hpp"
 #include "compute-cast-linestring.hpp"
@@ -19,13 +20,13 @@ public:
         // Probably should live with subclasses
         switch (ParentType) {
         case util::GeometryType::MULTIPOINT:
-            builder_.set_name("points");
+            builder_.child().set_name("points");
             break;
         case util::GeometryType::MULTILINESTRING:
-            builder_.set_name("linestrings");
+            builder_.child().set_name("linestrings");
             break;
         case util::GeometryType::MULTIPOLYGON:
-            builder_.set_name("polygons");
+            builder_.child().set_name("polygons");
             break;
         default:
             throw util::IOException("Unknown ParentType");
@@ -103,6 +104,25 @@ public:
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         shrink();
+
+        builder_.set_name(name());
+
+        // Probably should live with subclasses
+        switch (ParentType) {
+        case util::GeometryType::MULTIPOINT:
+            builder_.set_metadata("ARROW:extension:name", "geoarrow.multipoint");
+            break;
+        case util::GeometryType::MULTILINESTRING:
+            builder_.set_metadata("ARROW:extension:name", "geoarrow.multilinestring");
+            break;
+        case util::GeometryType::MULTIPOLYGON:
+            builder_.set_metadata("ARROW:extension:name", "geoarrow.multipolygon");
+            break;
+        default:
+            throw util::IOException("Unknown ParentType");
+        }
+
+        builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_.release(array_data, schema);
     }
 

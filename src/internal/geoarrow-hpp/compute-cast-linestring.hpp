@@ -2,6 +2,7 @@
 #pragma once
 
 #include "handler.hpp"
+#include "schema.hpp"
 #include "compute-builder.hpp"
 #include "compute-cast-point.hpp"
 #include "../arrow-hpp/builder.hpp"
@@ -59,6 +60,9 @@ public:
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         shrink();
+        builder_.set_name(name());
+        builder_.set_metadata("ARROW:extension:name", "geoarrow.linestring");
+        builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_.release(array_data, schema);
     }
 
