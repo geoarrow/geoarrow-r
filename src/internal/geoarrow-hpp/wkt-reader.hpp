@@ -472,12 +472,16 @@ public:
 
 class WKTReader {
 public:
-  WKTReader(): coord_size_(2) {}
+  WKTReader(): geometry_type_(util::GeometryType::GEOMETRY_TYPE_UNKNOWN), coord_size_(2) {
+    meta_.geometry_type = util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
+    meta_.dimensions = util::Dimensions::DIMENSIONS_UNKNOWN;
+  }
 
   Handler::Result read_buffer(Handler* handler, const uint8_t* data, int64_t size) {
     s.setBuffer(reinterpret_cast<const char*>(data), size);
     try {
       Handler::Result result;
+      meta_.geometry_type = util::GeometryType::GEOMETRY_TYPE_UNKNOWN;
       HANDLE_OR_RETURN(readGeometryWithType(handler));
       s.assertFinished();
       return Handler::Result::CONTINUE;
@@ -489,12 +493,22 @@ public:
 private:
   util::WKTParser s;
   util::WKTParser::WKTMeta meta_;
+  util::GeometryType geometry_type_;
   double coord_[4];
   int32_t coord_size_;
 
   Handler::Result readGeometryWithType(Handler* handler) {
     util::Dimensions old_dim = meta_.dimensions;
+    util::GeometryType old_geometry_type = meta_.geometry_type;
     s.assertGeometryMeta(&meta_);
+
+    // handler->new_geometry_type only applies to the root geometry
+    if (old_geometry_type == util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
+      if (geometry_type_ != meta_.geometry_type) {
+        handler->new_geometry_type(meta_.geometry_type);
+      }
+      geometry_type_ = meta_.geometry_type;
+    }
 
     if (meta_.dimensions != old_dim) {
       handler->new_dimensions(meta_.dimensions);

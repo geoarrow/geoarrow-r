@@ -311,7 +311,7 @@ guess_column_encoding <- function(schema) {
   )
 }
 
-guess_column_dim <- function(schema) {
+guess_column_dim <- function(schema, array_data = NULL) {
   if (identical(schema$format, "+s")) {
     child_formats <- vapply(schema$children, "[[", character(1), "format")
     child_names <- vapply(schema$children, "[[", character(1), "name")
@@ -341,10 +341,17 @@ guess_column_dim <- function(schema) {
     } else if (has_child_type && identical(parsed$args$n_items, 4L)) {
       return("xyzm")
     }
+  } else if (schema$format %in% c("z", "Z", "u", "U")) {
+    # for WKB and WKT, use wk_meta
+    if (schema$format %in% c("z", "Z")) {
+      schema$metadata[["ARROW:extension:name"]] <- "geoarrow.wkb"
+    } else {
+      schema$metadata[["ARROW:extension:name"]] <- "geoarrow.wkt"
+    }
   }
 
-  for (child in schema$children) {
-    child_dim <- guess_column_dim(child)
+  for (i in seq_along(schema$children)) {
+    child_dim <- guess_column_dim(schema$children[[i]], array_data$children[[i]])
     if (!is.null(child_dim)) {
       return(child_dim)
     }

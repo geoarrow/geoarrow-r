@@ -29,7 +29,7 @@ for (name in names(example_tbl)) {
   # ipc
   write_geoarrow_ipc_stream(
     example_tbl[[name]],
-    glue::glue("inst/example_ipc_stream/{name}-default.ipc"),
+    glue::glue("inst/example_ipc_stream/{name}-default.arrows"),
     compression = "uncompressed",
     schema = geoarrow_schema_default(
       example_tbl[[name]],
@@ -39,14 +39,14 @@ for (name in names(example_tbl)) {
 
   write_geoarrow_ipc_stream(
     example_tbl[[name]],
-    glue::glue("inst/example_ipc_stream/{name}-wkt.ipc"),
+    glue::glue("inst/example_ipc_stream/{name}-wkt.arrows"),
     compression = "uncompressed",
     schema = geoarrow_schema_wkt()
   )
 
   write_geoarrow_ipc_stream(
     example_tbl[[name]],
-    glue::glue("inst/example_ipc_stream/{name}-wkb.ipc"),
+    glue::glue("inst/example_ipc_stream/{name}-wkb.arrows"),
     compression = "uncompressed",
     schema = geoarrow_schema_wkb()
   )

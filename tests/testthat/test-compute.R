@@ -596,6 +596,19 @@ test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
   }
 })
 
+test_that("geoarrow_compute(op = 'geoparquet_types') works for all examples", {
+  name <- "point"
+  src <- geoarrow_create_narrow_from_buffers(
+    geoarrow_example_wkt[[name]],
+    schema = geoarrow_schema_wkt()
+  )
+
+  result <- narrow::from_narrow_array(
+    geoarrow_compute(src, "geoparquet_types")
+  )
+
+})
+
 test_that("geoarrow_compute(op = 'void') can handle all examples", {
   for (name in names(geoarrow_example_wkt)) {
     result_narrow <- geoarrow_compute(

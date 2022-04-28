@@ -72,6 +72,11 @@ public:
     return data_buffer_builder_.size();
   }
 
+  void write_element(const std::string& element) {
+    write_buffer(reinterpret_cast<const uint8_t*>(element.data()), element.size());
+    finish_element(true);
+  }
+
   void write_buffer(const uint8_t* buffer, int64_t capacity) {
     if (needs_make_large(capacity)) {
       make_large();
