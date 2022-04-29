@@ -17,57 +17,10 @@
 // and call release() to transfer ownership of the buffers to the
 // struct ArrowArray/struct ArrowSchema.
 
-// These two release callbacks can't be header only (I think);
-// nor can the be with in the namespaces (I think)
-void arrow_hpp_builder_release_schema_internal(struct ArrowSchema* schema);
+// These release callbacks can't be header only (I think)
 void arrow_hpp_builder_release_array_data_internal(struct ArrowArray* array_data);
 
-#ifdef ARROW_HPP_NO_HEADER_ONLY
-
-// The .release() callback for all struct ArrowSchemas populated here
-void arrow_hpp_builder_release_schema_internal(struct ArrowSchema* schema) {
-  if (schema != nullptr && schema->release != nullptr) {
-    // format, name, and metadata must be nullptr or allocated with malloc()
-    if (schema->format != nullptr) free((void*) schema->format);
-    if (schema->name != nullptr) free((void*) schema->name);
-    if (schema->metadata != nullptr) free((void*) schema->metadata);
-
-    // this object owns the memory for all the children, but those
-    // children may have been generated elsewhere and might have
-    // their own release() callback.
-    if (schema->children != nullptr) {
-      for (int64_t i = 0; i < schema->n_children; i++) {
-        if (schema->children[i] != nullptr) {
-          if(schema->children[i]->release != nullptr) {
-            schema->children[i]->release(schema->children[i]);
-          }
-
-          free(schema->children[i]);
-        }
-      }
-
-      free(schema->children);
-    }
-
-    // this object owns the memory for the dictionary but it
-    // may have been generated somewhere else and have its own
-    // release() callback.
-    if (schema->dictionary != nullptr) {
-      if (schema->dictionary->release != nullptr) {
-        schema->dictionary->release(schema->dictionary);
-      }
-
-      free(schema->dictionary);
-    }
-
-    // private data must be allocated with malloc() if needed
-    if (schema->private_data != nullptr) {
-      free(schema->private_data);
-    }
-
-    schema->release = nullptr;
-  }
-}
+#ifdef ARROW_HPP_IMPL
 
 // The .release() callback for all struct ArrowArrays populated here
 void arrow_hpp_builder_release_array_data_internal(struct ArrowArray* array_data) {
@@ -126,52 +79,6 @@ namespace arrow {
 namespace hpp {
 
 namespace builder {
-
-// Allocates a struct ArrowSchema whose members can be further
-// populated by the caller. This ArrowSchema owns the memory of its children
-// and its dictionary (i.e., the parent release() callback will call the
-// release() method of each child and then free() it).
-inline void allocate_schema(struct ArrowSchema* schema, int64_t n_children = 0) {
-  // schema->name and/or schema->format must be allocated via malloc()
-  schema->format = nullptr;
-  schema->name = nullptr;
-  schema->metadata = nullptr;
-  schema->flags = ARROW_FLAG_NULLABLE;
-  schema->n_children = n_children;
-  schema->children = nullptr;
-  schema->dictionary = nullptr;
-  schema->private_data = nullptr;
-  schema->release = &arrow_hpp_builder_release_schema_internal;
-
-  if (n_children > 0) {
-    schema->children = reinterpret_cast<struct ArrowSchema**>(
-      malloc(n_children * sizeof(struct ArrowSchema*)));
-
-    if (schema->children == nullptr) {
-      arrow_hpp_builder_release_schema_internal(schema);
-      throw util::Exception(
-        "Failed to allocate schema->children of size %lld", n_children);
-    }
-
-    memset(schema->children, 0, n_children * sizeof(struct ArrowSchema*));
-
-    for (int64_t i = 0; i < n_children; i++) {
-      schema->children[i] = reinterpret_cast<struct ArrowSchema*>(
-        malloc(sizeof(struct ArrowSchema)));
-
-      if (schema->children[i] == nullptr) {
-        arrow_hpp_builder_release_schema_internal(schema);
-        throw util::Exception("Failed to allocate schema->children[%lld]", i);
-      }
-
-      schema->children[i]->release = nullptr;
-    }
-  }
-
-  // we don't allocate the dictionary because it has to be nullptr
-  // for non-dictionary-encoded arrays
-}
-
 
 // Allocates a struct ArrowArray whose members can be further
 // populated by the caller. This ArrowArray owns the memory of its children
@@ -240,99 +147,57 @@ inline void allocate_array_data(struct ArrowArray* array_data, int64_t n_buffers
 class CArrayFinalizer {
 public:
   struct ArrowArray array_data;
-  struct ArrowSchema schema;
+  struct ArrowSchema* schema;
 
   CArrayFinalizer() {
     array_data.release = nullptr;
-    schema.release = nullptr;
+    schema = &schema_finalizer_.schema;
   }
 
   void allocate(int64_t n_buffers, int64_t n_children = 0) {
     allocate_array_data(&array_data, n_buffers, n_children);
-    allocate_schema(&schema, n_children);
-    set_schema_format("");
-    set_schema_name("");
+    schema_finalizer_.allocate(n_children);
   }
 
   void set_schema_format(const char* format) {
-    if (schema.format != nullptr) {
-      free((void*) schema.format);
-    }
-
-    size_t len = strlen(format);
-    char* format_owned = reinterpret_cast<char*>(malloc(len + 1));
-    if (format_owned == nullptr) {
-      throw util::Exception("Failed to allocate schema format");
-    }
-    memcpy(format_owned, format, len);
-    format_owned[len] = '\0';
-
-    schema.format = format_owned;
+    schema_finalizer_.set_format(format);
   }
 
   void set_schema_name(const char* name) {
-    if (schema.name != nullptr) {
-      free((void*) schema.name);
-    }
-
-    size_t len = strlen(name);
-    char* name_owned = reinterpret_cast<char*>(malloc(len + 1));
-    if (name_owned == nullptr) {
-      throw util::Exception("Failed to allocate schema name");
-    }
-    memcpy(name_owned, name, len);
-    name_owned[len] = '\0';
-
-    schema.name = name_owned;
+    schema_finalizer_.set_name(name);
   }
 
   void set_schema_metadata(const std::vector<std::string>& names,
                            const std::vector<std::string>& values) {
-    if (schema.metadata != nullptr) {
-      free((void*) schema.metadata);
-      schema.metadata = nullptr;
-    }
-
-    if (names.size() > 0) {
-      schema.metadata = schema_metadata_create(names, values);
-    }
+    schema_finalizer_.set_metadata(names, values);
   }
 
   void release(struct ArrowArray* array_data_out, struct ArrowSchema* schema_out) {
     // The output pointers must be non-null but must be released before they
     // get here (or else they will leak).
+    schema_finalizer_.release(schema_out);
+
     if (array_data_out == nullptr) {
       throw util::Exception("output array_data is nullptr");
-    }
-
-    if (schema_out == nullptr) {
-      throw util::Exception("output schema is nullptr");
     }
 
     if (array_data_out->release != nullptr) {
       array_data_out->release(array_data_out);
     }
 
-    if (schema_out->release != nullptr) {
-      schema_out->release(schema_out);
-    }
 
     memcpy(array_data_out, &array_data, sizeof(struct ArrowArray));
     array_data.release = nullptr;
-
-    memcpy(schema_out, &schema, sizeof(struct ArrowSchema));
-    schema.release = nullptr;
   }
 
   ~CArrayFinalizer() {
     if (array_data.release != nullptr) {
       array_data.release(&array_data);
     }
-
-    if (schema.release != nullptr) {
-      schema.release(&schema);
-    }
   }
+
+private:
+  SchemaFinalizer schema_finalizer_;
 };
 
 template<typename BufferT>

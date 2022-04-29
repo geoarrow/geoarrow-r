@@ -58,7 +58,7 @@ public:
 
     child_builder_.release(
         finalizer.array_data.children[0],
-        finalizer.schema.children[0]);
+        finalizer.schema->children[0]);
 
     finalizer.release(array_data, schema);
   }
@@ -117,7 +117,7 @@ public:
 
     child_builder_.release(
         finalizer.array_data.children[0],
-        finalizer.schema.children[0]);
+        finalizer.schema->children[0]);
 
     finalizer.release(array_data, schema);
   }

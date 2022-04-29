@@ -61,7 +61,7 @@ public:
     for (int64_t i = 0; i < num_children(); i++) {
       children_[i]->release(
         finalizer.array_data.children[i],
-        finalizer.schema.children[i]);
+        finalizer.schema->children[i]);
     }
 
     finalizer.release(array_data, schema);
