@@ -22,9 +22,12 @@ struct type_dim_pair_hash {
 
 class GeoParquetTypeCollector: public ComputeBuilder {
 public:
-    GeoParquetTypeCollector():
+    GeoParquetTypeCollector(const ComputeOptions& options):
+      include_empty_(true),
       dim_(util::Dimensions::DIMENSIONS_UNKNOWN),
-      geometry_type_(util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {}
+      geometry_type_(util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
+      include_empty_ = options.get_bool("include_empty", true);
+    }
 
     void new_dimensions(util::Dimensions dim) {
         dim_ = dim;
@@ -36,22 +39,37 @@ public:
 
     Result geom_start(util::GeometryType geometry_type, int32_t size) {
         std::pair<util::GeometryType, util::Dimensions> item(geometry_type_, dim_);
-        all_types_.insert(item);
+        if (!include_empty_ && size == 0) {
+            empty_types_.insert(item);
+        } else {
+            all_types_.insert(item);
+        }
+
         return Result::ABORT_FEATURE;
     }
 
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         arrow::hpp::builder::StringArrayBuilder builder;
-        for (const auto& item: all_types_) {
-            builder.write_element(make_type(item));
+
+        if (all_types_.empty()) {
+            for (const auto& item: empty_types_) {
+                builder.write_element(make_type(item));
+            }
+        } else {
+            for (const auto& item: all_types_) {
+                builder.write_element(make_type(item));
+            }
         }
+
         builder.release(array_data, schema);
     }
 
 private:
+    bool include_empty_;
     util::Dimensions dim_;
     util::GeometryType geometry_type_;
     std::unordered_set<std::pair<util::GeometryType, util::Dimensions>, type_dim_pair_hash> all_types_;
+    std::unordered_set<std::pair<util::GeometryType, util::Dimensions>, type_dim_pair_hash> empty_types_;
 
     std::string make_type(std::pair<util::GeometryType, util::Dimensions> item) {
         const char* type_str = "";

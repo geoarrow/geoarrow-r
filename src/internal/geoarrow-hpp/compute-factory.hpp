@@ -44,7 +44,7 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
     } else if (op == "global_bounds") {
         return new GlobalBounder(options);
     } else if (op == "geoparquet_types") {
-        return new GeoParquetTypeCollector();
+        return new GeoParquetTypeCollector(options);
     } else {
         throw util::IOException("Unknown operation: '%s'", op.c_str());
     }
