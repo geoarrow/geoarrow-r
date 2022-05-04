@@ -93,7 +93,7 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
     }
     file_metadata <- geoparquet_metadata(handleable_schema)
 
-    # maybe add bounding boxes
+    # add bounding boxes and geometry type lists
     for (col in names(arrays_handleable)) {
       array <- arrays_handleable[[col]]
       if (array$array_data$length == 0) {
@@ -127,6 +127,33 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
           box$xmax, box$ymax
         )
       }
+
+      # try to calculate geometry types from wk_vector_meta(),
+      # which doesn't iterate along the entire array
+      meta <- wk::wk_vector_meta(array)
+      geom_type <- wk::wk_geometry_type_label(meta$geometry_type)
+      substr(geom_type, 1, 1) <- toupper(substr(geom_type, 1, 1))
+      if (is.na(meta$has_z) || is.na(meta$has_m) || is.na(meta$geometry_type)) {
+        types_array <- geoarrow_compute(
+          geoarrow_create_narrow_from_buffers(
+            wk::wkt(c("LINESTRING ZM EMPTY", "LINESTRING (0 0, 1 1)")),
+            schema = geoarrow_schema_wkt()
+          ),
+          "geoparquet_types",
+          list(include_empty = FALSE)
+        )
+        types <- narrow::from_narrow_array(types_array, character())
+      } else if (isTRUE(meta$has_z) && isTRUE(meta$has_m)) {
+        types <- paste(geom_type, "ZM")
+      } else if (isTRUE(meta$has_z)) {
+        types <- paste(geom_type, "M")
+      } else if (isTRUE(meta$has_m)) {
+        types <- paste(geom_type, "M")
+      } else {
+        types <- geom_type
+      }
+
+      file_metadata$columns[[col]]$geometry_type <- types
     }
   } else {
     file_metadata <- NULL
