@@ -11,6 +11,7 @@
 #include "compute-cast-polygon.hpp"
 #include "compute-cast-collection.hpp"
 #include "compute-bounds.hpp"
+#include "compute-geoparquet-types.hpp"
 
 namespace geoarrow {
 
@@ -42,6 +43,8 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
         }
     } else if (op == "global_bounds") {
         return new GlobalBounder(options);
+    } else if (op == "geoparquet_types") {
+        return new GeoParquetTypeCollector(options);
     } else {
         throw util::IOException("Unknown operation: '%s'", op.c_str());
     }

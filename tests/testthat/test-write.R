@@ -43,6 +43,8 @@ test_that("geoarrow_write_parquet() roundtrips metadata", {
   meta <- jsonlite::fromJSON(table$metadata$geo)
   expect_identical(meta$primary_column, "col")
   expect_identical(meta$columns$col$encoding, "geoarrow.point")
+  expect_identical(meta$columns$col$geometry_type, "Point")
+  expect_equal(meta$columns$col$bbox, c(1, 11, 10, 20))
 })
 
 test_that("geoarrow_write_feather() roundtrips metadata", {
@@ -54,6 +56,8 @@ test_that("geoarrow_write_feather() roundtrips metadata", {
   meta <- jsonlite::fromJSON(table$metadata$geo)
   expect_identical(meta$primary_column, "col")
   expect_identical(meta$columns$col$encoding, "geoarrow.point")
+  expect_identical(meta$columns$col$geometry_type, "Point")
+  expect_equal(meta$columns$col$bbox, c(1, 11, 10, 20))
 })
 
 test_that("geoarrow_write_ipc_stream() roundtrips metadata", {
@@ -65,6 +69,8 @@ test_that("geoarrow_write_ipc_stream() roundtrips metadata", {
   meta <- jsonlite::fromJSON(table$metadata$geo)
   expect_identical(meta$primary_column, "col")
   expect_identical(meta$columns$col$encoding, "geoarrow.point")
+  expect_identical(meta$columns$col$geometry_type, "Point")
+  expect_equal(meta$columns$col$bbox, c(1, 11, 10, 20))
 })
 
 test_that("geoarrow_write_parquet() works with explicit schema", {

@@ -1,12 +1,12 @@
 
-geoparquet_metadata <- function(schema, primary_column = NULL) {
-  columns <- lapply(schema$children, geoparquet_column_metadata, include_crs = TRUE)
-  names(columns) <- vapply(schema$children, function(child) child$name, character(1))
-  columns <- columns[!vapply(columns, is.null, logical(1))]
-
-  if (length(columns) == 0) {
+geoparquet_metadata <- function(schema, primary_column = NULL, arrays = list(NULL)) {
+  if (length(schema$children) == 0) {
     stop("Can't create parquet metadata for zero columns", call. = FALSE)
   }
+
+  columns <- Map(geoparquet_column_metadata, schema$children, arrays, include_crs = TRUE)
+  names(columns) <- vapply(schema$children, function(child) child$name, character(1))
+  columns <- columns[!vapply(columns, is.null, logical(1))]
 
   list(
     columns = columns,
@@ -15,11 +15,11 @@ geoparquet_metadata <- function(schema, primary_column = NULL) {
       version = as.character(utils::packageVersion("geoarrow"))
     ),
     primary_column = if (is.null(primary_column)) names(columns)[1] else primary_column,
-    schema_version = "0.1.0.9000"
+    schema_version = "0.3.0"
   )
 }
 
-geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
+geoparquet_column_metadata <- function(schema, array = NULL, include_crs = TRUE) {
   ext_name <- schema$metadata[["ARROW:extension:name"]]
   ext_meta <- geoarrow_metadata(schema)
 
@@ -30,26 +30,28 @@ geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
   result <- switch(
     ext_name,
     "geoarrow.wkb" = list(
-      crs = ext_meta$crs,
+      crs = ext_meta$crs %||% geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "WKB"
     ),
     "geoarrow.wkt" = list(
-      crs = ext_meta$crs,
+      crs = ext_meta$crs %||% geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "WKT"
     ),
     "geoarrow.point" = list(
-      crs = ext_meta$crs,
+      crs = ext_meta$crs %||% geoparquet_crs_if_null(),
       encoding = "geoarrow.point"
     ),
     "geoarrow.linestring" = list(
-      crs = geoarrow_metadata(schema$children[[1]])$crs,
+      crs = geoarrow_metadata(schema$children[[1]])$crs %||%
+        geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "geoarrow.linestring"
     ),
     "geoarrow.polygon" = list(
-      crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs,
+      crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs %||%
+        geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "geoarrow.polygon"
     ),
@@ -84,7 +86,80 @@ geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
     result$edges <- NULL
   }
 
+  # add bbox and geometry_type if we have the information to do so
+  if (include_crs && !is.null(array)) {
+    result$bbox <- geoparquet_bbox(array)
+    result$geometry_type <- geoparquet_geometry_type(array)
+  }
+
   result
+}
+
+geoparquet_bbox <- function(array) {
+  box <- narrow::from_narrow_array(
+    geoarrow_compute(array, "global_bounds", list(null_is_empty = TRUE))
+  )
+
+  # if there is no bbox (zero length or all empties), don't return one with
+  # the Inf, -Inf thing that global_bounds returns
+  box_has_x <- is.finite(box$xmax - box$xmin)
+  box_has_y <- is.finite(box$ymax - box$ymin)
+  if (!box_has_x || !box_has_y) {
+    return(NULL)
+  }
+
+  box_has_z <- is.finite(box$zmax - box$zmin)
+  box_has_m <- is.finite(box$mmax - box$mmin)
+  if (box_has_z && box_has_m) {
+    c(
+      box$xmin, box$ymin, box$zmin, box$mmin,
+      box$xmax, box$ymax, box$zmax, box$mmax
+    )
+  } else if (box_has_z) {
+    c(
+      box$xmin, box$ymin, box$zmin,
+      box$xmax, box$ymax, box$zmax
+    )
+  } else if (box_has_m) {
+    c(
+      box$xmin, box$ymin, box$mmin,
+      box$xmax, box$ymax, box$mmax
+    )
+  } else {
+    c(
+      box$xmin, box$ymin,
+      box$xmax, box$ymax
+    )
+  }
+}
+
+geoparquet_geometry_type <- function(array) {
+  # try to calculate geometry types from wk_vector_meta(),
+  # which doesn't iterate along the entire array, but fall back on
+  # the relatively fast 'geoparquet_types' compute function
+  meta <- wk::wk_vector_meta(array)
+  geom_type <- c(
+    "Point", "LineString", "Polygon",
+    "MultiPoint", "MultiLineString", "MultiPolygon",
+    "GeometryCollection"
+  )[meta$geometry_type]
+
+  if (is.na(meta$has_z) || is.na(meta$has_m) || meta$geometry_type == 0) {
+    types_array <- geoarrow_compute(
+      array,
+      "geoparquet_types",
+      list(include_empty = FALSE)
+    )
+    narrow::from_narrow_array(types_array, character())
+  } else if (isTRUE(meta$has_z) && isTRUE(meta$has_m)) {
+    paste(geom_type, "ZM")
+  } else if (isTRUE(meta$has_z)) {
+    paste(geom_type, "Z")
+  } else if (isTRUE(meta$has_m)) {
+    paste(geom_type, "M")
+  } else {
+    geom_type
+  }
 }
 
 schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(), edges = NULL) {
@@ -311,7 +386,7 @@ guess_column_encoding <- function(schema) {
   )
 }
 
-guess_column_dim <- function(schema) {
+guess_column_dim <- function(schema, array_data = NULL) {
   if (identical(schema$format, "+s")) {
     child_formats <- vapply(schema$children, "[[", character(1), "format")
     child_names <- vapply(schema$children, "[[", character(1), "name")
@@ -341,10 +416,17 @@ guess_column_dim <- function(schema) {
     } else if (has_child_type && identical(parsed$args$n_items, 4L)) {
       return("xyzm")
     }
+  } else if (schema$format %in% c("z", "Z", "u", "U")) {
+    # for WKB and WKT, use wk_meta
+    if (schema$format %in% c("z", "Z")) {
+      schema$metadata[["ARROW:extension:name"]] <- "geoarrow.wkb"
+    } else {
+      schema$metadata[["ARROW:extension:name"]] <- "geoarrow.wkt"
+    }
   }
 
-  for (child in schema$children) {
-    child_dim <- guess_column_dim(child)
+  for (i in seq_along(schema$children)) {
+    child_dim <- guess_column_dim(schema$children[[i]], array_data$children[[i]])
     if (!is.null(child_dim)) {
       return(child_dim)
     }
@@ -373,6 +455,31 @@ crs_unspecified <- function() {
   structure(list(), class = "crs_unspecified")
 }
 
+geoparquet_crs_if_null <- function() {
+  # a literal NULL (not missing!)
+  NULL
+}
+
+geoparquet_crs_if_missing <- function() {
+  'GEODCRS["WGS 84 (CRS84)",
+    DATUM["World Geodetic System 1984",
+        ELLIPSOID["WGS 84",6378137,298.257223563,
+            LENGTHUNIT["metre",1]]],
+    PRIMEM["Greenwich",0,
+        ANGLEUNIT["degree",0.0174532925199433]],
+    CS[ellipsoidal,2],
+        AXIS["geodetic longitude (Lon)",east,
+            ORDER[1],
+            ANGLEUNIT["degree",0.0174532925199433]],
+        AXIS["geodetic latitude (Lat)",north,
+            ORDER[2],
+            ANGLEUNIT["degree",0.0174532925199433]],
+    SCOPE["Not known."],
+    AREA["World."],
+    BBOX[-90,-180,90,180],
+    ID["OGC","CRS84"]]'
+}
+
 crs_chr_or_null <- function(crs) {
-  if (inherits(crs, "crs_unspecified")) NULL else crs
+  if (inherits(crs, "crs_unspecified")) geoparquet_crs_if_missing() else crs
 }

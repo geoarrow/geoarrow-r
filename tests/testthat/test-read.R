@@ -99,7 +99,7 @@ test_that("all example parquet files can be read", {
     name <- gsub("-.*?\\.parquet$", "", basename(file))
     result <- read_geoarrow_parquet(
       file,
-      handler = wk::wkt_writer()
+      handler = wk::wkb_writer()
     )
 
     if (startsWith(basename(file), "nc_spherical")) {
@@ -113,7 +113,7 @@ test_that("all example parquet files can be read", {
         wk::as_xy(geoarrow_example_wkt[[!! name]])
       )
     } else {
-      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+      expect_identical(result$geometry, wk::as_wkb(geoarrow_example_wkt[[!! name]]))
     }
   }
 })
@@ -128,9 +128,36 @@ test_that("all example feather files can be read", {
 
   for (file in files) {
     name <- gsub("-.*?\\.feather$", "", basename(file))
+
+    # check the metadata
     result <- read_geoarrow_feather(
       file,
-      handler = wk::wkt_writer()
+      as_data_frame = FALSE
+    )
+    metadata <- jsonlite::fromJSON(result$metadata$geo)
+
+    # all examples so far are single geometry type
+    expect_length(metadata$columns$geometry$geometry_type, 1)
+    geometry_type_split <- strsplit(
+      metadata$columns$geometry$geometry_type,
+      " "
+    )[[1]]
+    expect_true(
+      geometry_type_split[1] %in%
+        c("Point", "LineString", "Polygon",
+          "MultiPoint", "MultiLineString", "MultiPolygon",
+          "GeometryCollection")
+    )
+
+    expect_true(
+      is.na(geometry_type_split[2]) ||
+        geometry_type_split[2] %in% c("Z", "M", "ZM")
+    )
+
+    # check a more normal read
+    result <- read_geoarrow_feather(
+      file,
+      handler = wk::wkb_writer()
     )
 
     if (startsWith(basename(file), "nc_spherical")) {
@@ -143,7 +170,7 @@ test_that("all example feather files can be read", {
         wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
       )
     } else {
-      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+      expect_identical(result$geometry, wk::as_wkb(geoarrow_example_wkt[[!! name]]))
     }
   }
 })
@@ -157,10 +184,10 @@ test_that("all example ipc_stream files can be read", {
   )
 
   for (file in files) {
-    name <- gsub("-.*?\\.ipc$", "", basename(file))
+    name <- gsub("-.*?\\.arrows$", "", basename(file))
     result <- read_geoarrow_ipc_stream(
       file,
-      handler = wk::wkt_writer()
+      handler = wk::wkb_writer()
     )
 
     if (startsWith(basename(file), "nc_spherical")) {
@@ -173,7 +200,7 @@ test_that("all example ipc_stream files can be read", {
         wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
       )
     } else {
-      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+      expect_identical(result$geometry, wk::as_wkb(geoarrow_example_wkt[[!! name]]))
     }
   }
 })

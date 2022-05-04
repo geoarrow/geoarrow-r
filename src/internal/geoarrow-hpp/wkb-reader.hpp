@@ -48,7 +48,7 @@ static inline uint64_t bswap_64(uint64_t x) {
 
 class WKBReader {
 public:
-    WKBReader(): data_(nullptr), offset_(0), size_(0), swapping_(false),
+    WKBReader(): top_level_(true), data_(nullptr), offset_(0), size_(0), swapping_(false),
         dim_(util::Dimensions::DIMENSIONS_UNKNOWN),
         geometry_type_(util::GeometryType::GEOMETRY_TYPE_UNKNOWN) {
       for (int i = 0; i < 4; i++) {
@@ -57,6 +57,7 @@ public:
     }
 
     Handler::Result read_buffer(Handler* handler, const uint8_t* data, int64_t size) {
+      top_level_ = true;
       data_ = data;
       size_ = size;
       offset_ = 0;
@@ -64,6 +65,7 @@ public:
     }
 
 private:
+    bool top_level_;
     const uint8_t* data_;
     int64_t offset_;
     int64_t size_;
@@ -116,7 +118,7 @@ private:
       }
 
       int32_t coord_size = 2 + has_z + has_m;
-      geometry_type_ = static_cast<util::GeometryType>(geometry_type);
+      auto geometry_type_enum = static_cast<util::GeometryType>(geometry_type);
 
       util::Dimensions new_dim;
       if (has_z && has_m) {
@@ -129,16 +131,23 @@ private:
         new_dim = util::Dimensions::XY;
       }
 
+      if (top_level_ && geometry_type_enum != geometry_type_) {
+        handler->new_geometry_type(geometry_type_enum);
+        geometry_type_ = geometry_type_enum;
+      }
+
       if (new_dim != dim_) {
         handler->new_dimensions(new_dim);
         dim_ = new_dim;
       }
 
+      top_level_ = false;
+
       Handler::Result result;
 
-      HANDLE_OR_RETURN(handler->geom_start(geometry_type_, geometry_size));
+      HANDLE_OR_RETURN(handler->geom_start(geometry_type_enum, geometry_size));
 
-      switch (geometry_type_) {
+      switch (geometry_type_enum) {
       case util::GeometryType::POINT:
       case util::GeometryType::LINESTRING:
         HANDLE_OR_RETURN(read_coords(handler, geometry_size, coord_size));

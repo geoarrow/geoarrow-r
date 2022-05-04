@@ -1,5 +1,5 @@
 
-#' Write geometry as Apache Parquet files
+#' Write geometry as Apache Arrow files
 #'
 #' @inheritDotParams arrow::write_parquet
 #' @inheritParams geoarrow_create_narrow
@@ -19,7 +19,8 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
     # workaround because Arrow Parquet can't roundtrip null fixed-width list
     # elements (https://issues.apache.org/jira/browse/ARROW-8228)
     null_point_as_empty = is.null(schema) ||
-      startsWith(schema$format, "+w:")
+      startsWith(schema$format, "+w:"),
+    geoparquet_metadata = TRUE
   )
 
   # write!
@@ -33,7 +34,7 @@ write_geoarrow_feather <- function(handleable, ..., schema = NULL, strict = FALS
     stop("Package 'arrow' required for write_geoarrow_feather()", call. = FALSE) # nocov
   }
 
-  batch <- geoarrow_make_batch(handleable, schema, strict)
+  batch <- geoarrow_make_batch(handleable, schema, strict, geoparquet_metadata = TRUE)
 
   # write!
   arrow::write_feather(batch, ...)
@@ -46,14 +47,15 @@ write_geoarrow_ipc_stream <- function(handleable, ..., schema = NULL, strict = F
     stop("Package 'arrow' required for write_geoarrow_ipc_stream()", call. = FALSE) # nocov
   }
 
-  batch <- geoarrow_make_batch(handleable, schema, strict)
+  batch <- geoarrow_make_batch(handleable, schema, strict, geoparquet_metadata = TRUE)
 
   # write!
   arrow::write_ipc_stream(batch, ...)
 }
 
 geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
-                                null_point_as_empty = FALSE) {
+                                null_point_as_empty = FALSE,
+                                geoparquet_metadata = FALSE) {
   if (!is.data.frame(handleable)) {
     handleable <- data.frame(geometry = handleable)
   } else {
@@ -81,14 +83,19 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
   }
 
   # create file metadata
-  handleable_schema <- narrow::narrow_schema(
-    format = "+s",
-    children = lapply(arrays_handleable, "[[", "schema")
-  )
-  for (i in seq_along(handleable_schema$children)) {
-    handleable_schema$children[[i]]$name <- names(arrays_handleable)[i]
+  if (geoparquet_metadata) {
+    handleable_schema <- narrow::narrow_schema(
+      format = "+s",
+      children = lapply(arrays_handleable, "[[", "schema")
+    )
+    for (i in seq_along(handleable_schema$children)) {
+      handleable_schema$children[[i]]$name <- names(arrays_handleable)[i]
+    }
+
+    file_metadata <- geoparquet_metadata(handleable_schema, arrays = arrays_handleable)
+  } else {
+    file_metadata <- NULL
   }
-  file_metadata <- geoparquet_metadata(handleable_schema)
 
   # create the record batch before shipping to Arrow because this has a better
   # chance of keeping metadata associated with the type
@@ -129,7 +136,13 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
   batch <- arrow::record_batch(!!! arrays, schema = arrow::schema(!!! fields))
 
   # add file metadata
-  batch$metadata$geo <- jsonlite::toJSON(file_metadata, null = "null", auto_unbox = TRUE)
+  if (!is.null(file_metadata)) {
+    batch$metadata$geo <- jsonlite::toJSON(
+      file_metadata,
+      null = "null",
+      auto_unbox = TRUE
+    )
+  }
 
   batch
 }

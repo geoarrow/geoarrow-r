@@ -411,12 +411,18 @@ test_that("geoarrow_compute() can cast (multi)linestring examples", {
       list(schema = geoarrow_schema_multilinestring())
     )
 
+    # workaround for wk bug: https://github.com/paleolimbot/wk/issues/141
+    dst_narrow_wkt <- narrow::from_narrow_array(
+      geoarrow_create_narrow(dst_narrow, schema = geoarrow_schema_wkt()),
+      character()
+    )
+
     expected <- gsub("LINESTRING", "MULTILINESTRING", as.character(src_wkt))
     expected <- gsub("(", "((", expected, fixed = TRUE)
     expected <- gsub(")", "))", expected, fixed = TRUE)
 
     expect_identical(
-      wk::as_wkt(dst_narrow),
+      wk::as_wkt(dst_narrow_wkt),
       wk::as_wkt(expected)
     )
   }
@@ -445,12 +451,18 @@ test_that("geoarrow_compute() can cast (multi)polygon examples", {
       list(schema = geoarrow_schema_multipolygon())
     )
 
+    # workaround for wk bug: https://github.com/paleolimbot/wk/issues/141
+    dst_narrow_wkt <- narrow::from_narrow_array(
+      geoarrow_create_narrow(dst_narrow, schema = geoarrow_schema_wkt()),
+      character()
+    )
+
     expected <- gsub("POLYGON", "MULTIPOLYGON", as.character(src_wkt))
     expected <- gsub("([NZM]) \\(", "\\1 \\(\\(", expected)
     expected <- gsub("\\)$", "))", expected)
 
     expect_identical(
-      wk::as_wkt(dst_narrow),
+      wk::as_wkt(dst_narrow_wkt),
       wk::as_wkt(expected)
     )
   }
@@ -594,6 +606,65 @@ test_that("geoarrow_compute(op = 'global_bounds') works for all examples", {
 
     expect_identical(result_r, bbox)
   }
+})
+
+test_that("geoarrow_compute(op = 'geoparquet_types') works for all examples", {
+  for (name in setdiff(names(geoarrow_example_wkt), "nc")) {
+    src <- geoarrow_create_narrow_from_buffers(
+      geoarrow_example_wkt[[name]],
+      schema = geoarrow_schema_wkt()
+    )
+
+    result <- narrow::from_narrow_array(
+      geoarrow_compute(src, "geoparquet_types", list(include_empty = TRUE))
+    )
+
+    expect_identical(gsub(" ", "_", tolower(result)), name)
+  }
+})
+
+test_that("geoarrow_compute(op = 'geoparquet_types') can skip EMPTY geometries", {
+  result <- geoarrow_compute(
+    geoarrow_create_narrow_from_buffers(
+      wk::wkt(c("LINESTRING ZM EMPTY", "LINESTRING (0 0, 1 1)")),
+      schema = geoarrow_schema_wkt()
+    ),
+    "geoparquet_types",
+    list(include_empty = FALSE)
+  )
+
+  expect_identical(
+    narrow::from_narrow_array(result),
+    "LineString"
+  )
+
+  result <- geoarrow_compute(
+    geoarrow_create_narrow_from_buffers(
+      wk::wkt(c("LINESTRING ZM EMPTY", "LINESTRING EMPTY")),
+      schema = geoarrow_schema_wkt()
+    ),
+    "geoparquet_types",
+    list(include_empty = FALSE)
+  )
+
+  expect_identical(
+    narrow::from_narrow_array(result),
+    c("LineString", "LineString ZM")
+  )
+
+  result <- geoarrow_compute(
+    geoarrow_create_narrow_from_buffers(
+      wk::wkt(c("LINESTRING ZM EMPTY", "LINESTRING (0 0, 1 1)")),
+      schema = geoarrow_schema_wkt()
+    ),
+    "geoparquet_types",
+    list(include_empty = TRUE)
+  )
+
+  expect_identical(
+    narrow::from_narrow_array(result),
+    c("LineString", "LineString ZM")
+  )
 })
 
 test_that("geoarrow_compute(op = 'void') can handle all examples", {
