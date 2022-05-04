@@ -4,7 +4,7 @@
 \alias{write_geoarrow_parquet}
 \alias{write_geoarrow_feather}
 \alias{write_geoarrow_ipc_stream}
-\title{Write geometry as Apache Parquet files}
+\title{Write geometry as Apache Arrow files}
 \usage{
 write_geoarrow_parquet(handleable, ..., schema = NULL, strict = FALSE)
 
@@ -58,5 +58,5 @@ to match the data.}
 The result of \code{\link[arrow:write_parquet]{arrow::write_parquet()}}, invisibly
 }
 \description{
-Write geometry as Apache Parquet files
+Write geometry as Apache Arrow files
 }

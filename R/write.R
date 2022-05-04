@@ -1,5 +1,5 @@
 
-#' Write geometry as Apache Parquet files
+#' Write geometry as Apache Arrow files
 #'
 #' @inheritDotParams arrow::write_parquet
 #' @inheritParams geoarrow_create_narrow
