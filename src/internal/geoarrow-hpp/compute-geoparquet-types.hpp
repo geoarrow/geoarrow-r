@@ -80,7 +80,7 @@ private:
             type_str = "Point";
             break;
         case util::GeometryType::LINESTRING:
-            type_str = "Linestring";
+            type_str = "LineString";
             break;
         case util::GeometryType::POLYGON:
             type_str = "Polygon";
@@ -89,7 +89,7 @@ private:
             type_str = "MultiPoint";
             break;
         case util::GeometryType::MULTILINESTRING:
-            type_str = "MultiLinestring";
+            type_str = "MultiLineString";
             break;
         case util::GeometryType::MULTIPOLYGON:
             type_str = "MultiPolygon";

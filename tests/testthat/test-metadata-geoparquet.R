@@ -146,6 +146,123 @@ test_that("geoparquet_column_metadata() works for polygon", {
   )
 })
 
+test_that("geoparquet_column_metadata() can include bbox and geometry_type", {
+  expect_mapequal(
+    geoparquet_column_metadata(
+      geoarrow_schema_multipoint(),
+      array = geoarrow_create_narrow_from_buffers(
+        wk::wkt("MULTIPOINT (0 1, 2 3)")
+      )
+    ),
+    list(
+      crs = NULL,
+      encoding = "geoarrow.multipoint",
+      bbox = c(0, 1, 2, 3),
+      geometry_type = "MultiPoint"
+    )
+  )
+})
+
+test_that("geometry_type column metadata is correct", {
+  # works with vector meta
+  expect_identical(
+    geoparquet_geometry_type(
+      geoarrow_create_narrow_from_buffers(wk::wkt("POINT (0 1)"))
+    ),
+    "Point"
+  )
+
+  expect_identical(
+    geoparquet_geometry_type(
+      geoarrow_create_narrow_from_buffers(wk::wkt("POINT Z (0 1 2)"))
+    ),
+    "Point Z"
+  )
+
+  expect_identical(
+    geoparquet_geometry_type(
+      geoarrow_create_narrow_from_buffers(wk::wkt("POINT M (0 1 2)"))
+    ),
+    "Point M"
+  )
+
+  expect_identical(
+    geoparquet_geometry_type(
+      geoarrow_create_narrow_from_buffers(wk::wkt("POINT ZM (0 1 2 3)"))
+    ),
+    "Point ZM"
+  )
+
+  # needs compute
+  expect_identical(
+    geoparquet_geometry_type(
+      geoarrow_create_narrow_from_buffers(
+        wk::wkt("POINT (0 1)"),
+        schema = geoarrow_schema_wkt()
+      )
+    ),
+    "Point"
+  )
+
+  # with multiple types
+  expect_setequal(
+    geoparquet_geometry_type(
+      geoarrow_create_narrow_from_buffers(
+        wk::wkt(c("POINT (0 1)", "LINESTRING (0 1, 2 3)")),
+        schema = geoarrow_schema_wkt()
+      )
+    ),
+    c("LineString", "Point")
+  )
+})
+
+test_that("bbox column metadata is correct", {
+  expect_identical(
+    geoparquet_bbox(
+      geoarrow_create_narrow_from_buffers(
+        wk::wkt("LINESTRING EMPTY")
+      )
+    ),
+    NULL
+  )
+
+  expect_identical(
+    geoparquet_bbox(
+      geoarrow_create_narrow_from_buffers(
+        wk::wkt("LINESTRING (0 1, 2 3)")
+      )
+    ),
+    c(0, 1, 2, 3)
+  )
+
+  expect_identical(
+    geoparquet_bbox(
+      geoarrow_create_narrow_from_buffers(
+        wk::wkt("LINESTRING Z (0 1 2, 2 3 4)")
+      )
+    ),
+    c(0, 1, 2, 2, 3, 4)
+  )
+
+  expect_identical(
+    geoparquet_bbox(
+      geoarrow_create_narrow_from_buffers(
+        wk::wkt("LINESTRING M (0 1 2, 2 3 4)")
+      )
+    ),
+    c(0, 1, 2, 2, 3, 4)
+  )
+
+  expect_identical(
+    geoparquet_bbox(
+      geoarrow_create_narrow_from_buffers(
+        wk::wkt("LINESTRING ZM (0 1 2 3, 2 3 4 5)")
+      )
+    ),
+    c(0, 1, 2, 3, 2, 3, 4, 5)
+  )
+})
+
 test_that("schema_from_geoparquet_metadata() works for WKT", {
   schema_reconstructed <- schema_from_geoparquet_metadata(
     list(crs = NULL, encoding = "WKT"),

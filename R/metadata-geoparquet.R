@@ -111,7 +111,7 @@ geoparquet_bbox <- function(array) {
   if (box_has_z && box_has_m) {
     c(
       box$xmin, box$ymin, box$zmin, box$mmin,
-      box$xmax, box$ymax, box$mmax, box$mmax
+      box$xmax, box$ymax, box$zmax, box$mmax
     )
   } else if (box_has_z) {
     c(
@@ -136,10 +136,13 @@ geoparquet_geometry_type <- function(array) {
   # which doesn't iterate along the entire array, but fall back on
   # the relatively fast 'geoparquet_types' compute function
   meta <- wk::wk_vector_meta(array)
-  geom_type <- wk::wk_geometry_type_label(meta$geometry_type)
-  substr(geom_type, 1, 1) <- toupper(substr(geom_type, 1, 1))
+  geom_type <- c(
+    "Point", "LineString", "Polygon",
+    "MultiPoint", "MultiLineString", "MultiPolygon",
+    "GeometryCollection"
+  )[meta$geometry_type]
 
-  if (is.na(meta$has_z) || is.na(meta$has_m) || is.na(meta$geometry_type)) {
+  if (is.na(meta$has_z) || is.na(meta$has_m) || meta$geometry_type == 0) {
     types_array <- geoarrow_compute(
       array,
       "geoparquet_types",
@@ -149,7 +152,7 @@ geoparquet_geometry_type <- function(array) {
   } else if (isTRUE(meta$has_z) && isTRUE(meta$has_m)) {
     paste(geom_type, "ZM")
   } else if (isTRUE(meta$has_z)) {
-    paste(geom_type, "M")
+    paste(geom_type, "Z")
   } else if (isTRUE(meta$has_m)) {
     paste(geom_type, "M")
   } else {

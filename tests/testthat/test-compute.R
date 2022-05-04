@@ -623,7 +623,7 @@ test_that("geoarrow_compute(op = 'geoparquet_types') can skip EMPTY geometries",
 
   expect_identical(
     narrow::from_narrow_array(result),
-    "Linestring"
+    "LineString"
   )
 
   result <- geoarrow_compute(
@@ -637,7 +637,7 @@ test_that("geoarrow_compute(op = 'geoparquet_types') can skip EMPTY geometries",
 
   expect_identical(
     narrow::from_narrow_array(result),
-    c("Linestring", "Linestring ZM")
+    c("LineString", "LineString ZM")
   )
 
   result <- geoarrow_compute(
@@ -651,7 +651,7 @@ test_that("geoarrow_compute(op = 'geoparquet_types') can skip EMPTY geometries",
 
   expect_identical(
     narrow::from_narrow_array(result),
-    c("Linestring", "Linestring ZM")
+    c("LineString", "LineString ZM")
   )
 })
 

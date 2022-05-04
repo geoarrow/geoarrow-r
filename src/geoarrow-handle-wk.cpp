@@ -62,6 +62,12 @@ public:
         default:
             break;
         }
+
+        if (dimensions == geoarrow::util::Dimensions::DIMENSIONS_UNKNOWN) {
+            vector_meta_.flags |= WK_FLAG_DIMS_UNKNOWN;
+        } else {
+            vector_meta_.flags &= ~WK_FLAG_DIMS_UNKNOWN;
+        }
     }
 
     Result feat_start() {
