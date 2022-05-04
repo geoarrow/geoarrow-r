@@ -140,7 +140,8 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
     batch$metadata$geo <- jsonlite::toJSON(
       file_metadata,
       null = "null",
-      auto_unbox = TRUE
+      auto_unbox = TRUE,
+      always_decimal = TRUE
     )
   }
 
