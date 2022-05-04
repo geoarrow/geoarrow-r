@@ -1,12 +1,12 @@
 
-geoparquet_metadata <- function(schema, primary_column = NULL) {
-  columns <- lapply(schema$children, geoparquet_column_metadata, include_crs = TRUE)
-  names(columns) <- vapply(schema$children, function(child) child$name, character(1))
-  columns <- columns[!vapply(columns, is.null, logical(1))]
-
-  if (length(columns) == 0) {
+geoparquet_metadata <- function(schema, primary_column = NULL, arrays = list(NULL)) {
+  if (length(schema$children) == 0) {
     stop("Can't create parquet metadata for zero columns", call. = FALSE)
   }
+
+  columns <- Map(geoparquet_column_metadata, schema$children, arrays, include_crs = TRUE)
+  names(columns) <- vapply(schema$children, function(child) child$name, character(1))
+  columns <- columns[!vapply(columns, is.null, logical(1))]
 
   list(
     columns = columns,
@@ -15,11 +15,11 @@ geoparquet_metadata <- function(schema, primary_column = NULL) {
       version = as.character(utils::packageVersion("geoarrow"))
     ),
     primary_column = if (is.null(primary_column)) names(columns)[1] else primary_column,
-    schema_version = "0.1.0.9000"
+    schema_version = "0.3.0"
   )
 }
 
-geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
+geoparquet_column_metadata <- function(schema, array = NULL, include_crs = TRUE) {
   ext_name <- schema$metadata[["ARROW:extension:name"]]
   ext_meta <- geoarrow_metadata(schema)
 
@@ -84,7 +84,77 @@ geoparquet_column_metadata <- function(schema, include_crs = TRUE) {
     result$edges <- NULL
   }
 
+  # add bbox and geometry_type if we have the information to do so
+  if (include_crs && !is.null(array)) {
+    result$bbox <- geoparquet_bbox(array)
+    result$geometry_type <- geoparquet_geometry_type(array)
+  }
+
   result
+}
+
+geoparquet_bbox <- function(array) {
+  box <- narrow::from_narrow_array(
+    geoarrow_compute(array, "global_bounds", list(null_is_empty = TRUE))
+  )
+
+  # if there is no bbox (zero length or all empties), don't return one with
+  # the Inf, -Inf thing that global_bounds returns
+  box_has_x <- is.finite(box$xmax - box$xmin)
+  box_has_y <- is.finite(box$ymax - box$ymin)
+  if (!box_has_x || !box_has_y) {
+    return(NULL)
+  }
+
+  box_has_z <- is.finite(box$zmax - box$zmin)
+  box_has_m <- is.finite(box$mmax - box$mmin)
+  if (box_has_z && box_has_m) {
+    c(
+      box$xmin, box$ymin, box$zmin, box$mmin,
+      box$xmax, box$ymax, box$mmax, box$mmax
+    )
+  } else if (box_has_z) {
+    c(
+      box$xmin, box$ymin, box$zmin,
+      box$xmax, box$ymax, box$zmax
+    )
+  } else if (box_has_m) {
+    c(
+      box$xmin, box$ymin, box$mmin,
+      box$xmax, box$ymax, box$mmax
+    )
+  } else {
+    c(
+      box$xmin, box$ymin,
+      box$xmax, box$ymax
+    )
+  }
+}
+
+geoparquet_geometry_type <- function(array) {
+  # try to calculate geometry types from wk_vector_meta(),
+  # which doesn't iterate along the entire array, but fall back on
+  # the relatively fast 'geoparquet_types' compute function
+  meta <- wk::wk_vector_meta(array)
+  geom_type <- wk::wk_geometry_type_label(meta$geometry_type)
+  substr(geom_type, 1, 1) <- toupper(substr(geom_type, 1, 1))
+
+  if (is.na(meta$has_z) || is.na(meta$has_m) || is.na(meta$geometry_type)) {
+    types_array <- geoarrow_compute(
+      array,
+      "geoparquet_types",
+      list(include_empty = FALSE)
+    )
+    narrow::from_narrow_array(types_array, character())
+  } else if (isTRUE(meta$has_z) && isTRUE(meta$has_m)) {
+    paste(geom_type, "ZM")
+  } else if (isTRUE(meta$has_z)) {
+    paste(geom_type, "M")
+  } else if (isTRUE(meta$has_m)) {
+    paste(geom_type, "M")
+  } else {
+    geom_type
+  }
 }
 
 schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(), edges = NULL) {

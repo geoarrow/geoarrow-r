@@ -91,70 +91,8 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
     for (i in seq_along(handleable_schema$children)) {
       handleable_schema$children[[i]]$name <- names(arrays_handleable)[i]
     }
-    file_metadata <- geoparquet_metadata(handleable_schema)
 
-    # add bounding boxes and geometry type lists
-    for (col in names(arrays_handleable)) {
-      array <- arrays_handleable[[col]]
-      if (array$array_data$length == 0) {
-        next
-      }
-
-      box <- narrow::from_narrow_array(
-        geoarrow_compute(array, "global_bounds", list(null_is_empty = TRUE))
-      )
-
-      box_has_z <- is.finite(box$zmax - box$zmin)
-      box_has_m <- is.finite(box$mmax - box$mmin)
-      if (box_has_z && box_has_m) {
-        file_metadata$columns[[col]]$bbox <- c(
-          box$xmin, box$ymin, box$zmin, box$mmin,
-          box$xmax, box$ymax, box$mmax, box$mmax
-        )
-      } else if (box_has_z) {
-        file_metadata$columns[[col]]$bbox <- c(
-          box$xmin, box$ymin, box$zmin,
-          box$xmax, box$ymax, box$zmax
-        )
-      } else if (box_has_m) {
-        file_metadata$columns[[col]]$bbox <- c(
-          box$xmin, box$ymin, box$mmin,
-          box$xmax, box$ymax, box$mmax
-        )
-      } else {
-        file_metadata$columns[[col]]$bbox <- c(
-          box$xmin, box$ymin,
-          box$xmax, box$ymax
-        )
-      }
-
-      # try to calculate geometry types from wk_vector_meta(),
-      # which doesn't iterate along the entire array
-      meta <- wk::wk_vector_meta(array)
-      geom_type <- wk::wk_geometry_type_label(meta$geometry_type)
-      substr(geom_type, 1, 1) <- toupper(substr(geom_type, 1, 1))
-      if (is.na(meta$has_z) || is.na(meta$has_m) || is.na(meta$geometry_type)) {
-        types_array <- geoarrow_compute(
-          geoarrow_create_narrow_from_buffers(
-            wk::wkt(c("LINESTRING ZM EMPTY", "LINESTRING (0 0, 1 1)")),
-            schema = geoarrow_schema_wkt()
-          ),
-          "geoparquet_types",
-          list(include_empty = FALSE)
-        )
-        types <- narrow::from_narrow_array(types_array, character())
-      } else if (isTRUE(meta$has_z) && isTRUE(meta$has_m)) {
-        types <- paste(geom_type, "ZM")
-      } else if (isTRUE(meta$has_z)) {
-        types <- paste(geom_type, "M")
-      } else if (isTRUE(meta$has_m)) {
-        types <- paste(geom_type, "M")
-      } else {
-        types <- geom_type
-      }
-
-      file_metadata$columns[[col]]$geometry_type <- types
-    }
+    file_metadata <- geoparquet_metadata(handleable_schema, arrays = arrays_handleable)
   } else {
     file_metadata <- NULL
   }
