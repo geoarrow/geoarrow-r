@@ -38,7 +38,7 @@ public:
     }
 
     Result geom_start(util::GeometryType geometry_type, int32_t size) {
-        std::pair<util::GeometryType, util::Dimensions> item(geometry_type_, dim_);
+        std::pair<util::GeometryType, util::Dimensions> item(geometry_type, dim_);
         if (!include_empty_ && size == 0) {
             empty_types_.insert(item);
         } else {
@@ -116,7 +116,7 @@ private:
             break;
         default:
             // don't append anything with an unknown geometry type
-            return "";
+            throw util::IOException("Can't append with unknown dimension type");
         }
 
         char out[128];
