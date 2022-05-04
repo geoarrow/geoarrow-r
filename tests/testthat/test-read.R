@@ -99,7 +99,7 @@ test_that("all example parquet files can be read", {
     name <- gsub("-.*?\\.parquet$", "", basename(file))
     result <- read_geoarrow_parquet(
       file,
-      handler = wk::wkt_writer()
+      handler = wk::wkb_writer()
     )
 
     if (startsWith(basename(file), "nc_spherical")) {
@@ -113,7 +113,7 @@ test_that("all example parquet files can be read", {
         wk::as_xy(geoarrow_example_wkt[[!! name]])
       )
     } else {
-      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+      expect_identical(result$geometry, wk::as_wkb(geoarrow_example_wkt[[!! name]]))
     }
   }
 })
@@ -130,7 +130,7 @@ test_that("all example feather files can be read", {
     name <- gsub("-.*?\\.feather$", "", basename(file))
     result <- read_geoarrow_feather(
       file,
-      handler = wk::wkt_writer()
+      handler = wk::wkb_writer()
     )
 
     if (startsWith(basename(file), "nc_spherical")) {
@@ -143,7 +143,7 @@ test_that("all example feather files can be read", {
         wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
       )
     } else {
-      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+      expect_identical(result$geometry, wk::as_wkb(geoarrow_example_wkt[[!! name]]))
     }
   }
 })
@@ -157,10 +157,10 @@ test_that("all example ipc_stream files can be read", {
   )
 
   for (file in files) {
-    name <- gsub("-.*?\\.ipc$", "", basename(file))
+    name <- gsub("-.*?\\.arrows$", "", basename(file))
     result <- read_geoarrow_ipc_stream(
       file,
-      handler = wk::wkt_writer()
+      handler = wk::wkb_writer()
     )
 
     if (startsWith(basename(file), "nc_spherical")) {
@@ -173,7 +173,7 @@ test_that("all example ipc_stream files can be read", {
         wk::as_wkb(geoarrow_example_wkt[[!! name]][!is_empty])
       )
     } else {
-      expect_identical(result$geometry, geoarrow_example_wkt[[!! name]])
+      expect_identical(result$geometry, wk::as_wkb(geoarrow_example_wkt[[!! name]]))
     }
   }
 })

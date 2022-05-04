@@ -411,12 +411,18 @@ test_that("geoarrow_compute() can cast (multi)linestring examples", {
       list(schema = geoarrow_schema_multilinestring())
     )
 
+    # workaround for wk bug: https://github.com/paleolimbot/wk/issues/141
+    dst_narrow_wkt <- narrow::from_narrow_array(
+      geoarrow_create_narrow(dst_narrow, schema = geoarrow_schema_wkt()),
+      character()
+    )
+
     expected <- gsub("LINESTRING", "MULTILINESTRING", as.character(src_wkt))
     expected <- gsub("(", "((", expected, fixed = TRUE)
     expected <- gsub(")", "))", expected, fixed = TRUE)
 
     expect_identical(
-      wk::as_wkt(dst_narrow),
+      wk::as_wkt(dst_narrow_wkt),
       wk::as_wkt(expected)
     )
   }
@@ -445,12 +451,18 @@ test_that("geoarrow_compute() can cast (multi)polygon examples", {
       list(schema = geoarrow_schema_multipolygon())
     )
 
+    # workaround for wk bug: https://github.com/paleolimbot/wk/issues/141
+    dst_narrow_wkt <- narrow::from_narrow_array(
+      geoarrow_create_narrow(dst_narrow, schema = geoarrow_schema_wkt()),
+      character()
+    )
+
     expected <- gsub("POLYGON", "MULTIPOLYGON", as.character(src_wkt))
     expected <- gsub("([NZM]) \\(", "\\1 \\(\\(", expected)
     expected <- gsub("\\)$", "))", expected)
 
     expect_identical(
-      wk::as_wkt(dst_narrow),
+      wk::as_wkt(dst_narrow_wkt),
       wk::as_wkt(expected)
     )
   }
@@ -604,7 +616,7 @@ test_that("geoarrow_compute(op = 'geoparquet_types') works for all examples", {
     )
 
     result <- narrow::from_narrow_array(
-      geoarrow_compute(src, "geoparquet_types", list(include_empty = FALSE))
+      geoarrow_compute(src, "geoparquet_types", list(include_empty = TRUE))
     )
 
     expect_identical(gsub(" ", "_", tolower(result)), name)
