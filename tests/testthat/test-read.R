@@ -128,6 +128,33 @@ test_that("all example feather files can be read", {
 
   for (file in files) {
     name <- gsub("-.*?\\.feather$", "", basename(file))
+
+    # check the metadata
+    result <- read_geoarrow_feather(
+      file,
+      as_data_frame = FALSE
+    )
+    metadata <- jsonlite::fromJSON(result$metadata$geo)
+
+    # all examples so far are single geometry type
+    expect_length(metadata$columns$geometry$geometry_type, 1)
+    geometry_type_split <- strsplit(
+      metadata$columns$geometry$geometry_type,
+      " "
+    )[[1]]
+    expect_true(
+      geometry_type_split[1] %in%
+        c("Point", "LineString", "Polygon",
+          "MultiPoint", "MultiLineString", "MultiPolygon",
+          "GeometryCollection")
+    )
+
+    expect_true(
+      is.na(geometry_type_split[2]) ||
+        geometry_type_split[2] %in% c("Z", "M", "ZM")
+    )
+
+    # check a more normal read
     result <- read_geoarrow_feather(
       file,
       handler = wk::wkb_writer()

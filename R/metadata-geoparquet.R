@@ -30,26 +30,28 @@ geoparquet_column_metadata <- function(schema, array = NULL, include_crs = TRUE)
   result <- switch(
     ext_name,
     "geoarrow.wkb" = list(
-      crs = ext_meta$crs,
+      crs = ext_meta$crs %||% geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "WKB"
     ),
     "geoarrow.wkt" = list(
-      crs = ext_meta$crs,
+      crs = ext_meta$crs %||% geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "WKT"
     ),
     "geoarrow.point" = list(
-      crs = ext_meta$crs,
+      crs = ext_meta$crs %||% geoparquet_crs_if_null(),
       encoding = "geoarrow.point"
     ),
     "geoarrow.linestring" = list(
-      crs = geoarrow_metadata(schema$children[[1]])$crs,
+      crs = geoarrow_metadata(schema$children[[1]])$crs %||%
+        geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "geoarrow.linestring"
     ),
     "geoarrow.polygon" = list(
-      crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs,
+      crs = geoarrow_metadata(schema$children[[1]]$children[[1]])$crs %||%
+        geoparquet_crs_if_null(),
       edges = ext_meta$edges,
       encoding = "geoarrow.polygon"
     ),
@@ -453,6 +455,31 @@ crs_unspecified <- function() {
   structure(list(), class = "crs_unspecified")
 }
 
+geoparquet_crs_if_null <- function() {
+  # a literal NULL (not missing!)
+  NULL
+}
+
+geoparquet_crs_if_missing <- function() {
+  'GEODCRS["WGS 84 (CRS84)",
+    DATUM["World Geodetic System 1984",
+        ELLIPSOID["WGS 84",6378137,298.257223563,
+            LENGTHUNIT["metre",1]]],
+    PRIMEM["Greenwich",0,
+        ANGLEUNIT["degree",0.0174532925199433]],
+    CS[ellipsoidal,2],
+        AXIS["geodetic longitude (Lon)",east,
+            ORDER[1],
+            ANGLEUNIT["degree",0.0174532925199433]],
+        AXIS["geodetic latitude (Lat)",north,
+            ORDER[2],
+            ANGLEUNIT["degree",0.0174532925199433]],
+    SCOPE["Not known."],
+    AREA["World."],
+    BBOX[-90,-180,90,180],
+    ID["OGC","CRS84"]]'
+}
+
 crs_chr_or_null <- function(crs) {
-  if (inherits(crs, "crs_unspecified")) NULL else crs
+  if (inherits(crs, "crs_unspecified")) geoparquet_crs_if_missing() else crs
 }

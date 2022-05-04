@@ -22,7 +22,7 @@ test_that("geoparquet_metadata() works", {
 test_that("geoparquet_column_metadata() works for flat types", {
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_wkt()),
-    list(crs = NULL, encoding = "WKT")
+    list(crs = geoparquet_crs_if_null(), encoding = "WKT")
   )
 
   expect_mapequal(
@@ -32,17 +32,17 @@ test_that("geoparquet_column_metadata() works for flat types", {
 
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_wkt(edges = "spherical")),
-    list(crs = NULL, edges = "spherical", encoding = "WKT")
+    list(crs = geoparquet_crs_if_null(), edges = "spherical", encoding = "WKT")
   )
 
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_wkb()),
-    list(crs = NULL, encoding = "WKB")
+    list(crs = geoparquet_crs_if_null(), encoding = "WKB")
   )
 
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_point(dim = "xyz")),
-    list(crs = NULL, encoding = "geoarrow.point")
+    list(crs = geoparquet_crs_if_null(), encoding = "geoarrow.point")
   )
 
   expect_mapequal(
@@ -55,7 +55,7 @@ test_that("geoparquet_column_metadata() works for linestring", {
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_linestring()),
     list(
-      crs = NULL,
+      crs = geoparquet_crs_if_null(),
       encoding = "geoarrow.linestring"
     )
   )
@@ -63,7 +63,7 @@ test_that("geoparquet_column_metadata() works for linestring", {
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_linestring(edges = "spherical")),
     list(
-      crs = NULL,
+      crs = geoparquet_crs_if_null(),
       edges = "spherical",
       encoding = "geoarrow.linestring"
     )
@@ -86,7 +86,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_polygon()),
     list(
-      crs = NULL,
+      crs = geoparquet_crs_if_null(),
       encoding = "geoarrow.polygon"
     )
   )
@@ -94,7 +94,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
   expect_mapequal(
     geoparquet_column_metadata(geoarrow_schema_polygon(edges = "spherical")),
     list(
-      crs = NULL,
+      crs = geoparquet_crs_if_null(),
       edges = "spherical",
       encoding = "geoarrow.polygon"
     )
@@ -119,7 +119,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
       geoarrow_schema_multipoint()
     ),
     list(
-      crs = NULL,
+      crs = geoparquet_crs_if_null(),
       encoding = "geoarrow.multipoint"
     )
   )
@@ -129,7 +129,7 @@ test_that("geoparquet_column_metadata() works for polygon", {
       geoarrow_schema_multilinestring(edges = "spherical")
     ),
     list(
-      crs = NULL,
+      crs = geoparquet_crs_if_null(),
       edges = "spherical",
       encoding = "geoarrow.multilinestring"
     )
@@ -155,7 +155,7 @@ test_that("geoparquet_column_metadata() can include bbox and geometry_type", {
       )
     ),
     list(
-      crs = NULL,
+      crs = geoparquet_crs_if_null(),
       encoding = "geoarrow.multipoint",
       bbox = c(0, 1, 2, 3),
       geometry_type = "MultiPoint"
@@ -283,13 +283,25 @@ test_that("schema_from_geoparquet_metadata() works for WKT", {
   expect_identical(
     narrow::narrow_schema_info(schema_reconstructed),
     narrow::narrow_schema_info(
-      geoarrow_schema_wkt(crs = "EPSG:1234", )
+      geoarrow_schema_wkt(crs = "EPSG:1234")
+    )
+  )
+
+  # with default assumed CRS
+  schema_reconstructed <- schema_from_geoparquet_metadata(
+    list(encoding = "WKT"),
+    narrow::narrow_schema(format = "u", name = "")
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed),
+    narrow::narrow_schema_info(
+      geoarrow_schema_wkt(crs = geoparquet_crs_if_missing())
     )
   )
 
   # with geodesic
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(edges = "spherical", encoding = "WKT"),
+    list(crs = NULL, edges = "spherical", encoding = "WKT"),
     narrow::narrow_schema(format = "u", name = "")
   )
   expect_identical(
@@ -339,9 +351,21 @@ test_that("schema_from_geoparquet_metadata() works for WKB", {
     )
   )
 
+  # with default assumed CRS
+  schema_reconstructed <- schema_from_geoparquet_metadata(
+    list(encoding = "WKT"),
+    narrow::narrow_schema(format = "u", name = "")
+  )
+  expect_identical(
+    narrow::narrow_schema_info(schema_reconstructed),
+    narrow::narrow_schema_info(
+      geoarrow_schema_wkt(crs = geoparquet_crs_if_missing())
+    )
+  )
+
   # with geodesic
   schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(edges = "spherical", encoding = "WKB"),
+    list(crs = NULL, edges = "spherical", encoding = "WKB"),
     narrow::narrow_schema(format = "z", name = "")
   )
   expect_identical(
