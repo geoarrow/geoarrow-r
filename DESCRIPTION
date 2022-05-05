@@ -29,7 +29,8 @@ Suggests:
     dplyr,
     tibble,
     vctrs,
-    sf
+    sf,
+    R6
 Config/testthat/edition: 3
 URL: https://paleolimbot.github.io/geoarrow/
 Depends: 

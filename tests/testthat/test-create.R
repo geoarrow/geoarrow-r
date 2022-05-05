@@ -428,9 +428,9 @@ test_that("WKB arrays auto-set format based on data", {
   )
   expect_identical(array_huge$schema$format, "Z")
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
   array_huge_arrow <- narrow::from_narrow_array(array_huge, arrow::Array)
-  expect_true(array_huge_arrow$type == arrow::large_binary())
+  expect_true(array_huge_arrow$type$storage_type() == arrow::large_binary())
 })
 
 test_that("WKB arrays can be created", {
@@ -444,11 +444,11 @@ test_that("WKB arrays can be created", {
   expect_identical(diff(array$array_data$buffers[[2]]), as.integer(lengths(wkb_list)))
   expect_identical(array$array_data$buffers[[3]], unlist(wkb_list))
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   array_arrow <- narrow::from_narrow_array(array, arrow::Array)
   expect_identical(
-    lapply(as.vector(array_arrow), as.raw),
+    lapply(as.vector(array_arrow$storage()), as.raw),
     lapply(wkb_list, as.raw)
   )
 })
@@ -464,11 +464,11 @@ test_that("large WKB arrays can be created", {
   expect_identical(diff(as.integer(array$array_data$buffers[[2]])), as.integer(lengths(wkb_list)))
   expect_identical(array$array_data$buffers[[3]], unlist(wkb_list))
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   array_arrow <- narrow::from_narrow_array(array, arrow::Array)
   expect_identical(
-    lapply(as.vector(array_arrow), as.raw),
+    lapply(as.vector(array_arrow$storage()), as.raw),
     lapply(wkb_list, as.raw)
   )
 })
@@ -482,11 +482,11 @@ test_that("fixed-width WKB arrays can be created", {
 
   expect_identical(array$array_data$buffers[[2]], unlist(wkb_list))
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   array_arrow <- narrow::from_narrow_array(array, arrow::Array)
   expect_identical(
-    lapply(as.vector(array_arrow), as.raw),
+    lapply(as.vector(array_arrow$storage()), as.raw),
     wkb_list
   )
 })
@@ -531,9 +531,12 @@ test_that("geoarrow_create_string_array() respects strict = TRUE", {
     "Attempt to create small unicode array with"
   )
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
   not_big_array_arrow <- narrow::from_narrow_array(not_big_array, arrow::Array)
-  expect_identical(as.vector(not_big_array_arrow), "a totally normal size of string")
+  expect_identical(
+    as.vector(not_big_array_arrow$storage()),
+    "a totally normal size of string"
+  )
 })
 
 test_that("multipolygons can be created", {
@@ -562,11 +565,21 @@ test_that("multipolygons can be created", {
     c(0, 5, 9, 14)
   )
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   poly_arrow <- narrow::from_narrow_array(poly, arrow::Array)
+  expect_identical(
+    poly_arrow$type$extension_name(),
+    "geoarrow.multipolygon"
+  )
+
+  poly_arrow_storage <- narrow::from_narrow_array(
+    strip_extensions(poly),
+    arrow::Array
+  )
+
   expect_equal(
-    lapply(as.vector(poly_arrow), lapply, lapply, as.data.frame),
+    lapply(as.vector(poly_arrow_storage), lapply, lapply, as.data.frame),
     list(
       list(
         list(
@@ -598,9 +611,13 @@ test_that("multilinestrings can be created", {
   expect_identical(as.numeric(multi$array_data$buffers[[2]]), c(0, 2, 3))
   expect_identical(as.numeric(multi$array_data$children[[1]]$buffers[[2]]), c(0, 2, 5, 10))
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
-  multi_arrow <- narrow::from_narrow_array(multi, arrow::Array)
+  multi_arrow <- narrow::from_narrow_array(
+    strip_extensions(multi),
+    arrow::Array
+  )
+
   expect_identical(
     lapply(as.vector(multi_arrow), lapply, as.data.frame),
     list(
@@ -625,9 +642,13 @@ test_that("multipoints can be created", {
   expect_null(multi$array_data$buffers[[1]])
   expect_identical(as.numeric(multi$array_data$buffers[[2]]), c(0, 5, 10))
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
-  multi_arrow <- narrow::from_narrow_array(multi, arrow::Array)
+  multi_arrow <- narrow::from_narrow_array(
+    strip_extensions(multi),
+    arrow::Array
+  )
+
   expect_identical(
     lapply(as.vector(multi_arrow), as.data.frame),
     list(
@@ -655,9 +676,13 @@ test_that("polygons can be created", {
   expect_identical(as.numeric(poly$array_data$buffers[[2]]), c(0, 2, 3))
   expect_identical(as.numeric(poly$array_data$children[[1]]$buffers[[2]]), c(0, 5, 9, 14))
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
-  poly_arrow <- narrow::from_narrow_array(poly, arrow::Array)
+  poly_arrow <- narrow::from_narrow_array(
+    strip_extensions(poly),
+    arrow::Array
+  )
+
   expect_equal(
     lapply(as.vector(poly_arrow), lapply, as.data.frame),
     list(
@@ -697,9 +722,13 @@ test_that("linestring arrays can be created", {
   )
   expect_identical(as.numeric(ls_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
-  ls_not_null_arrow <- narrow::from_narrow_array(ls_not_null, arrow::Array)
+  ls_not_null_arrow <- narrow::from_narrow_array(
+    strip_extensions(ls_not_null),
+    arrow::Array
+  )
+
   expect_identical(
     lapply(as.vector(ls_not_null_arrow), as.data.frame),
     list(
@@ -709,7 +738,11 @@ test_that("linestring arrays can be created", {
     )
   )
 
-  ls_null_arrow <- narrow::from_narrow_array(ls_null, arrow::Array)
+  ls_null_arrow <- narrow::from_narrow_array(
+    strip_extensions(ls_null),
+    arrow::Array
+  )
+
   expect_identical(
     lapply(as.vector(ls_null_arrow), as.data.frame),
     list(
@@ -761,15 +794,23 @@ test_that("point arrays can be created", {
     c(TRUE, TRUE, FALSE)
   )
 
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
-  array_not_null_arrow <- narrow::from_narrow_array(array_not_null, arrow::Array)
+  array_not_null_arrow <- narrow::from_narrow_array(
+    strip_extensions(array_not_null),
+    arrow::Array
+  )
+
   expect_identical(
     lapply(as.vector(array_not_null_arrow), as.numeric),
     list(c(1, 3), c(2, 4))
   )
 
-  array_null_arrow <- narrow::from_narrow_array(array_null, arrow::Array)
+  array_null_arrow <- narrow::from_narrow_array(
+    strip_extensions(array_null),
+    arrow::Array
+  )
+
   expect_identical(
     lapply(as.vector(array_null_arrow), as.numeric),
     list(c(1, 3), c(2, 4), double())
@@ -853,9 +894,12 @@ test_that("point struct arrays can be created for all dimensions", {
   )
 
   # check that these round trip to Arrow
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
-  array_xy_arrow <- narrow::from_narrow_array(array_xy, arrow::Array)
+  array_xy_arrow <- narrow::from_narrow_array(
+    strip_extensions(array_xy),
+    arrow::Array
+  )
   expect_identical(
     as.vector(array_xy_arrow),
     as.vector(
@@ -868,7 +912,11 @@ test_that("point struct arrays can be created for all dimensions", {
     )
   )
 
-  array_xyz_arrow <- narrow::from_narrow_array(array_xyz, arrow::Array)
+  array_xyz_arrow <- narrow::from_narrow_array(
+    strip_extensions(array_xyz),
+    arrow::Array
+  )
+
   expect_identical(
     as.vector(array_xyz_arrow),
     as.vector(
@@ -882,7 +930,10 @@ test_that("point struct arrays can be created for all dimensions", {
     )
   )
 
-  array_xym_arrow <- narrow::from_narrow_array(array_xym, arrow::Array)
+  array_xym_arrow <- narrow::from_narrow_array(
+    strip_extensions(array_xym),
+    arrow::Array
+  )
   expect_identical(
     as.vector(array_xym_arrow),
     as.vector(
@@ -896,7 +947,10 @@ test_that("point struct arrays can be created for all dimensions", {
     )
   )
 
-  array_xyzm_arrow <- narrow::from_narrow_array(array_xyzm, arrow::Array)
+  array_xyzm_arrow <- narrow::from_narrow_array(
+    strip_extensions(array_xyzm),
+    arrow::Array
+  )
   expect_identical(
     as.vector(array_xyzm_arrow),
     as.vector(
