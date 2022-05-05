@@ -241,7 +241,7 @@ test_that("bbox column metadata is correct", {
         wk::wkt("LINESTRING Z (0 1 2, 2 3 4)")
       )
     ),
-    c(0, 1, 2, 2, 3, 4)
+    c(0, 1, 2, 3)
   )
 
   expect_identical(
@@ -250,7 +250,7 @@ test_that("bbox column metadata is correct", {
         wk::wkt("LINESTRING M (0 1 2, 2 3 4)")
       )
     ),
-    c(0, 1, 2, 2, 3, 4)
+    c(0, 1, 2, 3)
   )
 
   expect_identical(
@@ -259,7 +259,7 @@ test_that("bbox column metadata is correct", {
         wk::wkt("LINESTRING ZM (0 1 2 3, 2 3 4 5)")
       )
     ),
-    c(0, 1, 2, 3, 2, 3, 4, 5)
+    c(0, 1, 2, 3)
   )
 })
 

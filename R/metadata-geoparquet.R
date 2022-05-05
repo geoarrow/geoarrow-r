@@ -111,29 +111,10 @@ geoparquet_bbox <- function(array) {
     return(NULL)
   }
 
-  box_has_z <- is.finite(box$zmax - box$zmin)
-  box_has_m <- is.finite(box$mmax - box$mmin)
-  if (box_has_z && box_has_m) {
-    c(
-      box$xmin, box$ymin, box$zmin, box$mmin,
-      box$xmax, box$ymax, box$zmax, box$mmax
-    )
-  } else if (box_has_z) {
-    c(
-      box$xmin, box$ymin, box$zmin,
-      box$xmax, box$ymax, box$zmax
-    )
-  } else if (box_has_m) {
-    c(
-      box$xmin, box$ymin, box$mmin,
-      box$xmax, box$ymax, box$mmax
-    )
-  } else {
-    c(
-      box$xmin, box$ymin,
-      box$xmax, box$ymax
-    )
-  }
+  c(
+    box$xmin, box$ymin,
+    box$xmax, box$ymax
+  )
 }
 
 geoparquet_geometry_type <- function(array) {
