@@ -43,6 +43,12 @@ jobs:
         with:
           extra-packages: rcmdcheck
 
+      - name: Install Arrow nightly
+        run: |
+          Sys.setenv(NOT_CRAN = TRUE)
+          install.packages("arrow", repos = "https://arrow-r-nightly.s3.amazonaws.com")
+        shell: Rscript{0}
+
       - uses: r-lib/actions/check-r-package@v1
 
       - name: Show testthat output
