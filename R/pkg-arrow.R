@@ -1,9 +1,31 @@
 
+# deal with classes from dependencies to eliminate the need for a
+# circular dependency (actually register in zzz.R)
+supported_handleable_classes <- c(
+  "narrow_vctr_geoarrow",
+  "sfc", "sfg",
+  "wk_wkb", "wk_wkt", "wk_xy", "wk_crc", "wk_rct"
+)
+
+as_arrow_array_handleable <- function(x, ..., type = NULL) {
+  type <- type %||% geoarrow_schema_default(x)
+  array <- geoarrow_create_narrow(x, schema = type)
+  narrow::from_narrow_array(array, arrow::Array)
+}
+
+infer_type_handleable <- function(x, ...) {
+  ptr <- narrow::narrow_allocate_schema()
+  narrow::narrow_pointer_export(
+    geoarrow_schema_default(x),
+    ptr
+  )
+  asNamespace("arrow")$DataType$import_from_c(ptr)
+}
+
 GeoArrowType <- list()
 GeoArrowType$create <- function(...) {
   stop("Package 'arrow' must be installed to use GeoArrowType")
 }
-
 
 has_arrow_extension_type <- function() {
   inherits(GeoArrowType, "R6ClassGenerator")

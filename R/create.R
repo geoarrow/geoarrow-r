@@ -20,6 +20,7 @@
 #'
 geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
                                    strict = FALSE, null_point_as_empty = FALSE) {
+  schema <- narrow::as_narrow_schema(schema)
   extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
 
   if (!strict) {
