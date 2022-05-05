@@ -7,15 +7,12 @@ geoparquet_metadata <- function(schema, primary_column = NULL, arrays = list(NUL
   columns <- Map(geoparquet_column_metadata, schema$children, arrays, include_crs = TRUE)
   names(columns) <- vapply(schema$children, function(child) child$name, character(1))
   columns <- columns[!vapply(columns, is.null, logical(1))]
+  primary_column <- if (is.null(primary_column)) names(columns)[1] else primary_column
 
   list(
-    columns = columns,
-    creator = list(
-      library = "geoarrow",
-      version = as.character(utils::packageVersion("geoarrow"))
-    ),
-    primary_column = if (is.null(primary_column)) names(columns)[1] else primary_column,
-    schema_version = "0.3.0"
+    version = "0.3.0",
+    primary_column = primary_column,
+    columns = columns
   )
 }
 
@@ -92,7 +89,13 @@ geoparquet_column_metadata <- function(schema, array = NULL, include_crs = TRUE)
     result$geometry_type <- geoparquet_geometry_type(array)
   }
 
-  result
+  # make sure we maintain a consistent ordering
+  canonical_order <- union(
+    c("encoding", "crs", "bbox", "orientation", "geometry_type"),
+    names(result)
+  )
+
+  result[intersect(canonical_order, names(result))]
 }
 
 geoparquet_bbox <- function(array) {
@@ -108,29 +111,10 @@ geoparquet_bbox <- function(array) {
     return(NULL)
   }
 
-  box_has_z <- is.finite(box$zmax - box$zmin)
-  box_has_m <- is.finite(box$mmax - box$mmin)
-  if (box_has_z && box_has_m) {
-    c(
-      box$xmin, box$ymin, box$zmin, box$mmin,
-      box$xmax, box$ymax, box$zmax, box$mmax
-    )
-  } else if (box_has_z) {
-    c(
-      box$xmin, box$ymin, box$zmin,
-      box$xmax, box$ymax, box$zmax
-    )
-  } else if (box_has_m) {
-    c(
-      box$xmin, box$ymin, box$mmin,
-      box$xmax, box$ymax, box$mmax
-    )
-  } else {
-    c(
-      box$xmin, box$ymin,
-      box$xmax, box$ymax
-    )
-  }
+  c(
+    box$xmin, box$ymin,
+    box$xmax, box$ymax
+  )
 }
 
 geoparquet_geometry_type <- function(array) {
