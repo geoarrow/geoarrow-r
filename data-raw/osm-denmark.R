@@ -69,31 +69,16 @@ for (name in files$name) {
 
   write_geoarrow_parquet(
     src,
-    glue::glue("{dst}/{name}-wkb.snappy.parquet"),
-    compression = "snappy",
-    schema = geoarrow_schema_wkb()
-  )
-  check_output(glue::glue("{dst}/{name}-wkb.snappy.parquet"))
-
-  write_geoarrow_parquet(
-    src,
-    glue::glue("{dst}/{name}.parquet"),
+    glue::glue("{dst}/{name}-geoarrow.parquet"),
     compression = "uncompressed"
   )
-  check_output(glue::glue("{dst}/{name}.parquet"))
-
-  write_geoarrow_parquet(
-    src,
-    glue::glue("{dst}/{name}.snappy.parquet"),
-    compression = "snappy"
-  )
-  check_output(glue::glue("{dst}/{name}.snappy.parquet"))
+  check_output(glue::glue("{dst}/{name}-geoarrow.parquet"))
 }
 
 # copy a few to a test dataset folder in the inst/ folder
 unlink("inst/denmark_osm", recursive = TRUE)
 dir.create("inst/denmark_osm")
 
-arrow::open_dataset("data-raw/denmark_osm/osm_places.parquet") %>%
+arrow::open_dataset("data-raw/denmark_osm/osm_places-geoarrow.parquet") %>%
   dplyr::group_by(fclass) %>%
   arrow::write_dataset("inst/example_dataset/osm_places")
