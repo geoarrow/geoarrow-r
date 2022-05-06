@@ -262,6 +262,44 @@ static inline char* schema_metadata_create(const std::vector<std::string>& names
     return metadata;
 }
 
+static inline bool schema_format_identical(struct ArrowSchema* actual, struct ArrowSchema* expected) {
+  if (strcmp(actual->format, expected->format) != 0) {
+    return false;
+  }
+
+  // At the C level we can't make any assumptions about extension metadata being
+  // equal, but the name should be the same
+  std::string actual_ext = schema_metadata_key(actual->metadata, "ARROW:extension:name");
+  std::string expected_ext = schema_metadata_key(expected->metadata, "ARROW:extension:name");
+  if (actual_ext != expected_ext) {
+    return false;
+  }
+
+  if (actual->n_children != expected->n_children) {
+    return false;
+  }
+
+  for (int64_t i = 0; i < actual->n_children; i++) {
+    if (!schema_format_identical(actual->children[i], expected->children[i])) {
+      return false;
+    }
+  }
+
+  bool actual_has_dict = actual->dictionary != nullptr;
+  bool expected_has_dict = expected->dictionary != nullptr;
+
+  if (actual_has_dict != expected_has_dict) {
+    return false;
+  }
+
+  if (actual_has_dict &&
+      !schema_format_identical(actual->dictionary, expected->dictionary)) {
+    return false;
+  }
+
+  return true;
+}
+
 class SchemaFinalizer {
 public:
   struct ArrowSchema schema;

@@ -113,10 +113,9 @@ protected:
   void finish_schema(struct ArrowSchema* schema) {
     bool is_strict = strict_schema();
 
-    if (is_strict && std::string(schema->format) != schema_out_.format) {
+    if (is_strict && !arrow::hpp::schema_format_identical(schema, &schema_out_)) {
       throw util::IOException(
-          "ComputeBuilder generated schema with format '%s', but '%s' was "
-          "requested and strict was true", schema->format, schema_out_.format);
+          "schema_format_identical() is false with strict = true");
     } else if (is_strict) {
       schema->release(schema);
       arrow::hpp::schema_deep_copy(&schema_out_, schema);

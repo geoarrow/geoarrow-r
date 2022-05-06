@@ -29,7 +29,7 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
         case util::Extension::Point:
             return new PointArrayBuilder(options);
         case util::Extension::Linestring:
-            return new LinestringArrayBuilder();
+            return new LinestringArrayBuilder(options);
         case util::Extension::Polygon:
             return new PolygonArrayBuilder();
         case util::Extension::MultiPoint:

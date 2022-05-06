@@ -91,7 +91,7 @@ test_that("geoarrow_compute() can cast to WKT with strict = TRUE", {
       "cast",
       list(schema = geoarrow_schema_wkt(format = "u"), strict = TRUE)
     ),
-    "ComputeBuilder generated schema with format 'U'"
+    "schema_format_identical\\(\\) is false with strict = true"
   )
 })
 
@@ -168,7 +168,7 @@ test_that("geoarrow_compute() can cast to WKB with strict = TRUE", {
       "cast",
       list(schema = geoarrow_schema_wkb(format = 'z'), strict = TRUE)
     ),
-    "ComputeBuilder generated schema with format 'Z'"
+    "schema_format_identical\\(\\) is false with strict = true"
   )
 })
 
@@ -374,6 +374,29 @@ test_that("geoarrow_compute() can cast (some) multipoint to point", {
   )
 })
 
+test_that("geoarrow_compute() can cast to point with strict = TRUE", {
+  array <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("POINT (0 1)")
+  )
+
+  dst_narrow <- geoarrow_compute(
+    array,
+    "cast",
+    list(schema = geoarrow_schema_point(name = "fish"), strict = TRUE)
+  )
+
+  expect_identical(dst_narrow$schema$name, "fish")
+
+  expect_error(
+    geoarrow_compute(
+      array,
+      "cast",
+      list(schema = geoarrow_schema_point(dim = "xyz"), strict = TRUE)
+    ),
+    "schema_format_identical\\(\\) is false with strict = true"
+  )
+})
+
 test_that("geoarrow_compute() can cast linestring examples to linestring", {
   for (name in c("linestring", "linestring_z", "linestring_m", "linestring_zm")) {
     src_wkt <- geoarrow_example_wkt[[name]]
@@ -388,6 +411,34 @@ test_that("geoarrow_compute() can cast linestring examples to linestring", {
       wk::as_wkb(geoarrow_create_narrow_from_buffers(src_wkt))
     )
   }
+})
+
+test_that("geoarrow_compute() can cast to linestring with strict = TRUE", {
+  array <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("LINESTRING (0 1)"),
+    schema = geoarrow_schema_wkt()
+  )
+
+  dst_narrow <- geoarrow_compute(
+    array,
+    "cast",
+    list(schema = geoarrow_schema_linestring(name = "fish"), strict = TRUE)
+  )
+
+  expect_identical(dst_narrow$schema$name, "fish")
+
+  schema_dst_bad <- geoarrow_schema_linestring(
+    point = geoarrow_schema_point(dim = "xyz")
+  )
+
+  expect_error(
+    geoarrow_compute(
+      array,
+      "cast",
+      list(schema = schema_dst_bad, strict = TRUE)
+    ),
+    "schema_format_identical\\(\\) is false with strict = true"
+  )
 })
 
 test_that("geoarrow_compute() can cast (some) multilinestring to linestring", {
