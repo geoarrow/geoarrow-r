@@ -52,6 +52,11 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v1
 
+      - name: Show install output
+        if: always()
+        run: find check -name '00install.out*' -exec cat '{}' \; || true
+        shell: bash
+
       - name: Show testthat output
         if: always()
         run: find check -name 'testthat.Rout*' -exec cat '{}' \; || true
