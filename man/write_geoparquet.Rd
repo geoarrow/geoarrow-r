@@ -2,18 +2,9 @@
 % Please edit documentation in R/write.R
 \name{write_geoparquet}
 \alias{write_geoparquet}
-\alias{as_geoarrow_table}
-\title{Write geometry as Apache Arrow files}
+\title{Write 'GeoParquet' files}
 \usage{
 write_geoparquet(handleable, ..., schema = NULL, strict = FALSE)
-
-as_geoarrow_table(
-  handleable,
-  schema = NULL,
-  strict = FALSE,
-  null_point_as_empty = FALSE,
-  geoparquet_metadata = FALSE
-)
 }
 \arguments{
 \item{handleable}{An object with a \code{\link[wk:wk_handle]{wk::wk_handle()}} method}
@@ -56,17 +47,21 @@ of \code{write_parquet()}, use \code{ParquetFileWriter} instead.}
 \item{strict}{Use \code{TRUE} to respect choices of storage type, dimensions,
 and CRS provided by \code{schema}. The default, \code{FALSE}, updates these values
 to match the data.}
-
-\item{null_point_as_empty}{Use \code{TRUE} when creating point arrays for Parquet
-to work around a bug whereby null items cannot be re-read by Arrow Parquet
-readers.}
-
-\item{geoparquet_metadata}{Use \code{TRUE} to add GeoParquet metadata to the
-output schema metadata.}
 }
 \value{
 The result of \code{\link[arrow:write_parquet]{arrow::write_parquet()}}, invisibly
 }
 \description{
-Write geometry as Apache Arrow files
+Whereas \code{\link[arrow:write_parquet]{arrow::write_parquet()}} will happily convert/write geometry columns
+to Parquet format when the geoarrow package is loaded, \code{write_geoparquet()}
+generates additional file-level metadata and chooses a more generic encoding
+to improve the interoperability of the Parquet file when read by non-Arrow
+Parquet readers.
+}
+\examples{
+tf <- tempfile()
+write_geoparquet(data.frame(col1 = 1:5, col2 = wk::xy(1:5, 6:10)), tf)
+read_geoparquet(tf)
+unlink(tf)
+
 }

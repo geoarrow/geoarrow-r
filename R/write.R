@@ -1,13 +1,23 @@
 
-#' Write geometry as Apache Arrow files
+#' Write 'GeoParquet' files
+#'
+#' Whereas [arrow::write_parquet()] will happily convert/write geometry columns
+#' to Parquet format when the geoarrow package is loaded, `write_geoparquet()`
+#' generates additional file-level metadata and chooses a more generic encoding
+#' to improve the interoperability of the Parquet file when read by non-Arrow
+#' Parquet readers.
 #'
 #' @inheritDotParams arrow::write_parquet
 #' @inheritParams geoarrow_create_narrow
-#' @param geoparquet_metadata Use `TRUE` to add GeoParquet metadata to the
-#'   output schema metadata.
 #'
 #' @return The result of [arrow::write_parquet()], invisibly
 #' @export
+#'
+#' @examples
+#' tf <- tempfile()
+#' write_geoparquet(data.frame(col1 = 1:5, col2 = wk::xy(1:5, 6:10)), tf)
+#' read_geoparquet(tf)
+#' unlink(tf)
 #'
 write_geoparquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
@@ -29,8 +39,25 @@ write_geoparquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
   arrow::write_parquet(table, ...)
 }
 
-#' @rdname write_geoparquet
+
+#' Create Arrow Tables
+#'
+#' Like [arrow::as_arrow_table()], `as_geoarrow_table()` creates an
+#' [arrow::Table] object. The geo-enabled version has a few additional options
+#' that customize the specific output schema and table-level metadata
+#' that is generated.
+#'
+#' @inheritParams write_geoparquet
+#' @inheritParams geoarrow_create_narrow
+#' @param geoparquet_metadata Use `TRUE` to add GeoParquet metadata to the
+#'   output schema metadata.
+#'
+#' @return an [arrow::Table].
 #' @export
+#'
+#' @examples
+#' as_geoarrow_table(data.frame(col1 = 1:5, col2 = wk::xy(1:5, 6:10)))
+#'
 as_geoarrow_table <- function(handleable, schema = NULL, strict = FALSE,
                               null_point_as_empty = FALSE,
                               geoparquet_metadata = FALSE) {
