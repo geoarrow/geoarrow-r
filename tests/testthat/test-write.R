@@ -1,6 +1,6 @@
 
 test_that("geoarrow_write_parquet() works", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")
   write_geoarrow_parquet(wk::xy(1:10, 11:20), f, schema = NULL)
@@ -20,7 +20,7 @@ test_that("geoarrow_write_parquet() works", {
 })
 
 test_that("geoarrow_write_parquet() writes null points that can be read again", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")
   features <- wk::wkt(c("POINT (1 3)", "POINT (2 4)", NA))
@@ -35,7 +35,7 @@ test_that("geoarrow_write_parquet() writes null points that can be read again", 
 })
 
 test_that("geoarrow_write_parquet() roundtrips metadata", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")
   write_geoarrow_parquet(data.frame(col = wk::xy(1:10, 11:20)), f, schema = NULL)
@@ -48,7 +48,7 @@ test_that("geoarrow_write_parquet() roundtrips metadata", {
 })
 
 test_that("geoarrow_write_feather() roundtrips metadata", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")
   write_geoarrow_feather(data.frame(col = wk::xy(1:10, 11:20)), f, schema = NULL)
@@ -61,7 +61,7 @@ test_that("geoarrow_write_feather() roundtrips metadata", {
 })
 
 test_that("geoarrow_write_ipc_stream() roundtrips metadata", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")
   write_geoarrow_ipc_stream(data.frame(col = wk::xy(1:10, 11:20)), f, schema = NULL)
@@ -74,7 +74,7 @@ test_that("geoarrow_write_ipc_stream() roundtrips metadata", {
 })
 
 test_that("geoarrow_write_parquet() works with explicit schema", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")
   write_geoarrow_parquet(wk::xy(1:10, 11:20), f, schema = geoarrow_schema_wkb())

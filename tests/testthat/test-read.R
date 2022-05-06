@@ -1,6 +1,6 @@
 
 test_that("geoarrow_read_parquet/geoarrow_collect works", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
@@ -32,7 +32,7 @@ test_that("geoarrow_read_parquet/geoarrow_collect works", {
 })
 
 test_that("geoarrow_collect works without table-level metadata", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52, crs = "EPSG:1234"))
   temp <- tempfile()
@@ -51,7 +51,7 @@ test_that("geoarrow_collect works without table-level metadata", {
 })
 
 test_that("geoarrow_read_feather() works", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
@@ -69,7 +69,7 @@ test_that("geoarrow_read_feather() works", {
 })
 
 test_that("geoarrow_read_ipc_stream() works", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
@@ -88,7 +88,7 @@ test_that("geoarrow_read_ipc_stream() works", {
 
 
 test_that("all example parquet files can be read", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   files <- list.files(
     system.file("example_parquet", package = "geoarrow"),
@@ -119,7 +119,7 @@ test_that("all example parquet files can be read", {
 })
 
 test_that("all example feather files can be read", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   files <- list.files(
     system.file("example_feather", package = "geoarrow"),
@@ -176,7 +176,7 @@ test_that("all example feather files can be read", {
 })
 
 test_that("all example ipc_stream files can be read", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   files <- list.files(
     system.file("example_ipc_stream", package = "geoarrow"),
