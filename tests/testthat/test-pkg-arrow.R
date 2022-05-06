@@ -27,8 +27,8 @@ test_that("as_arrow_array() can specify type", {
   skip_if_not(has_arrow_with_extension_type())
 
   array_pt <- arrow::as_arrow_array(
-    wk::xy(1:5, 6:10, crs = "EPSG:1234"),
-    type = GeoArrowType$create(geoarrow_schema_wkb())
+    wk::xy(1:5, 6:10),
+    type = GeoArrowType$create(geoarrow_schema_wkb(crs = "EPSG:1234"))
   )
 
   expect_s3_class(array_pt$type, "GeoArrowType")

@@ -2,8 +2,7 @@
 as_arrow_array.narrow_vctr_geoarrow <- function(x, ..., type = NULL) {
   array <- narrow::as_narrow_array(x)
   if (!is.null(type)) {
-    # TODO: strict = TRUE!
-    geoarrow_create_narrow(array, schema = type)
+    geoarrow_create_narrow(array, schema = type, strict = TRUE)
   }
 
   narrow::from_narrow_array(array, arrow::Array)
@@ -29,8 +28,7 @@ as_arrow_array_handleable <- function(x, ..., type = NULL) {
   if (is.null(type)) {
     array <- geoarrow_create_narrow(x)
   } else {
-    # TODO: strict = TRUE!
-    array <- geoarrow_create_narrow(x, schema = type)
+    array <- geoarrow_create_narrow(x, schema = type, strict = TRUE)
   }
 
   narrow::from_narrow_array(array, arrow::Array)
