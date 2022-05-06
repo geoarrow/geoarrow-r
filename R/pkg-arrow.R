@@ -1,15 +1,38 @@
 
+as_arrow_array.narrow_vctr_geoarrow <- function(x, ..., type = NULL) {
+  array <- narrow::as_narrow_array(x)
+  if (!is.null(type)) {
+    # TODO: strict = TRUE!
+    geoarrow_create_narrow(array, schema = type)
+  }
+
+  narrow::from_narrow_array(array, arrow::Array)
+}
+
+infer_type.narrow_vctr_geoarrow <- function(x, ...) {
+  ptr <- narrow::narrow_allocate_schema()
+  narrow::narrow_pointer_export(
+    narrow::as_narrow_array(x)$schema,
+    ptr
+  )
+  asNamespace("arrow")$DataType$import_from_c(ptr)
+}
+
 # deal with classes from dependencies to eliminate the need for a
 # circular dependency (actually register in zzz.R)
 supported_handleable_classes <- c(
-  "narrow_vctr_geoarrow",
   "sfc", "sfg",
   "wk_wkb", "wk_wkt", "wk_xy", "wk_crc", "wk_rct"
 )
 
 as_arrow_array_handleable <- function(x, ..., type = NULL) {
-  type <- type %||% geoarrow_schema_default(x)
-  array <- geoarrow_create_narrow(x, schema = type)
+  if (is.null(type)) {
+    array <- geoarrow_create_narrow(x)
+  } else {
+    # TODO: strict = TRUE!
+    array <- geoarrow_create_narrow(x, schema = type)
+  }
+
   narrow::from_narrow_array(array, arrow::Array)
 }
 
