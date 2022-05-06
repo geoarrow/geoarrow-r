@@ -31,13 +31,13 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
         case util::Extension::Linestring:
             return new LinestringArrayBuilder(options);
         case util::Extension::Polygon:
-            return new PolygonArrayBuilder();
+            return new PolygonArrayBuilder(options);
         case util::Extension::MultiPoint:
-            return new MultiPointArrayBuilder();
+            return new MultiPointArrayBuilder(options);
         case util::Extension::MultiLinestring:
-            return new MultiLinestringArrayBuilder();
+            return new MultiLinestringArrayBuilder(options);
         case util::Extension::MultiPolygon:
-            return new MultiPolygonArrayBuilder();
+            return new MultiPolygonArrayBuilder(options);
         default:
             throw Meta::ValidationError("Unsupported extension type for operation CAST");
         }

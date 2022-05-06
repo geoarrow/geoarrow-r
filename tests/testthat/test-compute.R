@@ -486,6 +486,34 @@ test_that("geoarrow_compute() can cast polygon examples to polygon", {
   }
 })
 
+test_that("geoarrow_compute() can cast to polygon with strict = TRUE", {
+  array <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("POLYGON ((0 0, 0 1, 1 0, 0 0))"),
+    schema = geoarrow_schema_wkt()
+  )
+
+  dst_narrow <- geoarrow_compute(
+    array,
+    "cast",
+    list(schema = geoarrow_schema_polygon(name = "fish"), strict = TRUE)
+  )
+
+  expect_identical(dst_narrow$schema$name, "fish")
+
+  schema_dst_bad <- geoarrow_schema_polygon(
+    point = geoarrow_schema_point(dim = "xyz")
+  )
+
+  expect_error(
+    geoarrow_compute(
+      array,
+      "cast",
+      list(schema = schema_dst_bad, strict = TRUE)
+    ),
+    "schema_format_identical\\(\\) is false with strict = true"
+  )
+})
+
 test_that("geoarrow_compute() can cast (some) multipolygon to polygon", {
   array <- geoarrow_create_narrow_from_buffers(
     wk::wkt("MULTIPOLYGON (((0 0, 1 0, 0 1, 0 0)))")
@@ -547,6 +575,34 @@ test_that("geoarrow_compute() can cast (multi)point examples", {
       wk::as_wkb(expected)
     )
   }
+})
+
+test_that("geoarrow_compute() can cast to multipoint with strict = TRUE", {
+  array <- geoarrow_create_narrow_from_buffers(
+    wk::wkt("MULTIPOINT (0 1)"),
+    schema = geoarrow_schema_wkt()
+  )
+
+  dst_narrow <- geoarrow_compute(
+    array,
+    "cast",
+    list(schema = geoarrow_schema_multipoint(name = "fish"), strict = TRUE)
+  )
+
+  expect_identical(dst_narrow$schema$name, "fish")
+
+  schema_dst_bad <- geoarrow_schema_multipoint(
+    dim = "xyz"
+  )
+
+  expect_error(
+    geoarrow_compute(
+      array,
+      "cast",
+      list(schema = schema_dst_bad, strict = TRUE)
+    ),
+    "schema_format_identical\\(\\) is false with strict = true"
+  )
 })
 
 test_that("geoarrow_compute() can cast (multi)linestring examples", {
