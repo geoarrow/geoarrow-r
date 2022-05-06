@@ -32,5 +32,7 @@ jobs:
         shell: Rscript {0}
 
       - name: Test coverage
+        env:
+          ARROW_LARGE_MEMORY_TESTS: true
         run: covr::codecov()
         shell: Rscript {0}
