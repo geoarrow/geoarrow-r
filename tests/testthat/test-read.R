@@ -50,44 +50,43 @@ test_that("geoarrow_collect works without table-level metadata", {
   unlink(temp)
 })
 
-test_that("geoarrow_read_feather() works", {
+test_that("arrow::read|write_feather() just works with handleables", {
   skip_if_not(has_arrow_with_extension_type())
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
-  write_geoparquet_feather(tbl, temp, schema = geoarrow_schema_wkb())
+  arrow::write_feather(tbl, temp)
 
-  table <- read_geoparquet_feather(temp, handler = wk::xy_writer, as_data_frame = FALSE)
+  table <- arrow::read_feather(temp, as_data_frame = FALSE)
   expect_true(inherits(table, "Table"))
 
   expect_identical(
-    as.data.frame(read_geoparquet_feather(temp, handler = wk::xy_writer)),
+    as.data.frame(geoarrow_collect(table, handler = wk::xy_writer)),
     tbl
   )
 
   unlink(temp)
 })
 
-test_that("geoarrow_read_ipc_stream() works", {
+test_that("arrow::read|write_ipc_stream() just works with handleables", {
   skip_if_not(has_arrow_with_extension_type())
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
-  write_geoparquet_ipc_stream(tbl, temp, schema = geoarrow_schema_wkb())
+  arrow::write_ipc_stream(tbl, temp)
 
-  table <- read_geoparquet_ipc_stream(temp, handler = wk::xy_writer, as_data_frame = FALSE)
+  table <- arrow::read_ipc_stream(temp, as_data_frame = FALSE)
   expect_true(inherits(table, "Table"))
 
   expect_identical(
-    as.data.frame(read_geoparquet_ipc_stream(temp, handler = wk::xy_writer)),
+    as.data.frame(geoarrow_collect(table, handler = wk::xy_writer)),
     tbl
   )
 
   unlink(temp)
 })
 
-
-test_that("all example parquet files can be read", {
+test_that("all example geoparquet files can be read", {
   skip_if_not(has_arrow_with_extension_type())
 
   files <- list.files(
@@ -129,36 +128,13 @@ test_that("all example feather files can be read", {
   for (file in files) {
     name <- gsub("-.*?\\.feather$", "", basename(file))
 
-    # check the metadata
-    result <- read_geoparquet_feather(
+    # check a more normal read
+    result_table <- arrow::read_feather(
       file,
       as_data_frame = FALSE
     )
-    metadata <- jsonlite::fromJSON(result$metadata$geo)
 
-    # all examples so far are single geometry type
-    expect_length(metadata$columns$geometry$geometry_type, 1)
-    geometry_type_split <- strsplit(
-      metadata$columns$geometry$geometry_type,
-      " "
-    )[[1]]
-    expect_true(
-      geometry_type_split[1] %in%
-        c("Point", "LineString", "Polygon",
-          "MultiPoint", "MultiLineString", "MultiPolygon",
-          "GeometryCollection")
-    )
-
-    expect_true(
-      is.na(geometry_type_split[2]) ||
-        geometry_type_split[2] %in% c("Z", "M", "ZM")
-    )
-
-    # check a more normal read
-    result <- read_geoparquet_feather(
-      file,
-      handler = wk::wkb_writer()
-    )
+    result <- geoarrow::geoarrow_collect(result_table, handler = wk::wkb_writer)
 
     if (startsWith(basename(file), "nc_spherical")) {
       # no nc_spherical in geoarrow_example_wkt
@@ -185,10 +161,14 @@ test_that("all example ipc_stream files can be read", {
 
   for (file in files) {
     name <- gsub("-.*?\\.arrows$", "", basename(file))
-    result <- read_geoparquet_ipc_stream(
+
+    # check a more normal read
+    result_table <- arrow::read_ipc_stream(
       file,
-      handler = wk::wkb_writer()
+      as_data_frame = FALSE
     )
+
+    result <- geoarrow::geoarrow_collect(result_table, handler = wk::wkb_writer)
 
     if (startsWith(basename(file), "nc_spherical")) {
       # no nc_spherical in geoarrow_example_wkt

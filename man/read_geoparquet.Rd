@@ -2,10 +2,7 @@
 % Please edit documentation in R/read.R
 \name{read_geoparquet}
 \alias{read_geoparquet}
-\alias{read_geoparquet_feather}
-\alias{read_geoparquet_ipc_stream}
 \alias{read_geoparquet_sf}
-\alias{read_geoparquet_feather_sf}
 \alias{geoarrow_collect_sf}
 \alias{geoarrow_collect}
 \alias{geoarrow_collect.Table}
@@ -23,25 +20,7 @@ read_geoparquet(
   metadata = NULL
 )
 
-read_geoparquet_feather(
-  file,
-  ...,
-  as_data_frame = TRUE,
-  handler = NULL,
-  metadata = NULL
-)
-
-read_geoparquet_ipc_stream(
-  file,
-  ...,
-  as_data_frame = TRUE,
-  handler = NULL,
-  metadata = NULL
-)
-
 read_geoparquet_sf(file, ...)
-
-read_geoparquet_feather_sf(file, ...)
 
 geoarrow_collect_sf(x, ..., metadata = NULL)
 

@@ -19,7 +19,7 @@ test_that("geoarrow_write_parquet() works", {
   unlink(f)
 })
 
-test_that("geoarrow_write_parquet() writes null points that can be read again", {
+test_that("write_geoparquet() writes null points that can be read again", {
   skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")
@@ -47,33 +47,7 @@ test_that("geoarrow_write_parquet() roundtrips metadata", {
   expect_equal(meta$columns$col$bbox, c(1, 11, 10, 20))
 })
 
-test_that("geoarrow_write_feather() roundtrips metadata", {
-  skip_if_not(has_arrow_with_extension_type())
-
-  f <- tempfile(fileext = ".parquet")
-  write_geoparquet_feather(data.frame(col = wk::xy(1:10, 11:20)), f, schema = NULL)
-  table <- arrow::read_feather(f, as_data_frame = FALSE)
-  meta <- jsonlite::fromJSON(table$metadata$geo)
-  expect_identical(meta$primary_column, "col")
-  expect_identical(meta$columns$col$encoding, "geoarrow.point")
-  expect_identical(meta$columns$col$geometry_type, "Point")
-  expect_equal(meta$columns$col$bbox, c(1, 11, 10, 20))
-})
-
-test_that("geoarrow_write_ipc_stream() roundtrips metadata", {
-  skip_if_not(has_arrow_with_extension_type())
-
-  f <- tempfile(fileext = ".parquet")
-  write_geoparquet_ipc_stream(data.frame(col = wk::xy(1:10, 11:20)), f, schema = NULL)
-  table <- arrow::read_ipc_stream(f, as_data_frame = FALSE)
-  meta <- jsonlite::fromJSON(table$metadata$geo)
-  expect_identical(meta$primary_column, "col")
-  expect_identical(meta$columns$col$encoding, "geoarrow.point")
-  expect_identical(meta$columns$col$geometry_type, "Point")
-  expect_equal(meta$columns$col$bbox, c(1, 11, 10, 20))
-})
-
-test_that("geoarrow_write_parquet() works with explicit schema", {
+test_that("write_geoparquet() works with explicit schema", {
   skip_if_not(has_arrow_with_extension_type())
 
   f <- tempfile(fileext = ".parquet")

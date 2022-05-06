@@ -39,49 +39,7 @@ read_geoparquet <- function(file, ..., as_data_frame = TRUE, handler = NULL,
 
 #' @rdname read_geoparquet
 #' @export
-read_geoparquet_feather <- function(file, ..., as_data_frame = TRUE, handler = NULL,
-                                  metadata = NULL) {
-  if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for read_geoparquet_feather()", call. = FALSE) # nocov
-  }
-
-  read_arrow_wrapper(
-    arrow::read_feather,
-    file,
-    ...,
-    as_data_frame = as_data_frame,
-    handler = handler,
-    metadata = metadata
-  )
-}
-
-#' @rdname read_geoparquet
-#' @export
-read_geoparquet_ipc_stream <- function(file, ..., as_data_frame = TRUE, handler = NULL,
-                                     metadata = NULL) {
-  if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for read_geoparquet_ipc_stream()", call. = FALSE) # nocov
-  }
-
-  read_arrow_wrapper(
-    arrow::read_ipc_stream,
-    file,
-    ...,
-    as_data_frame = as_data_frame,
-    handler = handler,
-    metadata = metadata
-  )
-}
-
-#' @rdname read_geoparquet
-#' @export
 read_geoparquet_sf <- function(file, ...) {
-  sf::st_as_sf(read_geoparquet(file, ..., handler = wk::sfc_writer))
-}
-
-#' @rdname read_geoparquet
-#' @export
-read_geoparquet_feather_sf <- function(file, ...) {
   sf::st_as_sf(read_geoparquet(file, ..., handler = wk::sfc_writer))
 }
 

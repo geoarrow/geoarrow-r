@@ -2,16 +2,10 @@
 % Please edit documentation in R/write.R
 \name{write_geoparquet}
 \alias{write_geoparquet}
-\alias{write_geoparquet_feather}
-\alias{write_geoparquet_ipc_stream}
 \alias{as_geoarrow_table}
 \title{Write geometry as Apache Arrow files}
 \usage{
 write_geoparquet(handleable, ..., schema = NULL, strict = FALSE)
-
-write_geoparquet_feather(handleable, ..., schema = NULL, strict = FALSE)
-
-write_geoparquet_ipc_stream(handleable, ..., schema = NULL, strict = FALSE)
 
 as_geoarrow_table(
   handleable,

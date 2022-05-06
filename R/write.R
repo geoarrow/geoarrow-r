@@ -31,32 +31,6 @@ write_geoparquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
 
 #' @rdname write_geoparquet
 #' @export
-write_geoparquet_feather <- function(handleable, ..., schema = NULL, strict = FALSE) {
-  if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoparquet_feather()", call. = FALSE) # nocov
-  }
-
-  table <- as_geoarrow_table(handleable, schema, strict, geoparquet_metadata = TRUE)
-
-  # write!
-  arrow::write_feather(table, ...)
-}
-
-#' @rdname write_geoparquet
-#' @export
-write_geoparquet_ipc_stream <- function(handleable, ..., schema = NULL, strict = FALSE) {
-  if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoparquet_ipc_stream()", call. = FALSE) # nocov
-  }
-
-  table <- as_geoarrow_table(handleable, schema, strict, geoparquet_metadata = TRUE)
-
-  # write!
-  arrow::write_ipc_stream(table, ...)
-}
-
-#' @rdname write_geoparquet
-#' @export
 as_geoarrow_table <- function(handleable, schema = NULL, strict = FALSE,
                               null_point_as_empty = FALSE,
                               geoparquet_metadata = FALSE) {
