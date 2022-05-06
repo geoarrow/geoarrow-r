@@ -21,10 +21,10 @@
 #'
 #' @export
 #'
-read_geoarrow_parquet <- function(file, ..., as_data_frame = TRUE, handler = NULL,
+read_geoparquet <- function(file, ..., as_data_frame = TRUE, handler = NULL,
                                   metadata = NULL) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for read_geoarrow_parquet()", call. = FALSE) # nocov
+    stop("Package 'arrow' required for read_geoparquet()", call. = FALSE) # nocov
   }
 
   read_arrow_wrapper(
@@ -37,12 +37,12 @@ read_geoarrow_parquet <- function(file, ..., as_data_frame = TRUE, handler = NUL
   )
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
-read_geoarrow_feather <- function(file, ..., as_data_frame = TRUE, handler = NULL,
+read_geoparquet_feather <- function(file, ..., as_data_frame = TRUE, handler = NULL,
                                   metadata = NULL) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for read_geoarrow_feather()", call. = FALSE) # nocov
+    stop("Package 'arrow' required for read_geoparquet_feather()", call. = FALSE) # nocov
   }
 
   read_arrow_wrapper(
@@ -55,12 +55,12 @@ read_geoarrow_feather <- function(file, ..., as_data_frame = TRUE, handler = NUL
   )
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
-read_geoarrow_ipc_stream <- function(file, ..., as_data_frame = TRUE, handler = NULL,
+read_geoparquet_ipc_stream <- function(file, ..., as_data_frame = TRUE, handler = NULL,
                                      metadata = NULL) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for read_geoarrow_ipc_stream()", call. = FALSE) # nocov
+    stop("Package 'arrow' required for read_geoparquet_ipc_stream()", call. = FALSE) # nocov
   }
 
   read_arrow_wrapper(
@@ -73,19 +73,19 @@ read_geoarrow_ipc_stream <- function(file, ..., as_data_frame = TRUE, handler = 
   )
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
-read_geoarrow_parquet_sf <- function(file, ...) {
-  sf::st_as_sf(read_geoarrow_parquet(file, ..., handler = wk::sfc_writer))
+read_geoparquet_sf <- function(file, ...) {
+  sf::st_as_sf(read_geoparquet(file, ..., handler = wk::sfc_writer))
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
-read_geoarrow_feather_sf <- function(file, ...) {
-  sf::st_as_sf(read_geoarrow_parquet(file, ..., handler = wk::sfc_writer))
+read_geoparquet_feather_sf <- function(file, ...) {
+  sf::st_as_sf(read_geoparquet(file, ..., handler = wk::sfc_writer))
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
 geoarrow_collect_sf <- function(x, ..., metadata = NULL) {
   sf::st_as_sf(
@@ -104,13 +104,13 @@ read_arrow_wrapper <- function(read_func, file, ..., as_data_frame = TRUE,
   }
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
 geoarrow_collect <- function(x, ..., handler = NULL, metadata = NULL) {
   UseMethod("geoarrow_collect")
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
 geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
   metadata <- geoarrow_object_metadata(x, metadata)
@@ -185,14 +185,14 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
   }
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
 geoarrow_collect.RecordBatch <- function(x, ..., handler = NULL, metadata = NULL) {
   geoarrow_collect.Table(x, ..., handler = handler, metadata = metadata)
 }
 
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
 geoarrow_collect.RecordBatchReader <- function(x, trans = identity, ..., handler = NULL,
                                                metadata = NULL) {
@@ -216,7 +216,7 @@ geoarrow_collect.RecordBatchReader <- function(x, trans = identity, ..., handler
   dplyr::bind_rows(!!! batches)
 }
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
 geoarrow_collect.Dataset <- function(x, trans = identity, ..., handler = NULL,
                                      metadata = NULL) {
@@ -226,7 +226,7 @@ geoarrow_collect.Dataset <- function(x, trans = identity, ..., handler = NULL,
 }
 
 
-#' @rdname read_geoarrow_parquet
+#' @rdname read_geoparquet
 #' @export
 geoarrow_collect.arrow_dplyr_query <- function(x, ..., handler = NULL, metadata = NULL) {
   table <- dplyr::collect(x, as_data_frame = FALSE)

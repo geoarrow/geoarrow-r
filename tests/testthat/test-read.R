@@ -4,13 +4,13 @@ test_that("geoarrow_read_parquet/geoarrow_collect works", {
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
-  write_geoarrow_parquet(tbl, temp, schema = geoarrow_schema_wkb())
+  write_geoparquet(tbl, temp, schema = geoarrow_schema_wkb())
 
-  table <- read_geoarrow_parquet(temp, handler = wk::xy_writer, as_data_frame = FALSE)
+  table <- read_geoparquet(temp, handler = wk::xy_writer, as_data_frame = FALSE)
   expect_true(inherits(table, "Table"))
 
   expect_identical(
-    as.data.frame(read_geoarrow_parquet(temp, handler = wk::xy_writer)),
+    as.data.frame(read_geoparquet(temp, handler = wk::xy_writer)),
     tbl
   )
 
@@ -36,7 +36,7 @@ test_that("geoarrow_collect works without table-level metadata", {
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52, crs = "EPSG:1234"))
   temp <- tempfile()
-  write_geoarrow_parquet(tbl, temp)
+  write_geoparquet(tbl, temp)
 
   table <- arrow::read_parquet(temp, as_data_frame = FALSE)
   expect_true(inherits(table, "Table"))
@@ -55,13 +55,13 @@ test_that("geoarrow_read_feather() works", {
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
-  write_geoarrow_feather(tbl, temp, schema = geoarrow_schema_wkb())
+  write_geoparquet_feather(tbl, temp, schema = geoarrow_schema_wkb())
 
-  table <- read_geoarrow_feather(temp, handler = wk::xy_writer, as_data_frame = FALSE)
+  table <- read_geoparquet_feather(temp, handler = wk::xy_writer, as_data_frame = FALSE)
   expect_true(inherits(table, "Table"))
 
   expect_identical(
-    as.data.frame(read_geoarrow_feather(temp, handler = wk::xy_writer)),
+    as.data.frame(read_geoparquet_feather(temp, handler = wk::xy_writer)),
     tbl
   )
 
@@ -73,13 +73,13 @@ test_that("geoarrow_read_ipc_stream() works", {
 
   tbl <- data.frame(id = letters, geom = wk::xy(1:26, 27:52))
   temp <- tempfile()
-  write_geoarrow_ipc_stream(tbl, temp, schema = geoarrow_schema_wkb())
+  write_geoparquet_ipc_stream(tbl, temp, schema = geoarrow_schema_wkb())
 
-  table <- read_geoarrow_ipc_stream(temp, handler = wk::xy_writer, as_data_frame = FALSE)
+  table <- read_geoparquet_ipc_stream(temp, handler = wk::xy_writer, as_data_frame = FALSE)
   expect_true(inherits(table, "Table"))
 
   expect_identical(
-    as.data.frame(read_geoarrow_ipc_stream(temp, handler = wk::xy_writer)),
+    as.data.frame(read_geoparquet_ipc_stream(temp, handler = wk::xy_writer)),
     tbl
   )
 
@@ -97,7 +97,7 @@ test_that("all example parquet files can be read", {
 
   for (file in files) {
     name <- gsub("-.*?\\.parquet$", "", basename(file))
-    result <- read_geoarrow_parquet(
+    result <- read_geoparquet(
       file,
       handler = wk::wkb_writer()
     )
@@ -130,7 +130,7 @@ test_that("all example feather files can be read", {
     name <- gsub("-.*?\\.feather$", "", basename(file))
 
     # check the metadata
-    result <- read_geoarrow_feather(
+    result <- read_geoparquet_feather(
       file,
       as_data_frame = FALSE
     )
@@ -155,7 +155,7 @@ test_that("all example feather files can be read", {
     )
 
     # check a more normal read
-    result <- read_geoarrow_feather(
+    result <- read_geoparquet_feather(
       file,
       handler = wk::wkb_writer()
     )
@@ -185,7 +185,7 @@ test_that("all example ipc_stream files can be read", {
 
   for (file in files) {
     name <- gsub("-.*?\\.arrows$", "", basename(file))
-    result <- read_geoarrow_ipc_stream(
+    result <- read_geoparquet_ipc_stream(
       file,
       handler = wk::wkb_writer()
     )

@@ -3,16 +3,18 @@
 #'
 #' @inheritDotParams arrow::write_parquet
 #' @inheritParams geoarrow_create_narrow
+#' @param geoparquet_metadata Use `TRUE` to add GeoParquet metadata to the
+#'   output schema metadata.
 #'
 #' @return The result of [arrow::write_parquet()], invisibly
 #' @export
 #'
-write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
+write_geoparquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoarrow_parquet()", call. = FALSE) # nocov
+    stop("Package 'arrow' required for write_geoparquet()", call. = FALSE) # nocov
   }
 
-  batch <- geoarrow_make_batch(
+  table <- as_geoarrow_table(
     handleable,
     schema,
     strict,
@@ -24,38 +26,40 @@ write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALS
   )
 
   # write!
-  arrow::write_parquet(batch, ...)
+  arrow::write_parquet(table, ...)
 }
 
-#' @rdname write_geoarrow_parquet
+#' @rdname write_geoparquet
 #' @export
-write_geoarrow_feather <- function(handleable, ..., schema = NULL, strict = FALSE) {
+write_geoparquet_feather <- function(handleable, ..., schema = NULL, strict = FALSE) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoarrow_feather()", call. = FALSE) # nocov
+    stop("Package 'arrow' required for write_geoparquet_feather()", call. = FALSE) # nocov
   }
 
-  batch <- geoarrow_make_batch(handleable, schema, strict, geoparquet_metadata = TRUE)
+  table <- as_geoarrow_table(handleable, schema, strict, geoparquet_metadata = TRUE)
 
   # write!
-  arrow::write_feather(batch, ...)
+  arrow::write_feather(table, ...)
 }
 
-#' @rdname write_geoarrow_parquet
+#' @rdname write_geoparquet
 #' @export
-write_geoarrow_ipc_stream <- function(handleable, ..., schema = NULL, strict = FALSE) {
+write_geoparquet_ipc_stream <- function(handleable, ..., schema = NULL, strict = FALSE) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoarrow_ipc_stream()", call. = FALSE) # nocov
+    stop("Package 'arrow' required for write_geoparquet_ipc_stream()", call. = FALSE) # nocov
   }
 
-  batch <- geoarrow_make_batch(handleable, schema, strict, geoparquet_metadata = TRUE)
+  table <- as_geoarrow_table(handleable, schema, strict, geoparquet_metadata = TRUE)
 
   # write!
-  arrow::write_ipc_stream(batch, ...)
+  arrow::write_ipc_stream(table, ...)
 }
 
-geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
-                                null_point_as_empty = FALSE,
-                                geoparquet_metadata = FALSE) {
+#' @rdname write_geoparquet
+#' @export
+as_geoarrow_table <- function(handleable, schema = NULL, strict = FALSE,
+                              null_point_as_empty = FALSE,
+                              geoparquet_metadata = FALSE) {
   if (!is.data.frame(handleable)) {
     handleable <- data.frame(geometry = handleable)
   } else {
@@ -108,7 +112,7 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
     )
   }
 
-  batch
+  arrow::as_arrow_table(batch)
 }
 
 is_handleable_column <- function(x) {

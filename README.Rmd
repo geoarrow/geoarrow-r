@@ -43,8 +43,8 @@ Parquet is a compact binary file format that enables fast reading and efficient 
 library(geoarrow)
 
 nc <- sf::read_sf(system.file("shape/nc.shp", package = "sf"))
-write_geoarrow_parquet(nc, "nc.parquet")
-read_geoarrow_parquet_sf("nc.parquet")
+write_geoparquet(nc, "nc.parquet")
+read_geoparquet_sf("nc.parquet")
 ```
 
 You can also use `arrow::open_dataset()` and `geoarrow_collect_sf()` to use the full power of the Arrow compute engine on datasets of one or more files:
@@ -57,7 +57,7 @@ library(dplyr)
   filter(grepl("^A", NAME)) %>%
   select(NAME, geometry) )
 
-query %>% 
+query %>%
   geoarrow_collect_sf()
 ```
 

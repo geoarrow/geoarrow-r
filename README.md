@@ -38,8 +38,8 @@ to Parquet using `geoarrow_write_parquet()` and read them using
 library(geoarrow)
 
 nc <- sf::read_sf(system.file("shape/nc.shp", package = "sf"))
-write_geoarrow_parquet(nc, "nc.parquet")
-read_geoarrow_parquet_sf("nc.parquet")
+write_geoparquet(nc, "nc.parquet")
+read_geoparquet_sf("nc.parquet")
 #> Simple feature collection with 100 features and 14 fields
 #> Geometry type: MULTIPOLYGON
 #> Dimension:     XY
@@ -76,11 +76,11 @@ library(dplyr)
 #> FileSystemDataset (query)
 #> NAME: string
 #> geometry: list<polygons: list<rings: list<vertices: fixed_size_list<xy: double>[2]>>>
-#> 
+#>
 #> * Filter: match_substring_regex(NAME, {pattern="^A", ignore_case=false})
 #> See $.data for the source Arrow object
 
-query %>% 
+query %>%
   geoarrow_collect_sf()
 #> Simple feature collection with 6 features and 1 field
 #> Geometry type: MULTIPOLYGON
