@@ -87,12 +87,41 @@ private:
 
 class ComputeBuilder: public arrow::hpp::builder::ArrayBuilder, public Handler {
 public:
-  ComputeBuilder(const ComputeOptions& options = ComputeOptions()): options_(std::move(options)) {}
-  ComputeOptions* mutable_options() { return &options_; }
-  const ComputeOptions& options() { return options_; }
+  ComputeBuilder(const ComputeOptions& options = ComputeOptions()) {
+    schema_out_.release = nullptr;
+    schema_out_.format = "";
 
-private:
-  ComputeOptions options_;
+    if (options.get_bool("strict", false)) {
+        struct ArrowSchema* schema = options.get_schema("schema");
+        arrow::hpp::schema_deep_copy(schema, &schema_out_);
+    }
+  }
+
+  ~ComputeBuilder() {
+    if (schema_out_.release != nullptr) {
+      schema_out_.release(&schema_out_);
+    }
+  }
+
+protected:
+  struct ArrowSchema schema_out_;
+
+  bool strict_schema() {
+    return schema_out_.format != std::string("");
+  }
+
+  void finish_schema(struct ArrowSchema* schema) {
+    bool is_strict = strict_schema();
+
+    if (is_strict && std::string(schema->format) != schema_out_.format) {
+      throw util::IOException(
+          "ComputeBuilder generated schema with format '%s', but '%s' was "
+          "requested and strict was true", schema->format, schema_out_.format);
+    } else if (is_strict) {
+      schema->release(schema);
+      arrow::hpp::schema_deep_copy(&schema_out_, schema);
+    }
+  }
 };
 
 class NullBuilder: public ComputeBuilder {
