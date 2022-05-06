@@ -24,12 +24,18 @@ namespace geoarrow {
 
 class WKTArrayBuilder: public ComputeBuilder {
 public:
-    WKTArrayBuilder():
+    WKTArrayBuilder(const ComputeOptions& options):
+        ComputeBuilder(options),
         significant_digits_(16),
         is_first_ring_(true),
         is_first_coord_(true),
         dimensions_(util::Dimensions::XY) {
         stack_.reserve(32);
+
+        // make large immediately if requested
+        if (schema_out_.format == std::string("U")) {
+            string_builder_.make_large();
+        }
     }
 
     void reserve(int64_t additional_capacity) {
@@ -47,6 +53,9 @@ public:
         string_builder_.set_metadata("ARROW:extension:name", "geoarrow.wkt");
         string_builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         string_builder_.release(array_data, schema);
+
+        // Applies schema from input or errors if this isn't possible
+        finish_schema(schema);
     }
 
     void new_dimensions(util::Dimensions dimensions) {

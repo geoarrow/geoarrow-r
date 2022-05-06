@@ -45,7 +45,7 @@ public:
         string_builder_.release(array_data, schema);
 
         // Applies schema from input or errors if this isn't possible
-        ComputeBuilder::finish_schema(schema);
+        finish_schema(schema);
     }
 
     const char* get_format() {

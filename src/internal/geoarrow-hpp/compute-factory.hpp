@@ -23,7 +23,7 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
 
         switch (geoarrow_meta.extension_) {
         case util::Extension::WKT:
-            return new WKTArrayBuilder();
+            return new WKTArrayBuilder(options);
         case util::Extension::WKB:
             return new WKBArrayBuilder(options);
         case util::Extension::Point:

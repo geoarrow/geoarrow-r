@@ -64,7 +64,7 @@ test_that("geoarrow_compute() can cast to WKT with strict = TRUE", {
 
   expect_identical(
     narrow::narrow_schema_info(dst_narrow$schema),
-    narrow::narrow_schema_info(geoarrow_schema_wkb(format = "U"))
+    narrow::narrow_schema_info(geoarrow_schema_wkt(format = "U"))
   )
 
   skip_if_not(identical(Sys.getenv("ARROW_LARGE_MEMORY_TESTS"), "true"))
@@ -73,24 +73,25 @@ test_that("geoarrow_compute() can cast to WKT with strict = TRUE", {
   src_xy <- wk::xy(1:195225786, 1:195225786)
   src_narrow <- geoarrow_create_narrow(
     src_xy,
-    schema = geoarrow_schema_wkt()
+    schema = geoarrow_schema_wkb()
   )
 
   dst_narrow <- geoarrow_compute(
     src_narrow,
     "cast",
-    list(schema = geoarrow_schema_wkb(format = "Z"), strict = TRUE)
+    list(schema = geoarrow_schema_wkt(format = "U"), strict = TRUE)
   )
 
-  expect_identical(dst_narrow$schema$format, "Z")
+  expect_identical(dst_narrow$schema$format, "U")
   expect_identical(wk::as_xy(dst_narrow), src_xy)
 
   expect_error(
     geoarrow_compute(
       src_narrow,
       "cast",
-      list(schema = geoarrow_schema_wkb(format = 'z'), strict = TRUE)
-    )
+      list(schema = geoarrow_schema_wkt(format = "u"), strict = TRUE)
+    ),
+    "ComputeBuilder generated schema with format 'U'"
   )
 })
 
