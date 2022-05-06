@@ -129,6 +129,19 @@ public:
     }
   }
 
+  void make_large() {
+    if (is_large_) {
+      return;
+    }
+
+    for (int64_t i = 0; i < offset_buffer_builder_.size(); i++) {
+      large_offset_buffer_builder_.write_element(offset_buffer_builder_.data()[i]);
+    }
+
+    free(offset_buffer_builder_.release());
+    is_large_ = true;
+  }
+
 protected:
   bool is_large_;
   int64_t item_size_;
@@ -139,15 +152,6 @@ protected:
   bool needs_make_large(int64_t capacity) {
     return !is_large_ &&
       ((data_buffer_builder_.size() + capacity) > std::numeric_limits<int32_t>::max());
-  }
-
-  void make_large() {
-    for (int64_t i = 0; i < offset_buffer_builder_.size(); i++) {
-      large_offset_buffer_builder_.write_element(offset_buffer_builder_.data()[i]);
-    }
-
-    free(offset_buffer_builder_.release());
-    is_large_ = true;
   }
 };
 

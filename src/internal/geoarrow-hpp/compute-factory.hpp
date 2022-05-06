@@ -25,7 +25,7 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
         case util::Extension::WKT:
             return new WKTArrayBuilder();
         case util::Extension::WKB:
-            return new WKBArrayBuilder();
+            return new WKBArrayBuilder(options);
         case util::Extension::Point:
             return new PointArrayBuilder(options);
         case util::Extension::Linestring:

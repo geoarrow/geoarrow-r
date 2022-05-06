@@ -16,10 +16,37 @@ namespace geoarrow {
 
 class WKBArrayBuilder: public ComputeBuilder {
 public:
-    WKBArrayBuilder():
-        endian_(0x01),
-        dimensions_(util::Dimensions::XY) {
+    WKBArrayBuilder(const ComputeOptions& options):
+      is_strict_(false),
+      endian_(0x01),
+      dimensions_(util::Dimensions::XY) {
         stack_.reserve(32);
+        schema_.release = nullptr;
+
+        is_strict_ = options.get_bool("strict", false);
+
+        if (is_strict_) {
+            struct ArrowSchema* schema = options.get_schema("schema");
+            arrow::hpp::schema_deep_copy(schema, &schema_);
+
+            switch (schema->format[0]) {
+            case 'Z':
+                string_builder_.make_large();
+                break;
+            case 'z':
+                break;
+            default:
+                throw util::IOException(
+                    "Unsupported output schema for WKBArrayBuilder: '%s'",
+                    schema->format);
+            }
+        }
+    }
+
+    ~WKBArrayBuilder() {
+        if (schema_.release != nullptr) {
+            schema_.release(&schema_);
+        }
     }
 
     void reserve(int64_t additional_capacity) {
@@ -37,6 +64,15 @@ public:
         string_builder_.set_metadata("ARROW:extension:name", "geoarrow.wkb");
         string_builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         string_builder_.release(array_data, schema);
+
+        if (is_strict_ && std::string(schema->format) != schema_.format) {
+            throw util::IOException(
+                "WKBArrayBuilder generated schema with format '%s', but '%s' was "
+                "requested and strict was true", schema->format, schema_.format);
+        } else if (is_strict_) {
+            schema->release(schema);
+            arrow::hpp::schema_deep_copy(&schema_, schema);
+        }
     }
 
     const char* get_format() {
@@ -171,6 +207,8 @@ private:
         uint32_t size;
     };
 
+    bool is_strict_;
+    struct ArrowSchema schema_;
     uint8_t endian_;
     arrow::hpp::builder::BinaryArrayBuilder string_builder_;
     std::vector<State> stack_;

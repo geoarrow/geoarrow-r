@@ -311,8 +311,9 @@ public:
   void set_metadata(const char* metadata) {
     int64_t metadata_size = schema_metadata_size(metadata);
     if (metadata_size > 0) {
-      char* metadata = reinterpret_cast<char*>(malloc(metadata_size));
-      set_metadata_internal(metadata);
+      char* new_metadata = reinterpret_cast<char*>(malloc(metadata_size));
+      memcpy(new_metadata, metadata, metadata_size);
+      set_metadata_internal(new_metadata);
     } else {
       set_metadata_internal(nullptr);
     }
@@ -356,7 +357,7 @@ private:
 static inline void schema_deep_copy(struct ArrowSchema* schema_in, struct ArrowSchema* schema_out) {
   SchemaFinalizer finalizer;
   finalizer.allocate(schema_in->n_children);
-  finalizer.set_format(schema_in->name);
+  finalizer.set_format(schema_in->format);
   finalizer.set_name(schema_in->name);
   finalizer.set_metadata(schema_in->metadata);
 
