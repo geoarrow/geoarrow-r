@@ -47,7 +47,6 @@ Just like a local data frame, you can use dplyr verbs like `fiilter()`, `mutate(
 places %>% 
   filter(population > 100000) %>% 
   select(name, population, fclass, geometry) %>% 
-  arrange(desc(population)) %>% 
   geoarrow_collect_sf()
 ```
 
@@ -66,16 +65,6 @@ places %>%
     s2::s2_dwithin(geometry, capital, 200000)
   )
 ```
-
-(When some kind of index for dataset files exists, talk about how to use it)
-
-## Reading a data set hosted remotely
-
-(Wait until we have some properly formatted files on a public S3 bucket)
-
-## Writing a data set
-
-(Wait until a `write_geoarrow_dataset()` exists)
 
 ## Using `geoarrow_collect()`
 
