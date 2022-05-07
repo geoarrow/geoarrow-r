@@ -65,7 +65,7 @@ public:
 
   const char* get_format() {
       memset(format_, 0, sizeof(format_));
-      snprintf(format_, sizeof(format_), "+w:%lld", item_size_);
+      snprintf(format_, sizeof(format_), "+w:%lld", static_cast<long long int>(item_size_));
       return format_;
   }
 
