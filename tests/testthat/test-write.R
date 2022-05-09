@@ -10,10 +10,10 @@ test_that("geoarrow_write_parquet() works", {
 
   table <- arrow::read_parquet(f, as_data_frame = FALSE)
   schema <- narrow::as_narrow_schema(table$schema)
-  expect_identical(schema$children[[1]]$format, "+w:2")
+  expect_identical(schema$children[[1]]$format, "z")
   expect_identical(
     schema$children[[1]]$metadata[["ARROW:extension:name"]],
-    "geoarrow.point"
+    "geoarrow.wkb"
   )
 
   unlink(f)
@@ -24,7 +24,7 @@ test_that("write_geoparquet() writes null points that can be read again", {
 
   f <- tempfile(fileext = ".parquet")
   features <- wk::wkt(c("POINT (1 3)", "POINT (2 4)", NA))
-  write_geoparquet(features, f, schema = NULL)
+  write_geoparquet(features, f, schema = geoarrow_schema_point())
   df <- read_geoparquet(f, handler = wk::wkt_writer())
   expect_identical(
     df[[1]],
@@ -42,7 +42,7 @@ test_that("geoarrow_write_parquet() roundtrips metadata", {
   table <- arrow::read_parquet(f, as_data_frame = FALSE)
   meta <- jsonlite::fromJSON(table$metadata$geo)
   expect_identical(meta$primary_column, "col")
-  expect_identical(meta$columns$col$encoding, "geoarrow.point")
+  expect_identical(meta$columns$col$encoding, "WKB")
   expect_identical(meta$columns$col$geometry_type, "Point")
   expect_equal(meta$columns$col$bbox, c(1, 11, 10, 20))
 })
