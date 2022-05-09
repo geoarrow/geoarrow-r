@@ -37,20 +37,6 @@ read_geoparquet <- function(file, ..., as_data_frame = TRUE, handler = NULL,
   )
 }
 
-#' @rdname read_geoparquet
-#' @export
-read_geoparquet_sf <- function(file, ...) {
-  sf::st_as_sf(read_geoparquet(file, ..., handler = wk::sfc_writer))
-}
-
-#' @rdname read_geoparquet
-#' @export
-geoarrow_collect_sf <- function(x, ..., metadata = NULL) {
-  sf::st_as_sf(
-    geoarrow_collect(x, ..., handler = wk::sfc_writer, metadata = metadata)
-  )
-}
-
 read_arrow_wrapper <- function(read_func, file, ..., as_data_frame = TRUE,
                                handler = NULL, metadata = NULL) {
   table <- read_func(file, ..., as_data_frame = FALSE)

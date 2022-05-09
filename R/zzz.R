@@ -10,6 +10,8 @@
   if (has_arrow_with_extension_type()) {
     try(register_arrow_extension_type(), silent = TRUE)
 
+    s3_register("arrow::as_arrow_table", "sf")
+
     s3_register("arrow::as_arrow_array", "narrow_vctr_geoarrow")
     s3_register("arrow::infer_type", "narrow_vctr_geoarrow")
 
