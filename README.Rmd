@@ -37,7 +37,7 @@ remotes::install_github("paleolimbot/geoarrow")
 
 ## Read and Write GeoParquet
 
-Parquet is a compact binary file format that enables fast reading and efficient compression, and its geospatial extension 'GeoParquet' lets us use it to encode geospatial data. You can write geospatial data (e.g., sf objects) to Parquet using `write_geoparquet()` and read them using `read_geoparquet`()`.
+Parquet is a compact binary file format that enables fast reading and efficient compression, and its geospatial extension 'GeoParquet' lets us use it to encode geospatial data. You can write geospatial data (e.g., sf objects) to Parquet using `write_geoparquet()` and read them using `read_geoparquet()`.
 
 ```{r}
 library(geoarrow)

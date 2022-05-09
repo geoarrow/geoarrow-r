@@ -35,7 +35,7 @@ Parquet is a compact binary file format that enables fast reading and
 efficient compression, and its geospatial extension ‘GeoParquet’ lets us
 use it to encode geospatial data. You can write geospatial data (e.g.,
 sf objects) to Parquet using `write_geoparquet()` and read them using
-`read_geoparquet`()\`.
+`read_geoparquet()`.
 
 ``` r
 library(geoarrow)
@@ -78,7 +78,7 @@ library(dplyr)
   select(NAME, geometry) )
 #> FileSystemDataset (query)
 #> NAME: string
-#> geometry: multipolygon GEOGCS["NAD27",DATUM["North...
+#> geometry: wkb GEOGCS["NAD27",DATUM["North...
 #> 
 #> * Filter: if_else(is_null(match_substring_regex(NAME, {pattern="^A", ignore_case=false}), {nan_is_null=true}), false, match_substring_regex(NAME, {pattern="^A", ignore_case=false}))
 #> See $.data for the source Arrow object

@@ -18,7 +18,11 @@ as_arrow_table.sf <- function(x, ..., schema = NULL) {
   # not supported for now
   stopifnot(is.null(schema))
 
-  # add geoparquet metadata because the most likely destination is
-  # write_parquet() or write_feather()
+  # Add geoparquet metadata because the most likely destination is
+  # write_parquet() or write_feather(). Strip the sf class, though,
+  # because arrow may run into errors when attempting to restore the
+  # data frame attributes.
+  x <- tibble::as_tibble(x)
+
   as_geoarrow_table(x, geoparquet_metadata = TRUE)
 }

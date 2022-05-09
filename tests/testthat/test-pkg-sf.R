@@ -10,6 +10,7 @@ test_that("as_arrow_table() works for sf objects", {
   table <- arrow::as_arrow_table(tbl)
   expect_s3_class(table, "Table")
   expect_s3_class(table$schema$geometry$type, "GeoArrowType")
+  expect_null(table$r_metadata)
 
   metadata <- jsonlite::fromJSON(table$metadata$geo)
   expect_identical(metadata$columns$geometry$encoding, "geoarrow.point")
