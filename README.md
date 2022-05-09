@@ -13,9 +13,11 @@ coverage](https://codecov.io/gh/paleolimbot/geoarrow/branch/master/graph/badge.s
 The goal of geoarrow is to leverage the features of the
 [arrow](https://arrow.apache.org/docs/r/) package and larger [Apache
 Arrow](https://arrow.apache.org/) ecosystem for geospatial data. The
-geoarrow package provides an R implementation of the draft [geoarrow
-data specification](https://github.com/geopandas/geo-arrow-spec),
-defining extension array types for vector geospatial data.
+geoarrow package provides an R implementation of the
+[GeoParquet](https://github.com/opengeospatial/geoparquet) file format
+of and the draft [geoarrow data
+specification](https://github.com/geopandas/geo-arrow-spec), defining
+extension array types for vector geospatial data.
 
 ## Installation
 
@@ -23,16 +25,17 @@ You can install the development version from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("paleolimbot/geoarrow")
+# install.packages("remotes")
+remotes::install_github("paleolimbot/geoarrow")
 ```
 
-## Write geospatial data to Parquet
+## Read and Write GeoParquet
 
 Parquet is a compact binary file format that enables fast reading and
-efficient compression. You can write geospatial data (e.g., sf objects)
-to Parquet using `geoarrow_write_parquet()` and read them using
-`geoarrow_read_parquet()`.
+efficient compression, and its geospatial extension ‘GeoParquet’ lets us
+use it to encode geospatial data. You can write geospatial data (e.g.,
+sf objects) to Parquet using `write_geoparquet()` and read them using
+`read_geoparquet`()\`.
 
 ``` r
 library(geoarrow)
@@ -75,9 +78,9 @@ library(dplyr)
   select(NAME, geometry) )
 #> FileSystemDataset (query)
 #> NAME: string
-#> geometry: list<polygons: list<rings: list<vertices: fixed_size_list<xy: double>[2]>>>
-#>
-#> * Filter: match_substring_regex(NAME, {pattern="^A", ignore_case=false})
+#> geometry: multipolygon GEOGCS["NAD27",DATUM["North...
+#> 
+#> * Filter: if_else(is_null(match_substring_regex(NAME, {pattern="^A", ignore_case=false}), {nan_is_null=true}), false, match_substring_regex(NAME, {pattern="^A", ignore_case=false}))
 #> See $.data for the source Arrow object
 
 query %>%

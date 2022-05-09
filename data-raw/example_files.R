@@ -36,7 +36,7 @@ for (name in names(example_tbl)) {
       ),
       geoparquet_metadata = TRUE
     ),
-    glue::glue("inst/example_ipc_stream/{name}-default.arrows"),
+    glue::glue("inst/example_ipc_stream/{name}-geoarrow.arrows"),
     compression = "uncompressed"
   )
 
@@ -71,7 +71,7 @@ for (name in names(example_tbl)) {
       ),
       geoparquet_metadata = TRUE
     ),
-    glue::glue("inst/example_feather/{name}-default.feather"),
+    glue::glue("inst/example_feather/{name}-geoarrow.feather"),
     compression = "uncompressed"
   )
 
@@ -98,7 +98,7 @@ for (name in names(example_tbl)) {
   # parquet
   write_geoparquet(
     example_tbl[[name]],
-    glue::glue("inst/example_parquet/{name}-default.parquet"),
+    glue::glue("inst/example_parquet/{name}-geoarrow.parquet"),
     compression = "uncompressed",
     schema = geoarrow_schema_default(
       example_tbl[[name]],
