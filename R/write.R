@@ -24,14 +24,16 @@ write_geoparquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
     stop("Package 'arrow' required for write_geoparquet()", call. = FALSE) # nocov
   }
 
+  # WKB is officially-supported GeoParquet encoding
+  schema <- schema %||% geoarrow_schema_wkb()
+
   table <- as_geoarrow_table(
     handleable,
     schema,
     strict,
     # workaround because Arrow Parquet can't roundtrip null fixed-width list
     # elements (https://issues.apache.org/jira/browse/ARROW-8228)
-    null_point_as_empty = is.null(schema) ||
-      startsWith(schema$format, "+w:"),
+    null_point_as_empty = startsWith(schema$format, "+w:"),
     geoparquet_metadata = TRUE
   )
 

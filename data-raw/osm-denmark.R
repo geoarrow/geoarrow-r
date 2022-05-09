@@ -70,7 +70,8 @@ for (name in files$name) {
   write_geoparquet(
     src,
     glue::glue("{dst}/{name}-geoarrow.parquet"),
-    compression = "uncompressed"
+    compression = "uncompressed",
+    schema = geoarrow_schema_default(src)
   )
   check_output(glue::glue("{dst}/{name}-geoarrow.parquet"))
 }
