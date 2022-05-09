@@ -187,31 +187,12 @@ schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(
     ),
     "geoarrow.point" = {
       stopifnot(is.null(edges) || identical(edges, "planar"), !is.null(dim))
-
-      if (identical(schema$format, "+s")) {
-        stopifnot(identical(nchar(dim), length(schema$children)))
-
-        format_coord <- vapply(schema$children, function(s) s$format, character(1))
-        format_coord <- unique(format_coord)
-        if (length(format_coord) != 1) {
-          stop("Can't parse schema with multiple child formats as point struct", call. = FALSE)
-        }
-
-        geoarrow_schema_point_struct(
-          name = schema$name,
-          crs = crs_chr_or_null(crs),
-          dim = dim,
-          format_coord = format_coord
-        )
-      } else {
-        stopifnot(!is.null(dim))
-        geoarrow_schema_point(
-          name = schema$name,
-          dim = dim,
-          crs = crs_chr_or_null(crs),
-          format_coord = schema$children[[1]]$format
-        )
-      }
+      geoarrow_schema_point(
+        name = schema$name,
+        dim = dim,
+        crs = crs_chr_or_null(crs),
+        format_coord = schema$children[[1]]$format
+      )
     },
     "geoarrow.linestring" = {
       stopifnot(identical(schema$format, "+l"))

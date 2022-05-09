@@ -248,21 +248,19 @@ test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::wkb", {
 test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::point", {
   array <- geoarrow_create_narrow_from_buffers(
     wk::xy(1:5, 1:5),
-    schema = geoarrow_schema_point_struct()
+    schema = geoarrow_schema_point()
   )
 
-  expect_identical(
-    narrow::from_narrow_array(array),
-    data.frame(x = as.double(1:5), y = as.double(1:5))
+  expect_equal(
+    array$array_data$children[[1]]$buffers[[2]],
+    rep(c(1:5), each = 2)
   )
 })
 
 test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::linestring", {
   array <- geoarrow_create_narrow_from_buffers(
     wk::wkt(c("LINESTRING (0 1, 2 3)", "LINESTRING (4 5, 6 7, 8 9)")),
-    schema = geoarrow_schema_linestring(
-      point = geoarrow_schema_point_struct()
-    )
+    schema = geoarrow_schema_linestring()
   )
 
   expect_identical(
@@ -279,9 +277,7 @@ test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::polygon", {
 
   array <- geoarrow_create_narrow_from_buffers(
     wk::wkt(poly),
-    schema = geoarrow_schema_polygon(
-      point = geoarrow_schema_point_struct()
-    )
+    schema = geoarrow_schema_polygon()
   )
 
   expect_null(array$array_data$buffers[[1]])
@@ -292,7 +288,7 @@ test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::polygon", {
 test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::multi / geoarrow::point", {
   array <- geoarrow_create_narrow_from_buffers(
     wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (4 5, 6 7, 8 9)")),
-    schema = geoarrow_schema_multipoint_struct()
+    schema = geoarrow_schema_multipoint()
   )
 
   expect_identical(
@@ -308,9 +304,7 @@ test_that("geoarrow_create_narrow_from_buffers() works for geoarrow::multi / geo
       c("MULTILINESTRING ((0 1, 2 3))",
         "MULTILINESTRING ((4 5, 6 7, 8 9), (10 11, 12 13))")
     ),
-    schema = geoarrow_schema_multilinestring(
-      point = geoarrow_schema_point_struct()
-    )
+    schema = geoarrow_schema_multilinestring()
   )
 
   expect_identical(
@@ -332,9 +326,7 @@ test_that("geoarrow_create_narrow_from_buffers() works for goearrow::multi / geo
 
   poly <- geoarrow_create_narrow_from_buffers(
     wk::wkt(poly_text),
-    schema = geoarrow_schema_multipolygon(
-      point = geoarrow_schema_point_struct()
-    ),
+    schema = geoarrow_schema_multipolygon(),
     strict = TRUE
   )
   expect_null(poly$array_data$buffers[[1]])
@@ -549,9 +541,7 @@ test_that("multipolygons can be created", {
   poly <- geoarrow_create_multipolygon_array(
     wk::xy(poly_coords$x, poly_coords$y),
     list(c(2, 1), c(1, 1, 1), c(5, 4, 5)),
-    geoarrow_schema_multipolygon(
-      point = geoarrow_schema_point_struct()
-    ),
+    geoarrow_schema_multipolygon(),
     strict = TRUE
   )
   expect_null(poly$array_data$buffers[[1]])
@@ -572,40 +562,13 @@ test_that("multipolygons can be created", {
     poly_arrow$type$extension_name(),
     "geoarrow.multipolygon"
   )
-
-  poly_arrow_storage <- narrow::from_narrow_array(
-    strip_extensions(poly),
-    arrow::Array
-  )
-
-  expect_equal(
-    lapply(as.vector(poly_arrow_storage), lapply, lapply, as.data.frame),
-    list(
-      list(
-        list(
-          poly_coords[1:5, c("x", "y")]
-        ),
-        list(
-          poly_coords[6:9, c("x", "y")]
-        )
-      ),
-      list(
-        list(
-          poly_coords[10:14, c("x", "y")]
-        )
-      )
-    ),
-    ignore_attr = TRUE
-  )
 })
 
 test_that("multilinestrings can be created", {
   multi <- geoarrow_create_multilinestring_array(
     wk::xy(1:10, 11:20),
     list(c(2, 1), c(2, 3, 5)),
-    geoarrow_schema_multilinestring(
-      point = geoarrow_schema_point_struct()
-    )
+    geoarrow_schema_multilinestring()
   )
   expect_null(multi$array_data$buffers[[1]])
   expect_identical(as.numeric(multi$array_data$buffers[[2]]), c(0, 2, 3))
@@ -617,26 +580,13 @@ test_that("multilinestrings can be created", {
     strip_extensions(multi),
     arrow::Array
   )
-
-  expect_identical(
-    lapply(as.vector(multi_arrow), lapply, as.data.frame),
-    list(
-      list(
-        data.frame(x = as.numeric(1:2), y = as.numeric(11:12)),
-        data.frame(x = as.numeric(3:5), y = as.numeric(13:15))
-      ),
-      list(
-        data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
-      )
-    )
-  )
 })
 
 test_that("multipoints can be created", {
   multi <- geoarrow_create_multipoint_array(
     wk::xy(1:10, 11:20),
     c(5, 5),
-    geoarrow_schema_multipoint_struct(),
+    geoarrow_schema_multipoint(),
     strict = TRUE
   )
   expect_null(multi$array_data$buffers[[1]])
@@ -647,14 +597,6 @@ test_that("multipoints can be created", {
   multi_arrow <- narrow::from_narrow_array(
     strip_extensions(multi),
     arrow::Array
-  )
-
-  expect_identical(
-    lapply(as.vector(multi_arrow), as.data.frame),
-    list(
-      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
-      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
-    )
   )
 })
 
@@ -668,43 +610,20 @@ test_that("polygons can be created", {
   poly <- geoarrow_create_polygon_array(
     wk::xy(poly_coords$x, poly_coords$y),
     list(c(2, 1), c(5, 4, 5)),
-    geoarrow_schema_polygon(
-      point = geoarrow_schema_point_struct()
-    )
+    geoarrow_schema_polygon()
   )
   expect_null(poly$array_data$buffers[[1]])
   expect_identical(as.numeric(poly$array_data$buffers[[2]]), c(0, 2, 3))
   expect_identical(as.numeric(poly$array_data$children[[1]]$buffers[[2]]), c(0, 5, 9, 14))
 
   skip_if_not(has_arrow_with_extension_type())
-
-  poly_arrow <- narrow::from_narrow_array(
-    strip_extensions(poly),
-    arrow::Array
-  )
-
-  expect_equal(
-    lapply(as.vector(poly_arrow), lapply, as.data.frame),
-    list(
-      list(
-        poly_coords[1:5, c("x", "y")],
-        poly_coords[6:9, c("x", "y")]
-      ),
-      list(
-        poly_coords[10:14, c("x", "y")]
-      )
-    ),
-    ignore_attr = TRUE
-  )
 })
 
 test_that("linestring arrays can be created", {
   ls_not_null <- geoarrow_create_linestring_array(
     wk::xy(1:10, 11:20),
     c(5, 0, 5),
-    geoarrow_schema_linestring(
-      point = geoarrow_schema_point_struct()
-    )
+    geoarrow_schema_linestring()
   )
   expect_null(ls_not_null$array_data$buffers[[1]])
   expect_identical(as.numeric(ls_not_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
@@ -712,45 +631,13 @@ test_that("linestring arrays can be created", {
   ls_null <- geoarrow_create_linestring_array(
     wk::xy(1:10, 11:20),
     c(5, NA, 5),
-    geoarrow_schema_linestring(
-      point = geoarrow_schema_point_struct()
-    )
+    geoarrow_schema_linestring()
   )
   expect_identical(
     as.logical(ls_null$array_data$buffers[[1]])[1:3],
     c(TRUE, FALSE, TRUE)
   )
   expect_identical(as.numeric(ls_null$array_data$buffers[[2]]), c(0, 5, 5, 10))
-
-  skip_if_not(has_arrow_with_extension_type())
-
-  ls_not_null_arrow <- narrow::from_narrow_array(
-    strip_extensions(ls_not_null),
-    arrow::Array
-  )
-
-  expect_identical(
-    lapply(as.vector(ls_not_null_arrow), as.data.frame),
-    list(
-      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
-      data.frame(x = double(), y = double()),
-      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
-    )
-  )
-
-  ls_null_arrow <- narrow::from_narrow_array(
-    strip_extensions(ls_null),
-    arrow::Array
-  )
-
-  expect_identical(
-    lapply(as.vector(ls_null_arrow), as.data.frame),
-    list(
-      data.frame(x = as.numeric(1:5), y = as.numeric(11:15)),
-      data.frame(),
-      data.frame(x = as.numeric(6:10), y = as.numeric(16:20))
-    )
-  )
 })
 
 test_that("linestring arrays error for invalid schemas", {
@@ -845,124 +732,19 @@ test_that("point struct arrays can be created", {
 
   array_not_null <- geoarrow_create_point_array(
     coords[1:2],
-    geoarrow_schema_point_struct()
+    geoarrow_schema_point()
   )
   expect_null(array_not_null$array_data$buffers[[1]])
 
   array_null <- geoarrow_create_point_array(
     coords,
-    geoarrow_schema_point_struct(),
+    geoarrow_schema_point(),
     can_be_null = NA
   )
 
   expect_identical(
     as.logical(array_null$array_data$buffers[[1]])[1:length(coords)],
     c(TRUE, TRUE, FALSE)
-  )
-})
-
-test_that("point struct arrays can be created for all dimensions", {
-  coords_xy <- wk::xy(1:100, 101:200)
-  array_xy <- geoarrow_create_point_array(coords_xy, geoarrow_schema_point_struct(dim = "xy"))
-  expect_identical(
-    narrow::from_narrow_array(array_xy),
-    data.frame(x = as.double(1:100), y = as.double(101:200))
-  )
-
-  coords_xyz <- wk::xyz(1:100, 101:200, 201:300)
-  array_xyz <- geoarrow_create_point_array(coords_xyz, geoarrow_schema_point_struct(dim = "xyz"))
-  expect_identical(
-    narrow::from_narrow_array(array_xyz),
-    data.frame(x = as.double(1:100), y = as.double(101:200), z = as.double(201:300))
-  )
-
-  coords_xym <- wk::xym(1:100, 101:200, 301:400)
-  array_xym <- geoarrow_create_point_array(coords_xym, geoarrow_schema_point_struct(dim = "xym"))
-  expect_identical(
-    narrow::from_narrow_array(array_xym),
-    data.frame(x = as.double(1:100), y = as.double(101:200), m = as.double(301:400))
-  )
-
-  coords_xyzm <- wk::xyzm(1:100, 101:200, 201:300, 301:400)
-  array_xyzm <- geoarrow_create_point_array(coords_xyzm, geoarrow_schema_point_struct(dim = "xyzm"))
-  expect_identical(
-    narrow::from_narrow_array(array_xyzm),
-    data.frame(
-      x = as.double(1:100), y = as.double(101:200),
-      z = as.double(201:300), m = as.double(301:400)
-    )
-  )
-
-  # check that these round trip to Arrow
-  skip_if_not(has_arrow_with_extension_type())
-
-  array_xy_arrow <- narrow::from_narrow_array(
-    strip_extensions(array_xy),
-    arrow::Array
-  )
-  expect_identical(
-    as.vector(array_xy_arrow),
-    as.vector(
-      arrow::Array$create(
-        data.frame(
-          x = as.numeric(1:100),
-          y = as.numeric(101:200)
-        )
-      )
-    )
-  )
-
-  array_xyz_arrow <- narrow::from_narrow_array(
-    strip_extensions(array_xyz),
-    arrow::Array
-  )
-
-  expect_identical(
-    as.vector(array_xyz_arrow),
-    as.vector(
-      arrow::Array$create(
-        data.frame(
-          x = as.numeric(1:100),
-          y = as.numeric(101:200),
-          z = as.numeric(201:300)
-        )
-      )
-    )
-  )
-
-  array_xym_arrow <- narrow::from_narrow_array(
-    strip_extensions(array_xym),
-    arrow::Array
-  )
-  expect_identical(
-    as.vector(array_xym_arrow),
-    as.vector(
-      arrow::Array$create(
-        data.frame(
-          x = as.numeric(1:100),
-          y = as.numeric(101:200),
-          m = as.numeric(301:400)
-        )
-      )
-    )
-  )
-
-  array_xyzm_arrow <- narrow::from_narrow_array(
-    strip_extensions(array_xyzm),
-    arrow::Array
-  )
-  expect_identical(
-    as.vector(array_xyzm_arrow),
-    as.vector(
-      arrow::Array$create(
-        data.frame(
-          x = as.numeric(1:100),
-          y = as.numeric(101:200),
-          z = as.numeric(201:300),
-          m = as.numeric(301:400)
-        )
-      )
-    )
   )
 })
 

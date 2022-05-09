@@ -2,11 +2,9 @@
 % Please edit documentation in R/schema.R
 \name{geoarrow_schema_point}
 \alias{geoarrow_schema_point}
-\alias{geoarrow_schema_point_struct}
 \alias{geoarrow_schema_linestring}
 \alias{geoarrow_schema_polygon}
 \alias{geoarrow_schema_multipoint}
-\alias{geoarrow_schema_multipoint_struct}
 \alias{geoarrow_schema_multilinestring}
 \alias{geoarrow_schema_multipolygon}
 \alias{geoarrow_schema_collection}
@@ -15,13 +13,6 @@
 \title{Create low-level Arrow schemas}
 \usage{
 geoarrow_schema_point(name = "", dim = "xy", crs = NULL, format_coord = "g")
-
-geoarrow_schema_point_struct(
-  name = "",
-  dim = "xy",
-  crs = NULL,
-  format_coord = "g"
-)
 
 geoarrow_schema_linestring(
   name = "",
@@ -36,14 +27,6 @@ geoarrow_schema_polygon(
 )
 
 geoarrow_schema_multipoint(
-  child,
-  name = "",
-  dim = "xy",
-  crs = NULL,
-  format_coord = "g"
-)
-
-geoarrow_schema_multipoint_struct(
   child,
   name = "",
   dim = "xy",
