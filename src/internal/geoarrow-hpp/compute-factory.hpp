@@ -23,21 +23,21 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
 
         switch (geoarrow_meta.extension_) {
         case util::Extension::WKT:
-            return new WKTArrayBuilder();
+            return new WKTArrayBuilder(options);
         case util::Extension::WKB:
-            return new WKBArrayBuilder();
+            return new WKBArrayBuilder(options);
         case util::Extension::Point:
             return new PointArrayBuilder(options);
         case util::Extension::Linestring:
-            return new LinestringArrayBuilder();
+            return new LinestringArrayBuilder(options);
         case util::Extension::Polygon:
-            return new PolygonArrayBuilder();
+            return new PolygonArrayBuilder(options);
         case util::Extension::MultiPoint:
-            return new MultiPointArrayBuilder();
+            return new MultiPointArrayBuilder(options);
         case util::Extension::MultiLinestring:
-            return new MultiLinestringArrayBuilder();
+            return new MultiLinestringArrayBuilder(options);
         case util::Extension::MultiPolygon:
-            return new MultiPolygonArrayBuilder();
+            return new MultiPolygonArrayBuilder(options);
         default:
             throw Meta::ValidationError("Unsupported extension type for operation CAST");
         }

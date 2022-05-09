@@ -10,7 +10,7 @@
 
 namespace geoarrow {
 
-namespace {
+namespace internal {
 
 struct type_dim_pair_hash {
     std::size_t operator() (const std::pair<util::GeometryType, util::Dimensions> &pair) const {
@@ -68,8 +68,8 @@ private:
     bool include_empty_;
     util::Dimensions dim_;
     util::GeometryType geometry_type_;
-    std::unordered_set<std::pair<util::GeometryType, util::Dimensions>, type_dim_pair_hash> all_types_;
-    std::unordered_set<std::pair<util::GeometryType, util::Dimensions>, type_dim_pair_hash> empty_types_;
+    std::unordered_set<std::pair<util::GeometryType, util::Dimensions>, internal::type_dim_pair_hash> all_types_;
+    std::unordered_set<std::pair<util::GeometryType, util::Dimensions>, internal::type_dim_pair_hash> empty_types_;
 
     std::string make_type(std::pair<util::GeometryType, util::Dimensions> item) {
         const char* type_str = "";

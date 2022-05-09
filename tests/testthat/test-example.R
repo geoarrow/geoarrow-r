@@ -9,7 +9,7 @@ test_that("all examples can be created with default arguments", {
 })
 
 test_that("all examples can be created into arrow::Array", {
-  skip_if_not_installed("arrow")
+  skip_if_not(has_arrow_with_extension_type())
 
   for (which in names(geoarrow::geoarrow_example_wkt)) {
     expect_s3_class(

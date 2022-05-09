@@ -19,7 +19,8 @@ jobs:
       matrix:
         config:
           - {os: macOS-latest,   r: 'release'}
-          - {os: windows-latest, r: 'release'}
+          # Skip Windows until Arrow 8.0.0
+          # - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
@@ -43,7 +44,18 @@ jobs:
         with:
           extra-packages: rcmdcheck
 
+      - name: Install Arrow nightly
+        run: |
+          Sys.setenv(NOT_CRAN = TRUE)
+          install.packages("arrow", repos = "https://arrow-r-nightly.s3.amazonaws.com")
+        shell: Rscript {0}
+
       - uses: r-lib/actions/check-r-package@v1
+
+      - name: Show install output
+        if: always()
+        run: find check -name '00install.out*' -exec cat '{}' \; || true
+        shell: bash
 
       - name: Show testthat output
         if: always()

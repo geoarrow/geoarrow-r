@@ -20,7 +20,7 @@
 #'
 geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_default(handleable),
                                    strict = FALSE, null_point_as_empty = FALSE) {
-  extension <- scalar_chr(schema$metadata[["ARROW:extension:name"]])
+  schema <- narrow::as_narrow_schema(schema)
 
   if (!strict) {
     crs <- wk::wk_crs(handleable)
@@ -35,62 +35,28 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
     schema <- geoarrow_schema_set_geodesic(schema, wk::wk_is_geodesic(handleable))
   }
 
-  # use geoarrow_compute() or geoarrow_compute_handler() if possible since
-  # these are much faster!
-  if (!strict && inherits(handleable, c("narrow_array", "narrow_vctr", "Array"))) {
-    switch(
-      extension,
-      "geoarrow.wkt" = ,
-      "geoarrow.wkb" = ,
-      "geoarrow.point" = ,
-      "geoarrow.linestring" = ,
-      "geoarrow.polygon" = ,
-      "geoarrow.multipoint" = ,
-      "geoarrow.multilinestring" = ,
-      "geoarrow.multipolygon" = {
-        # until the compute function properly sets the extension metadata
-        handleable <- narrow::as_narrow_array(handleable)
-        result <- geoarrow_compute(
-          handleable,
-          "cast",
-          list(schema = schema, null_is_empty = null_point_as_empty)
-        )
-        result$schema <- geoarrow_copy_metadata(result$schema, schema)
-        return(result)
-      }
+  if (inherits(handleable, c("narrow_array", "narrow_vctr", "Array"))) {
+    handleable <- narrow::as_narrow_array(handleable)
+    result <- geoarrow_compute(
+      handleable,
+      "cast",
+      list(schema = schema, null_is_empty = null_point_as_empty, strict = strict)
     )
-  } else if (!strict) {
-    switch(
-      extension,
-      "geoarrow.wkt" = ,
-      "geoarrow.wkb" = ,
-      "geoarrow.point" = ,
-      "geoarrow.linestring" = ,
-      "geoarrow.polygon" = ,
-      "geoarrow.multipoint" = ,
-      "geoarrow.multilinestring" = ,
-      "geoarrow.multipolygon" = {
-        # until the compute function properly sets the extension metadata
-        result <- wk::wk_handle(
-          handleable,
-          geoarrow_compute_handler(
-            "cast",
-            list(schema = schema, null_is_empty = null_point_as_empty)
-          )
-        )
-        result$schema <- geoarrow_copy_metadata(result$schema, schema)
-        return(result)
-      },
+  } else {
+    result <- wk::wk_handle(
+      handleable,
+      geoarrow_compute_handler(
+        "cast",
+        list(schema = schema, null_is_empty = null_point_as_empty, strict = strict)
+      )
     )
   }
 
-  # fall back to creating from buffers
-  geoarrow_create_narrow_from_buffers(
-    handleable, ...,
-    schema = schema,
-    strict = strict,
-    null_point_as_empty = null_point_as_empty
-  )
+  if (!strict) {
+    result$schema <- geoarrow_copy_metadata(result$schema, schema)
+  }
+
+  result
 }
 
 #' @rdname geoarrow_create_narrow

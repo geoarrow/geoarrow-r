@@ -12,7 +12,8 @@ namespace geoarrow {
 
 class LinestringArrayBuilder: public ComputeBuilder {
 public:
-    LinestringArrayBuilder() {
+    LinestringArrayBuilder(const ComputeOptions& options = ComputeOptions()):
+      ComputeBuilder(options) {
         builder_.child().set_name("vertices");
     }
 
@@ -64,6 +65,9 @@ public:
         builder_.set_metadata("ARROW:extension:name", "geoarrow.linestring");
         builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_.release(array_data, schema);
+
+        // checks output and copies metadata
+        finish_schema(schema);
     }
 
 private:

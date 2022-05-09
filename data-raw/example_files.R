@@ -27,59 +27,78 @@ example_tbl$nc_spherical <- nc_tbl_spherical
 # write files with multiple encodings
 for (name in names(example_tbl)) {
   # ipc
-  write_geoarrow_ipc_stream(
-    example_tbl[[name]],
-    glue::glue("inst/example_ipc_stream/{name}-default.arrows"),
-    compression = "uncompressed",
-    schema = geoarrow_schema_default(
+  arrow::write_ipc_stream(
+    as_geoarrow_table(
       example_tbl[[name]],
-      point = geoarrow_schema_point()
-    )
+      schema = geoarrow_schema_default(
+        example_tbl[[name]],
+        point = geoarrow_schema_point()
+      ),
+      geoparquet_metadata = TRUE
+    ),
+    glue::glue("inst/example_ipc_stream/{name}-geoarrow.arrows"),
+    compression = "uncompressed"
   )
 
-  write_geoarrow_ipc_stream(
-    example_tbl[[name]],
+  arrow::write_ipc_stream(
+    as_geoarrow_table(
+      example_tbl[[name]],
+      schema = geoarrow_schema_wkt(),
+      geoparquet_metadata = TRUE
+    ),
     glue::glue("inst/example_ipc_stream/{name}-wkt.arrows"),
     compression = "uncompressed",
     schema = geoarrow_schema_wkt()
   )
 
-  write_geoarrow_ipc_stream(
-    example_tbl[[name]],
+  arrow::write_ipc_stream(
+    as_geoarrow_table(
+      example_tbl[[name]],
+      schema = geoarrow_schema_wkb(),
+      geoparquet_metadata = TRUE
+    ),
     glue::glue("inst/example_ipc_stream/{name}-wkb.arrows"),
-    compression = "uncompressed",
-    schema = geoarrow_schema_wkb()
+    compression = "uncompressed"
   )
 
   # feather
-  write_geoarrow_feather(
-    example_tbl[[name]],
-    glue::glue("inst/example_feather/{name}-default.feather"),
-    compression = "uncompressed",
-    schema = geoarrow_schema_default(
+  arrow::write_feather(
+    as_geoarrow_table(
       example_tbl[[name]],
-      point = geoarrow_schema_point()
-    )
+      schema = geoarrow_schema_default(
+        example_tbl[[name]],
+        point = geoarrow_schema_point()
+      ),
+      geoparquet_metadata = TRUE
+    ),
+    glue::glue("inst/example_feather/{name}-geoarrow.feather"),
+    compression = "uncompressed"
   )
 
-  write_geoarrow_feather(
-    example_tbl[[name]],
+  arrow::write_feather(
+    as_geoarrow_table(
+      example_tbl[[name]],
+      schema = geoarrow_schema_wkt(),
+      geoparquet_metadata = TRUE
+    ),
     glue::glue("inst/example_feather/{name}-wkt.feather"),
-    compression = "uncompressed",
-    schema = geoarrow_schema_wkt()
+    compression = "uncompressed"
   )
 
-  write_geoarrow_feather(
-    example_tbl[[name]],
+  arrow::write_feather(
+    as_geoarrow_table(
+      example_tbl[[name]],
+      schema = geoarrow_schema_wkb(),
+      geoparquet_metadata = TRUE
+    ),
     glue::glue("inst/example_feather/{name}-wkb.feather"),
-    compression = "uncompressed",
-    schema = geoarrow_schema_wkb()
+    compression = "uncompressed"
   )
 
   # parquet
-  write_geoarrow_parquet(
+  write_geoparquet(
     example_tbl[[name]],
-    glue::glue("inst/example_parquet/{name}-default.parquet"),
+    glue::glue("inst/example_parquet/{name}-geoarrow.parquet"),
     compression = "uncompressed",
     schema = geoarrow_schema_default(
       example_tbl[[name]],
@@ -87,14 +106,14 @@ for (name in names(example_tbl)) {
     )
   )
 
-  write_geoarrow_parquet(
+  write_geoparquet(
     example_tbl[[name]],
     glue::glue("inst/example_parquet/{name}-wkt.parquet"),
     compression = "uncompressed",
     schema = geoarrow_schema_wkt()
   )
 
-  write_geoarrow_parquet(
+  write_geoparquet(
     example_tbl[[name]],
     glue::glue("inst/example_parquet/{name}-wkb.parquet"),
     compression = "uncompressed",

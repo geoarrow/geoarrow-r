@@ -16,7 +16,8 @@ namespace geoarrow {
 template <typename Child, util::GeometryType ParentType, util::GeometryType ChildType>
 class MultiArrayBuilder: public ComputeBuilder {
 public:
-    MultiArrayBuilder(): level_(0) {
+    MultiArrayBuilder(const ComputeOptions& options = ComputeOptions()):
+      ComputeBuilder(options), level_(0) {
         // Probably should live with subclasses
         switch (ParentType) {
         case util::GeometryType::MULTIPOINT:
@@ -124,6 +125,9 @@ public:
 
         builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_.release(array_data, schema);
+
+        // checks output and copies metadata
+        finish_schema(schema);
     }
 
 private:

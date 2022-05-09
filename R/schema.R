@@ -243,3 +243,18 @@ format_is_float_or_double <- function(format_coord) {
 dim_is_xy_xyz_xym_or_xzm <- function(dim) {
   grepl("^xyz?m?$", scalar_chr(dim))
 }
+
+strip_extensions <- function(x) {
+  if (inherits(x, "narrow_array")) {
+    x$schema <- strip_extensions(x$schema)
+    return(x)
+  }
+
+  x$metadata[["ARROW:extension:name"]] <- NULL
+  x$metadata[["ARROW:extension:metadata"]] <- NULL
+  for (i in seq_along(x$children)) {
+    x$children[[i]] <- strip_extensions(x$children[[i]])
+  }
+
+  x
+}

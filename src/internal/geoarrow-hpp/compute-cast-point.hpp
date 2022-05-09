@@ -15,6 +15,7 @@ namespace geoarrow {
 class PointArrayBuilder: public ComputeBuilder {
 public:
     PointArrayBuilder(const ComputeOptions& options = ComputeOptions()):
+      ComputeBuilder(options),
       null_is_empty_(false),
       dimensions_(util::Dimensions::DIMENSIONS_UNKNOWN),
       builder_xy_(2),
@@ -50,6 +51,9 @@ public:
         builder_->set_metadata("ARROW:extension:name", "geoarrow.point");
         builder_->set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_->release(array_data, schema);
+
+        // checks output and copies metadata
+        finish_schema(schema);
     }
 
     const char* get_format() {

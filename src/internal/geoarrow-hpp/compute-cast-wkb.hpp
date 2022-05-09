@@ -16,10 +16,16 @@ namespace geoarrow {
 
 class WKBArrayBuilder: public ComputeBuilder {
 public:
-    WKBArrayBuilder():
-        endian_(0x01),
-        dimensions_(util::Dimensions::XY) {
+    WKBArrayBuilder(const ComputeOptions& options):
+      ComputeBuilder(options),
+      endian_(0x01),
+      dimensions_(util::Dimensions::XY) {
         stack_.reserve(32);
+
+        // make large immediately if requested
+        if (schema_out_.format == std::string("Z")) {
+            string_builder_.make_large();
+        }
     }
 
     void reserve(int64_t additional_capacity) {
@@ -37,6 +43,9 @@ public:
         string_builder_.set_metadata("ARROW:extension:name", "geoarrow.wkb");
         string_builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         string_builder_.release(array_data, schema);
+
+        // Applies schema from input or errors if this isn't possible
+        finish_schema(schema);
     }
 
     const char* get_format() {

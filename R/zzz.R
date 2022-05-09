@@ -6,6 +6,20 @@
     s3_register("vctrs::vec_proxy", cls, vctr_proxy)
     s3_register("vctrs::vec_restore", cls, vctr_restore)
   }
+
+  if (has_arrow_with_extension_type()) {
+    try(register_arrow_extension_type(), silent = TRUE)
+
+    s3_register("arrow::as_arrow_table", "sf")
+
+    s3_register("arrow::as_arrow_array", "narrow_vctr_geoarrow")
+    s3_register("arrow::infer_type", "narrow_vctr_geoarrow")
+
+    for (cls in supported_handleable_classes) {
+      s3_register("arrow::as_arrow_array", cls, as_arrow_array_handleable)
+      s3_register("arrow::infer_type", cls, infer_type_handleable)
+    }
+  }
 }
 
 s3_register <- function(generic, class, method = NULL) {

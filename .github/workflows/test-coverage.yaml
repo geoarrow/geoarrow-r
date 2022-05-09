@@ -25,6 +25,12 @@ jobs:
         with:
           extra-packages: covr
 
+      - name: Install Arrow nightly
+        run: |
+          Sys.setenv(NOT_CRAN = TRUE)
+          install.packages("arrow", repos = "https://arrow-r-nightly.s3.amazonaws.com")
+        shell: Rscript {0}
+
       - name: Test coverage
         run: covr::codecov()
         shell: Rscript {0}

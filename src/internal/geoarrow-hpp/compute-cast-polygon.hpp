@@ -12,7 +12,7 @@ namespace geoarrow {
 
 class PolygonArrayBuilder: public ComputeBuilder {
 public:
-    PolygonArrayBuilder() {
+    PolygonArrayBuilder(const ComputeOptions& options = ComputeOptions()): ComputeBuilder(options) {
         builder_.child().set_name("rings");
         builder_.child().child().set_name("vertices");
     }
@@ -78,6 +78,9 @@ public:
         builder_.set_metadata("ARROW:extension:name", "geoarrow.polygon");
         builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_.release(array_data, schema);
+
+        // checks output and copies metadata
+        finish_schema(schema);
     }
 
 private:

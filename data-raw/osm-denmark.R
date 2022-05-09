@@ -43,7 +43,7 @@ for (name in files$name) {
   attributes(src_wkb) <- NULL
 
   check_output <- function(file) {
-    check <- read_geoarrow_parquet(
+    check <- read_geoparquet(
       file,
       handler = wk::wkb_writer()
     )
@@ -59,7 +59,7 @@ for (name in files$name) {
     }
   }
 
-  write_geoarrow_parquet(
+  write_geoparquet(
     src,
     glue::glue("{dst}/{name}-wkb.parquet"),
     compression = "uncompressed",
@@ -67,10 +67,11 @@ for (name in files$name) {
   )
   check_output(glue::glue("{dst}/{name}-wkb.parquet"))
 
-  write_geoarrow_parquet(
+  write_geoparquet(
     src,
     glue::glue("{dst}/{name}-geoarrow.parquet"),
-    compression = "uncompressed"
+    compression = "uncompressed",
+    schema = geoarrow_schema_default(src)
   )
   check_output(glue::glue("{dst}/{name}-geoarrow.parquet"))
 }

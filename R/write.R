@@ -1,5 +1,11 @@
 
-#' Write geometry as Apache Arrow files
+#' Write 'GeoParquet' files
+#'
+#' Whereas [arrow::write_parquet()] will happily convert/write geometry columns
+#' to Parquet format when the geoarrow package is loaded, `write_geoparquet()`
+#' generates additional file-level metadata and chooses a more generic encoding
+#' to improve the interoperability of the Parquet file when read by non-Arrow
+#' Parquet readers.
 #'
 #' @inheritDotParams arrow::write_parquet
 #' @inheritParams geoarrow_create_narrow
@@ -7,55 +13,56 @@
 #' @return The result of [arrow::write_parquet()], invisibly
 #' @export
 #'
-write_geoarrow_parquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
+#' @examples
+#' tf <- tempfile()
+#' write_geoparquet(data.frame(col1 = 1:5, col2 = wk::xy(1:5, 6:10)), tf)
+#' read_geoparquet(tf)
+#' unlink(tf)
+#'
+write_geoparquet <- function(handleable, ..., schema = NULL, strict = FALSE) {
   if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoarrow_parquet()", call. = FALSE) # nocov
+    stop("Package 'arrow' required for write_geoparquet()", call. = FALSE) # nocov
   }
 
-  batch <- geoarrow_make_batch(
+  # WKB is officially-supported GeoParquet encoding
+  schema <- schema %||% geoarrow_schema_wkb()
+
+  table <- as_geoarrow_table(
     handleable,
     schema,
     strict,
     # workaround because Arrow Parquet can't roundtrip null fixed-width list
     # elements (https://issues.apache.org/jira/browse/ARROW-8228)
-    null_point_as_empty = is.null(schema) ||
-      startsWith(schema$format, "+w:"),
+    null_point_as_empty = startsWith(schema$format, "+w:"),
     geoparquet_metadata = TRUE
   )
 
   # write!
-  arrow::write_parquet(batch, ...)
+  arrow::write_parquet(table, ...)
 }
 
-#' @rdname write_geoarrow_parquet
+
+#' Create Arrow Tables
+#'
+#' Like [arrow::as_arrow_table()], `as_geoarrow_table()` creates an
+#' [arrow::Table] object. The geo-enabled version has a few additional options
+#' that customize the specific output schema and table-level metadata
+#' that is generated.
+#'
+#' @inheritParams write_geoparquet
+#' @inheritParams geoarrow_create_narrow
+#' @param geoparquet_metadata Use `TRUE` to add GeoParquet metadata to the
+#'   output schema metadata.
+#'
+#' @return an [arrow::Table].
 #' @export
-write_geoarrow_feather <- function(handleable, ..., schema = NULL, strict = FALSE) {
-  if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoarrow_feather()", call. = FALSE) # nocov
-  }
-
-  batch <- geoarrow_make_batch(handleable, schema, strict, geoparquet_metadata = TRUE)
-
-  # write!
-  arrow::write_feather(batch, ...)
-}
-
-#' @rdname write_geoarrow_parquet
-#' @export
-write_geoarrow_ipc_stream <- function(handleable, ..., schema = NULL, strict = FALSE) {
-  if (!requireNamespace("arrow", quietly = TRUE)) {
-    stop("Package 'arrow' required for write_geoarrow_ipc_stream()", call. = FALSE) # nocov
-  }
-
-  batch <- geoarrow_make_batch(handleable, schema, strict, geoparquet_metadata = TRUE)
-
-  # write!
-  arrow::write_ipc_stream(batch, ...)
-}
-
-geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
-                                null_point_as_empty = FALSE,
-                                geoparquet_metadata = FALSE) {
+#'
+#' @examples
+#' as_geoarrow_table(data.frame(col1 = 1:5, col2 = wk::xy(1:5, 6:10)))
+#'
+as_geoarrow_table <- function(handleable, schema = NULL, strict = FALSE,
+                              null_point_as_empty = FALSE,
+                              geoparquet_metadata = FALSE) {
   if (!is.data.frame(handleable)) {
     handleable <- data.frame(geometry = handleable)
   } else {
@@ -82,61 +89,24 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
     )
   }
 
+  # ship to arrow
+  vctr_handleable <- lapply(arrays_handleable, narrow::narrow_vctr)
+  arrays <- c(unclass(df_attr), vctr_handleable)[colnames(handleable)]
+  batch <- arrow::record_batch(!!! arrays)
+
   # create file metadata
   if (geoparquet_metadata) {
     handleable_schema <- narrow::narrow_schema(
       format = "+s",
       children = lapply(arrays_handleable, "[[", "schema")
     )
+
     for (i in seq_along(handleable_schema$children)) {
       handleable_schema$children[[i]]$name <- names(arrays_handleable)[i]
     }
 
     file_metadata <- geoparquet_metadata(handleable_schema, arrays = arrays_handleable)
-  } else {
-    file_metadata <- NULL
-  }
 
-  # create the record batch before shipping to Arrow because this has a better
-  # chance of keeping metadata associated with the type
-  batch_handleable <- narrow::narrow_array(
-    narrow::narrow_schema(
-      "+s",
-      children = lapply(seq_along(arrays_handleable), function(i) {
-        schema <- arrays_handleable[[i]]$schema
-        schema$name <- names(arrays_handleable)[i]
-        schema
-      })),
-    narrow::narrow_array_data(
-      buffers = list(NULL),
-      length = arrays_handleable[[1]]$array_data$length,
-      null_count = 0,
-      children = lapply(arrays_handleable, "[[", "array_data")
-    )
-  )
-
-  # create arrow RecordBatches
-  batch_attr_arrow <- arrow::record_batch(df_attr)
-  batch_handleable_arrow <- narrow::from_narrow_array(batch_handleable, arrow::RecordBatch)
-
-  # combine them making sure the schema contains field-level metadata
-  # (with the extension name/metadata)
-  arrays <- lapply(colnames(handleable), function(col_name) {
-    batch_attr_arrow$GetColumnByName(col_name) %||%
-      batch_handleable_arrow$GetColumnByName(col_name)
-  })
-  names(arrays) <- colnames(handleable)
-
-  fields <- lapply(colnames(handleable), function(col_name) {
-    batch_attr_arrow$schema$GetFieldByName(col_name) %||%
-      batch_handleable_arrow$schema$GetFieldByName(col_name)
-  })
-  names(fields) <- colnames(handleable)
-
-  batch <- arrow::record_batch(!!! arrays, schema = arrow::schema(!!! fields))
-
-  # add file metadata
-  if (!is.null(file_metadata)) {
     batch$metadata$geo <- jsonlite::toJSON(
       file_metadata,
       null = "null",
@@ -145,7 +115,7 @@ geoarrow_make_batch <- function(handleable, schema = NULL, strict = FALSE,
     )
   }
 
-  batch
+  arrow::as_arrow_table(batch)
 }
 
 is_handleable_column <- function(x) {
