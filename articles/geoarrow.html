@@ -95,17 +95,17 @@
 <span class="co">#&gt; [8] "fclass=town/part-0.parquet"            </span>
 <span class="co">#&gt; [9] "fclass=village/part-0.parquet"</span></code></pre></div>
 <p>These files were written using <code><a href="https://arrow.apache.org/docs/r/reference/write_dataset.html" class="external-link">arrow::write_dataset()</a></code> and have hive-style partitioning (i.e., the folder name provides some information about the value of a certain field for files within that folder).</p>
-<p>You can preview a dataset using <code><a href="https://rdrr.io/r/utils/head.html" class="external-link">head()</a></code> and <code><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect_sf()</a></code>:</p>
+<p>You can preview a dataset using <code><a href="https://rdrr.io/r/utils/head.html" class="external-link">head()</a></code> and <code><a href="../reference/read_geoparquet.html">geoarrow_collect_sf()</a></code>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">places</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="va">places_folder</span><span class="op">)</span>
 <span class="va">places</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
-  <span class="fu"><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span>
+  <span class="fu"><a href="../reference/read_geoparquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">#&gt; Simple feature collection with 6 features and 5 fields</span>
 <span class="co">#&gt; Geometry type: POINT</span>
 <span class="co">#&gt; Dimension:     XY</span>
 <span class="co">#&gt; Bounding box:  xmin: 8.452075 ymin: 55.46649 xmax: 12.08192 ymax: 56.46175</span>
-<span class="co">#&gt; Geodetic CRS:  WGS 84 (CRS84)</span>
+<span class="co">#&gt; Geodetic CRS:  WGS 84</span>
 <span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span>
 <span class="co">#&gt;   osm_id    code population name     fclass            geometry</span>
 <span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;POINT [°]&gt;</span></span>
@@ -124,8 +124,7 @@
 <code class="sourceCode R"><span class="va">places</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">population</span> <span class="op">&gt;</span> <span class="fl">100000</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">population</span>, <span class="va">fclass</span>, <span class="va">geometry</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">population</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
-  <span class="fu"><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span>
+  <span class="fu"><a href="../reference/read_geoparquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">#&gt; Simple feature collection with 5 features and 3 fields</span>
 <span class="co">#&gt; Geometry type: POINT</span>
 <span class="co">#&gt; Dimension:     XY</span>
@@ -135,20 +134,20 @@
 <span class="co">#&gt;   name          population fclass                      geometry</span>
 <span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;POINT [°]&gt;</span></span>
 <span class="co">#&gt; <span style="color: #BCBCBC;">1</span> København         <span style="text-decoration: underline;">613</span>288 national_capital (12.57007 55.68672)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Aarhus            <span style="text-decoration: underline;">273</span>077 city              (10.2134 56.14963)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Odense            <span style="text-decoration: underline;">178</span>210 city             (10.38521 55.39972)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Aalborg           <span style="text-decoration: underline;">114</span>194 city             (9.921526 57.04626)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Frederiksberg     <span style="text-decoration: underline;">102</span>029 suburb           (12.53262 55.67802)</span></code></pre></div>
-<p>Geometry operators aren’t yet supported within the Arrow compute engine, so any filtering or transformation on geometry columns must be done at the beginning (i.e., when selecting files to pass to <code><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset()</a></code>) or at the end (i.e., after calling <code><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect_sf()</a></code>).</p>
+<span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Frederiksberg     <span style="text-decoration: underline;">102</span>029 suburb           (12.53262 55.67802)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Aarhus            <span style="text-decoration: underline;">273</span>077 city              (10.2134 56.14963)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Odense            <span style="text-decoration: underline;">178</span>210 city             (10.38521 55.39972)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Aalborg           <span style="text-decoration: underline;">114</span>194 city             (9.921526 57.04626)</span></code></pre></div>
+<p>Geometry operators aren’t yet supported within the Arrow compute engine, so any filtering or transformation on geometry columns must be done at the beginning (i.e., when selecting files to pass to <code><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset()</a></code>) or at the end (i.e., after calling <code><a href="../reference/read_geoparquet.html">geoarrow_collect_sf()</a></code>).</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">capital</span> <span class="op">&lt;-</span> <span class="va">places</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">name</span> <span class="op">==</span> <span class="st">"København"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
-  <span class="fu"><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span>
+  <span class="fu"><a href="../reference/read_geoparquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span>
 
 <span class="co"># cities within 200 km of the capital</span>
 <span class="va">places</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">fclass</span> <span class="op">==</span> <span class="st">"city"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
-  <span class="fu"><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
+  <span class="fu"><a href="../reference/read_geoparquet.html">geoarrow_collect_sf</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span>
     <span class="fu">s2</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/s2/reference/s2_contains.html" class="external-link">s2_dwithin</a></span><span class="op">(</span><span class="va">geometry</span>, <span class="va">capital</span>, <span class="fl">200000</span><span class="op">)</span>
   <span class="op">)</span>
@@ -167,26 +166,15 @@
 <span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 26559213    <span style="text-decoration: underline;">1</span>001     <span style="text-decoration: underline;">273</span>077 Aarhus   city    (10.2134 56.14963)</span>
 <span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 26559274    <span style="text-decoration: underline;">1</span>001     <span style="text-decoration: underline;">178</span>210 Odense   city   (10.38521 55.39972)</span>
 <span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 1368129781  <span style="text-decoration: underline;">1</span>001      <span style="text-decoration: underline;">58</span>646 Horsens  city   (9.844477 55.86117)</span></code></pre></div>
-<p>(When some kind of index for dataset files exists, talk about how to use it)</p>
-</div>
-<div class="section level2">
-<h2 id="reading-a-data-set-hosted-remotely">Reading a data set hosted remotely<a class="anchor" aria-label="anchor" href="#reading-a-data-set-hosted-remotely"></a>
-</h2>
-<p>(Wait until we have some properly formatted files on a public S3 bucket)</p>
-</div>
-<div class="section level2">
-<h2 id="writing-a-data-set">Writing a data set<a class="anchor" aria-label="anchor" href="#writing-a-data-set"></a>
-</h2>
-<p>(Wait until a <code>write_geoarrow_dataset()</code> exists)</p>
 </div>
 <div class="section level2">
 <h2 id="using-geoarrow_collect">Using <code>geoarrow_collect()</code><a class="anchor" aria-label="anchor" href="#using-geoarrow_collect"></a>
 </h2>
-<p>Until this point, we have used <code><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect_sf()</a></code>. This is probably what you want, since the fantastic <a href="https://r-spatial.github.io/sf/" class="external-link">sf</a> package is a feature-complete GIS designed to work well with GIS data in data.frame form. If you want to customize how geometry columns are converted into R objects, you can use <code><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect()</a></code> with a <code>handler</code>. For example, if you want to convert geometry to a <code><a href="https://paleolimbot.github.io/wk/reference/wkb.html" class="external-link">wk::wkb()</a></code> directly without pivoting through sf, you can use <code>handler = wk::wkb_writer</code>.</p>
+<p>Until this point, we have used <code><a href="../reference/read_geoparquet.html">geoarrow_collect_sf()</a></code>. This is probably what you want, since the fantastic <a href="https://r-spatial.github.io/sf/" class="external-link">sf</a> package is a feature-complete GIS designed to work well with GIS data in data.frame form. If you want to customize how geometry columns are converted into R objects, you can use <code><a href="../reference/read_geoparquet.html">geoarrow_collect()</a></code> with a <code>handler</code>. For example, if you want to convert geometry to a <code><a href="https://paleolimbot.github.io/wk/reference/wkb.html" class="external-link">wk::wkb()</a></code> directly without pivoting through sf, you can use <code>handler = wk::wkb_writer</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">places</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
-  <span class="fu"><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="va"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">wkb_writer</a></span><span class="op">)</span>
+  <span class="fu"><a href="../reference/read_geoparquet.html">geoarrow_collect</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="va"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">wkb_writer</a></span><span class="op">)</span>
 <span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span>
 <span class="co">#&gt;   osm_id    code population name     fclass geometry                   </span>
 <span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;wk_wkb&gt;</span>                   </span>
@@ -200,20 +188,20 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="op">(</span><span class="va">places_xy</span> <span class="op">&lt;-</span> <span class="va">places</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">geometry</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 
-  <span class="fu"><a href="../reference/read_geoarrow_parquet.html">geoarrow_collect</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="va"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">xy_writer</a></span><span class="op">)</span><span class="op">)</span>
+  <span class="fu"><a href="../reference/read_geoparquet.html">geoarrow_collect</a></span><span class="op">(</span>handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="va"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">xy_writer</a></span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,255 × 2</span></span>
-<span class="co">#&gt;    name           geometry            </span>
-<span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;wk_xy&gt;</span>             </span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Roskilde       (12.081925 55.64335)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Esbjerg        ( 8.452075 55.46649)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Randers        (10.037148 56.46175)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Kolding        ( 9.479050 55.48950)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Vejle          ( 9.533324 55.70001)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Aarhus         (10.213405 56.14963)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Odense         (10.385210 55.39972)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Horsens        ( 9.844477 55.86117)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Aalborg        ( 9.921526 57.04626)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Englebjerggård (11.777372 55.20040)</span>
+<span class="co">#&gt;    name      geometry            </span>
+<span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;wk_xy&gt;</span>             </span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Roskilde  (12.081925 55.64335)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Esbjerg   ( 8.452075 55.46649)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Randers   (10.037148 56.46175)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Kolding   ( 9.479050 55.48950)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Vejle     ( 9.533324 55.70001)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Aarhus    (10.213405 56.14963)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Odense    (10.385210 55.39972)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Horsens   ( 9.844477 55.86117)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Aalborg   ( 9.921526 57.04626)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">10</span> København (12.570072 55.68672)</span>
 <span class="co">#&gt; <span style="color: #949494;"># … with 7,245 more rows</span></span>
 
 <span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">places_xy</span><span class="op">$</span><span class="va">geometry</span><span class="op">)</span>

@@ -28,6 +28,9 @@
     <loc>https://paleolimbot.github.io/geoarrow/index.html</loc>
   </url>
   <url>
+    <loc>https://paleolimbot.github.io/geoarrow/reference/as_geoarrow_table.html</loc>
+  </url>
+  <url>
     <loc>https://paleolimbot.github.io/geoarrow/reference/geoarrow-package.html</loc>
   </url>
   <url>
@@ -49,12 +52,12 @@
     <loc>https://paleolimbot.github.io/geoarrow/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/read_geoarrow_parquet.html</loc>
+    <loc>https://paleolimbot.github.io/geoarrow/reference/read_geoparquet.html</loc>
   </url>
   <url>
     <loc>https://paleolimbot.github.io/geoarrow/reference/wk_handle.narrow_array.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/write_geoarrow_parquet.html</loc>
+    <loc>https://paleolimbot.github.io/geoarrow/reference/write_geoparquet.html</loc>
   </url>
 </urlset>
