@@ -2,18 +2,9 @@
 % Please edit documentation in R/create.R
 \name{geoarrow_create_narrow}
 \alias{geoarrow_create_narrow}
-\alias{geoarrow_create_narrow}
 \alias{geoarrow_schema_default}
 \title{Create GeoArrow Arrays}
 \usage{
-geoarrow_create_narrow(
-  handleable,
-  ...,
-  schema = geoarrow_schema_default(handleable),
-  strict = FALSE,
-  null_point_as_empty = FALSE
-)
-
 geoarrow_create_narrow(
   handleable,
   ...,
