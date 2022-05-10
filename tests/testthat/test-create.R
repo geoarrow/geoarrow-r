@@ -615,8 +615,6 @@ test_that("polygons can be created", {
   expect_null(poly$array_data$buffers[[1]])
   expect_identical(as.numeric(poly$array_data$buffers[[2]]), c(0, 2, 3))
   expect_identical(as.numeric(poly$array_data$children[[1]]$buffers[[2]]), c(0, 5, 9, 14))
-
-  skip_if_not(has_arrow_with_extension_type())
 })
 
 test_that("linestring arrays can be created", {

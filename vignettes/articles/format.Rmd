@@ -66,7 +66,7 @@ The coordinate reference system in geoarrow is always stored with the point arra
 
 ### Storage type
 
-Points are represented by default in geoarrow as a [fixed-size list](https://arrow.apache.org/docs/format/Columnar.html#fixed-size-list-layout) of float64 (i.e., `double`) values. Conceptually this is much like storing coordinates as a (row-major) matrix with one row per feature and one column per dimension.
+Points are represented in geoarrow as a [fixed-size list](https://arrow.apache.org/docs/format/Columnar.html#fixed-size-list-layout) of float64 (i.e., `double`) values. Conceptually this is much like storing coordinates as a (row-major) matrix with one row per feature and one column per dimension.
 
 ```{r}
 carray <- geoarrow_create_narrow_from_buffers(
@@ -83,32 +83,12 @@ Points stored as a fixed-size list have exactly one child named `xy`, `xyz`, `xy
 carray$array_data$children[[1]]$buffers[[2]]
 ```
 
-Points can also be represented in geoarrow as a [struct](https://arrow.apache.org/docs/format/Columnar.html#struct-layout). Conceptually this is much like storing points as a data frame with one column per dimension (i.e., all x values are stored next to all the other x values).
-
-```{r}
-carray <- geoarrow_create_narrow_from_buffers(
-  wk::wkt(c("POINT (0 1)", "POINT (2 3)")),
-  schema = geoarrow_schema_point_struct()
-)
-narrow::from_narrow_array(carray, arrow::Array)
-```
-
-Points stored as a struct must have names that correspond to their dimension (i.e., x, y, z, or m). The only name combinations that are allowed are "xy", "xyz", "xym", and "xyzm". The child types must be all be float64 for now (although in the future other child types like float32 or decimal128 may be supported).
-
-```{r}
-# x values in one buffer
-carray$array_data$children[[1]]$buffers[[2]]
-# y values in another buffer
-carray$array_data$children[[2]]$buffers[[2]]
-```
-
 Other storage types of points that may be supported in a future reference implementation are:
 
-- Dictionary-encoded point struct and/or fixed-width representation (may allow for compact representation and efficient querying of polygon coverages with shared vertices)
+- Struct-encoded points (i.e., x, y, and/or z and/or m stored in their own arrays)
+- Dictionary-encoded point representation (may allow for compact representation and efficient querying of polygon coverages with shared vertices)
 - S2 or H3 identifiers (compact and fast to test for containment)
 - float or decimal storage of coordinate values (float when lower precision is adequate; decimal when double precision is inadequate).
-
-Future representations of points by the reference implementation will provide efficient methods to access coordinates as `double`/float64s. See the [C and C++ development guide](development.html) for how this interface is implemented for the two existing supported point types.
 
 ## Linestrings
 

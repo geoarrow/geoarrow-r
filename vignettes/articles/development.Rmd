@@ -331,7 +331,7 @@ If you need to deal with arbitrary vectors of that may have different types or d
 
 ### Points
 
-For points encoded as a fixed-size list (the default), you need three pieces of information: the length, the initial offset into the array, and the buffer of `double`s containing the coordinates.
+For points, you need three pieces of information: the length, the initial offset into the array, and the buffer of `double`s containing the coordinates.
 
 ```{c, results="hide"}
 #include <R.h>
@@ -369,49 +369,6 @@ point_print <- function(x) {
 }
 
 point_print(points)
-```
-
-For points encoded as a struct, the approach is similar but one buffer per dimension is required.
-
-```{c, results="hide"}
-#include <R.h>
-#include "narrow.h"
-
-SEXP c_point_struct_print(SEXP array_data_xptr) {
-  struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
-
-  double* x = (double*) array_data->children[0]->buffers[1];
-  double* y = (double*) array_data->children[1]->buffers[1];
-  x = x + array_data->offset;
-  y = y + array_data->offset;
-
-  for (int64_t point_id = 0; point_id < array_data->length; point_id++) {
-    Rprintf("point[%d] (%g %g)\n", point_id, x[point_id], y[point_id]);
-  }
-
-  return R_NilValue;
-}
-```
-
-```{r}
-point_struct_print <- function(x) {
-  x <- as_narrow_array(x)
-
-  stopifnot(
-    x$schema$format == "+s",
-    x$schema$children[[1]]$format == "g",
-    x$schema$children[[2]]$format == "g"
-  )
-
-  invisible(.Call("c_point_struct_print", x$array_data))
-}
-
-points_struct <- geoarrow_create_narrow_from_buffers(
-  points,
-  schema = geoarrow_schema_point_struct()
-)
-
-point_struct_print(points_struct)
 ```
 
 ### Linestrings
