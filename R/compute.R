@@ -1,5 +1,5 @@
 
-geoarrow_compute <- function(x, op = "void", options = list()) {
+geoarrow_compute <- function(x, op = "void", options = list(), filter = TRUE) {
   x <- narrow::as_narrow_array(x)
   op <- geoarrow_compute_op(op)
 
@@ -9,7 +9,7 @@ geoarrow_compute <- function(x, op = "void", options = list()) {
     validate = FALSE
   )
 
-  .Call(geoarrow_c_compute, op, x, array_out, options)
+  .Call(geoarrow_c_compute, op, x, array_out, filter, options)
 }
 
 geoarrow_compute_op <- function(op) {

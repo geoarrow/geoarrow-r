@@ -10,7 +10,7 @@
 
 
 extern "C" SEXP geoarrow_c_compute(SEXP op_sexp, SEXP array_from_sexp, SEXP array_to_sexp,
-                                   SEXP options_sexp) {
+                                   SEXP filter_sexp, SEXP options_sexp) {
     CPP_START
 
     const char* op = Rf_translateCharUTF8(STRING_ELT(op_sexp, 0));
@@ -43,7 +43,17 @@ extern "C" SEXP geoarrow_c_compute(SEXP op_sexp, SEXP array_from_sexp, SEXP arra
     // Do the compute operation
     view->read_meta(builder);
     view->set_array(array_data_from);
-    view->read_features(builder);
+
+    // Inspect the filter to allow a subset
+
+    // literal TRUE
+    if (TYPEOF(filter_sexp) == LGLSXP &&
+        Rf_length(filter_sexp) == 1 &&
+        LOGICAL(filter_sexp)[0] == 1) {
+        view->read_features(builder);
+    } else {
+        Rf_error("Filter type not supported");
+    }
 
     // Transfer ownership of the built array_data and schema to array_to
     builder->release(array_data_to, schema_to);
