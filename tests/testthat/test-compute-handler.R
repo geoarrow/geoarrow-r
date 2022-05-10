@@ -113,14 +113,11 @@ test_that("geoarrow_compute_handler() can roundtrip all example WKT", {
 })
 
 test_that("geoarrow_compute_handler() can cast all the examples to WKB", {
-  skip_if_not_installed("geos")
-
   for (name in names(geoarrow_example_wkt)) {
     dst_narrow <- wk::wk_handle(
       geoarrow_example_wkt[[name]],
       geoarrow_compute_handler("cast", list(schema = geoarrow_schema_wkb()))
     )
-
 
     dst_narrow$schema$metadata <- list("ARROW:extension:name" = "geoarrow.wkb")
 
