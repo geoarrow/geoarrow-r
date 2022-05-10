@@ -79,5 +79,26 @@ handle_geoarrow_stream_wk <- function(array_stream, handler,
 
 # for testing
 geoarrow_create_wkt <- function(x, ...) {
-  geoarrow_create_narrow(wk::new_wk_wkt(x), schema = geoarrow_schema_wkt(...))
+  array <- narrow::as_narrow_array(x)
+  array$schema <- geoarrow_schema_wkt(...)
+  array
+}
+
+geoarrow_create_wkb <- function(x, ...) {
+  lens <- lengths(unclass(x))
+  data <- unlist(x, use.names = FALSE)
+  validity <- if (any(is.na(x))) narrow::as_narrow_bitmask(!is.na(x))
+
+  narrow::narrow_array(
+    schema = geoarrow_schema_wkb(...),
+    array_data = narrow::narrow_array_data(
+      length = length(x),
+      null_count = sum(is.na(x)),
+      buffers = list(
+        validity,
+        as.integer(c(0L, cumsum(lens))),
+        data
+      )
+    )
+  )
 }

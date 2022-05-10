@@ -50,6 +50,42 @@ test_that("geoarrow_collect works without table-level metadata", {
   unlink(temp)
 })
 
+test_that("geoarrow_collect works without metadata or extension types", {
+  skip_if_not(has_arrow_with_extension_type())
+
+  geom_array <- geoarrow_create_narrow(wk::xy(1:26, 27:52))
+  geom_array <- strip_extensions(geom_array)
+
+  table <- arrow::arrow_table(
+    id = letters,
+    geom = narrow::from_narrow_array(geom_array, arrow::Array)
+  )
+
+  temp <- tempfile()
+  arrow::write_parquet(table, temp)
+
+  table2 <- arrow::read_parquet(temp, as_data_frame = FALSE)
+  expect_true(inherits(table2, "Table"))
+  expect_null(table$metadata$geo)
+
+  expect_identical(
+    as.data.frame(geoarrow_collect(table2, handler = wk::xy_writer)),
+    data.frame(id = letters, geom = wk::xy(1:26, 27:52))
+  )
+
+  unlink(temp)
+})
+
+
+test_that("geoarrow_collect() works with zero columns", {
+  skip_if_not(has_arrow_with_extension_type())
+
+  table <- arrow::arrow_table(x = 1:5)[integer()]
+  expect_equal(table$num_rows, 5)
+  df <- geoarrow_collect(table)
+  expect_equal(nrow(df), 5)
+})
+
 test_that("arrow::read|write_feather() just works with handleables", {
   skip_if_not(has_arrow_with_extension_type())
 

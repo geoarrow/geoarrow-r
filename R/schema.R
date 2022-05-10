@@ -148,8 +148,7 @@ geoarrow_schema_collection <- function(child, name = "") {
     ext <- "geoarrow.multipolygon"
     child$name <- "polygons"
   } else {
-    ext <- "geoarrow.geometrycollection"
-    child$name <- "geometries"
+    stop("Unsupported child type for geoarrow collection type")
   }
 
   narrow::narrow_schema(
@@ -191,10 +190,6 @@ geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, edges = NUL
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, edges = edges)
     )
   )
-}
-
-format_is_id <- function(format_id) {
-  isTRUE(scalar_chr(format_id) %in% c("i", "I", "l", "L", "s", "S", "c", "C"))
 }
 
 format_is_float_or_double <- function(format_coord) {

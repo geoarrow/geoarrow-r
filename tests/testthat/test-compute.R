@@ -6,6 +6,35 @@ test_that("geoarrow_compute() errors for invalid operation", {
   )
 })
 
+test_that("geoarrow_compute() errors for bad options", {
+  expect_error(
+    geoarrow_compute(
+      geoarrow_example_narrow("point"),
+      "global_bounds",
+      list(fish = 123)
+    ),
+    'Can\'t convert `options\\["fish"\\]`'
+  )
+
+  expect_error(
+    geoarrow_compute(
+      geoarrow_example_narrow("point"),
+      "global_bounds",
+      list(TRUE)
+    ),
+    '`names\\(options\\)` is NULL'
+  )
+
+  expect_error(
+    geoarrow_compute(
+      geoarrow_example_narrow("point"),
+      "global_bounds",
+      setNames(list(TRUE), NA_character_)
+    ),
+    '`names\\(options\\)\\[1\\]` is NA'
+  )
+})
+
 test_that("geoarrow_compute() can cast all the examples to WKT", {
   # nc has coordinates that take up all 16 precision slots,
   # which have some minor differences between the ryu and sprintf translations

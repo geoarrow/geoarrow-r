@@ -23,6 +23,37 @@ test_that("geoarrow_create_narrow() can use geoarrow_compute() for WKB", {
   )
 })
 
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for Large WKB", {
+  array <- geoarrow_create_narrow(
+    geoarrow_create_narrow(wk::xy(1:2, 1:2)),
+    schema = geoarrow_schema_wkb(format = "Z"),
+    strict = TRUE
+  )
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
+test_that("geoarrow_create_narrow() can use geoarrow_compute() for Fixed-size WKB", {
+  skip_if_not(has_arrow_with_extension_type())
+
+  array_arrow <- arrow::Array$create(
+    unclass(wk::as_wkb(wk::xy(1:2, 1:2))),
+    arrow::fixed_size_binary(byte_width = 21)
+  )
+
+  array <- narrow::as_narrow_array(array_arrow)
+  array$schema$metadata[["ARROW:extension:name"]] <- "geoarrow.wkb"
+
+  expect_identical(
+    wk::as_wkt(array),
+    wk::wkt(c("POINT (1 1)", "POINT (2 2)"))
+  )
+})
+
 test_that("geoarrow_create_narrow() can use geoarrow_compute() for point", {
   array <- geoarrow_create_narrow(
     geoarrow_create_narrow(wk::xy(1:2, 1:2)),

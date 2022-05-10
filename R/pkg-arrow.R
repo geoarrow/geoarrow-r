@@ -57,6 +57,8 @@ has_arrow_with_extension_type <- function() {
     (utils::packageVersion("arrow") >= "7.0.0.9000")
 }
 
+# this runs in .onLoad(), where we can't get coverage
+# nocov start
 register_arrow_extension_type <- function() {
   # for CMD check
   self <- NULL
@@ -149,3 +151,4 @@ register_arrow_extension_type <- function() {
     )
   }
 }
+# nocov end

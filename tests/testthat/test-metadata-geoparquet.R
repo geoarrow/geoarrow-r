@@ -840,6 +840,34 @@ test_that("guess_column_encoding() works for extensioned arrays", {
   expect_error(guess_column_encoding(schema), "Unsupported child encoding for collection")
 })
 
+test_that("guess_column_crs() works", {
+  expect_identical(
+    guess_column_crs(
+      geoarrow_schema_linestring(point = geoarrow_schema_point(crs = "EPSG:1234"))
+    ),
+    "EPSG:1234"
+  )
+
+  expect_identical(
+    guess_column_crs(
+      geoarrow_schema_wkb(crs = "EPSG:1234")
+    ),
+    "EPSG:1234"
+  )
+
+  expect_identical(
+    guess_column_crs(
+      geoarrow_schema_wkt(crs = "EPSG:1234")
+    ),
+    "EPSG:1234"
+  )
+
+  expect_identical(
+    guess_column_crs(narrow::narrow_schema("i")),
+    crs_unspecified()
+  )
+})
+
 test_that("guess_column_encoding() works for unextensioned arrays", {
   expect_identical(
     guess_column_encoding(

@@ -43,7 +43,7 @@ static inline SEXP compute_options_from_sexp(SEXP options_sexp) {
         } else if (TYPEOF(value) == LGLSXP && Rf_length(value) == 1) {
             options->set_bool(name, LOGICAL(value)[0] != 0);
         } else {
-            Rf_error("Can't convert `options[\"%s\"]` to ComputeOptions type");
+            Rf_error("Can't convert `options[\"%s\"]` to ComputeOptions type", name);
         }
     }
 

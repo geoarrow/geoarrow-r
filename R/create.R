@@ -107,17 +107,8 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point())
     dims_in_coords <- "xy"
   }
 
-  # dims are stored differently for struct fixed-width type
-  if (identical(point$format, "+s")) {
-    coord_format <- point$children[[1]]$format
-    point$children <- lapply(strsplit(dims_in_coords, "")[[1]], function(d) {
-      narrow::narrow_schema(coord_format, name = d)
-    })
-  } else if (startsWith(point$format, "+w")) {
-    point$format <- sprintf("+w:%d", nchar(dims_in_coords))
-    point$children[[1]]$name <- dims_in_coords
-  }
-
+  point$format <- sprintf("+w:%d", nchar(dims_in_coords))
+  point$children[[1]]$name <- dims_in_coords
   point$metadata[["ARROW:extension:metadata"]] <-
     do.call(geoarrow_metadata_serialize, point_metadata)
 

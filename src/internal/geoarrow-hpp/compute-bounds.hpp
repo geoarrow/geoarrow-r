@@ -147,6 +147,7 @@ public:
         builder.add_child(std::move(builders_[6]), "mmin");
         builder.add_child(std::move(builders_[7]), "mmax");
 
+        builder.shrink();
         builder.release(array_data, schema);
     }
 

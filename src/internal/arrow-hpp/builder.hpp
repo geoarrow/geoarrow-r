@@ -393,6 +393,7 @@ public:
   virtual ~ArrayBuilder() {}
 
   int64_t size() const { return size_; }
+  void set_size(int64_t size) { size_ = size; }
   const std::string& name() const { return name_; }
   void set_name(const std::string& name) { name_ = name; }
   void set_metadata(const std::string& name, const std::string& value) {

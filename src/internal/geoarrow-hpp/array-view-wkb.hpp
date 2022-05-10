@@ -66,9 +66,9 @@ private:
     WKBReader reader_;
 };
 
-class FixedWidthWKBArrayView: public ArrayView {
+class FixedSizeWKBArrayView: public ArrayView {
 public:
-    FixedWidthWKBArrayView(const struct ArrowSchema* schema): ArrayView(schema) {}
+    FixedSizeWKBArrayView(const struct ArrowSchema* schema): ArrayView(schema) {}
 
     void set_array(const struct ArrowArray* array) {
         ArrayView::set_array(array);
@@ -76,11 +76,11 @@ public:
     }
 
     Handler::Result read_features(Handler* handler) {
-        return internal::read_features_templ<FixedWidthWKBArrayView>(*this, handler);
+        return internal::read_features_templ<FixedSizeWKBArrayView>(*this, handler);
     }
 
     Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return internal::read_feature_templ<FixedWidthWKBArrayView>(*this, offset, handler);
+        return internal::read_feature_templ<FixedSizeWKBArrayView>(*this, offset, handler);
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {

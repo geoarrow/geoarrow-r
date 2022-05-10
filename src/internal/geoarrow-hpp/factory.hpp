@@ -34,7 +34,7 @@ ArrayView* create_view_wkb(struct ArrowSchema* schema, Meta& geoarrow_meta) {
     case util::StorageType::LargeBinary:
         return new LargeWKBArrayView(schema);
     case util::StorageType::FixedWidthBinary:
-        return new FixedWidthWKBArrayView(schema);
+        return new FixedSizeWKBArrayView(schema);
     default:
         throw Meta::ValidationError(
             "Unsupported storage type for extension geoarrow.wkb");
