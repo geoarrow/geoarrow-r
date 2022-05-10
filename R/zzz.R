@@ -1,6 +1,12 @@
 
 # nocov start
 .onLoad <- function(...) {
+  vctr_classes <- c(
+    "wkb", "wkt",
+    "point", "linestring", "polygon",
+    "multipoint", "multilinestring", "multipolygon"
+  )
+
   for (ext in c("wkb", "wkt", "point", "linestring", "polygon", "multi")) {
     cls <- paste0("narrow_vctr_", ext)
     s3_register("vctrs::vec_proxy", cls, vctr_proxy)

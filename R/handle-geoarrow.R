@@ -58,8 +58,13 @@ wk_handle.narrow_array_stream <- function(handleable, handler, ...,
 
 #' @export
 #' @rdname wk_handle.narrow_array
-wk_handle.narrow_vctr_geoarrow <- function(handleable, handler, ...) {
-  wk_handle(attr(handleable, "array", exact = TRUE), handler, ...)
+wk_handle.geoarrow_vctr <- function(handleable, handler, ...) {
+  handle_geoarrow_stream_wk(
+    narrow::as_narrow_array_stream(handleable),
+    handler,
+    attr(handleable, "schema", exact = TRUE),
+    n_features = length(handleable)
+  )
 }
 
 handle_geoarrow_wk <- function(array, handler) {
@@ -74,7 +79,7 @@ handle_geoarrow_wk <- function(array, handler) {
 handle_geoarrow_stream_wk <- function(array_stream, handler,
                                       schema = narrow::narrow_array_stream_get_schema(array_stream),
                                       n_features = NA_integer_) {
-  .Call(geoarrow_c_handle_wk, list(array_stream, schema, n_features), handler)
+  .Call(geoarrow_c_handle_wk, list(array_stream, schema, n_features), wk::as_wk_handler(handler))
 }
 
 # for testing

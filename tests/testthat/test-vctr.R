@@ -1,12 +1,14 @@
 
-test_that("geoarrow vector class works", {
-  skip_if_not(has_arrow_with_extension_type())
+skip("skip vctr tests for now")
 
-  vctr <- geoarrow_create(wk::wkt(c("POINT (1 2)", NA)))
-  expect_s3_class(vctr, "narrow_vctr_geoarrow_point")
+test_that("geoarrow vector class works", {
+  vctr <- geoarrow::geoarrow(wk::wkt(c("POINT (1 2)", NA)))
+  expect_s3_class(vctr, "geoarrow_point")
   expect_length(vctr, 2)
+  expect_s3_class(attr(vctr, "schema"), "narrow_schema")
+  expect_s3_class(attr(vctr, "array_data")[[1]], "narrow_array_data")
   expect_identical(vctrs::vec_proxy(vctr), vctr)
-  expect_s3_class(vctrs::vec_restore(vctr, vctr), "narrow_vctr_geoarrow_point")
+  expect_s3_class(vctrs::vec_restore(vctr, vctr), "geoarrow_point")
 })
 
 test_that("geoarrow format() works for all extensions", {
@@ -135,4 +137,15 @@ test_that("vctrs support works for all extensions", {
     vctrs::vec_restore(vctrs::vec_proxy(vctr), vctr),
     "narrow_vctr_geoarrow_multipolygon"
   )
+})
+
+test_that("identity slice detector works", {
+  expect_identical(.Call(geoarrow_c_is_identity_slice, environment()), FALSE)
+
+  expect_identical(.Call(geoarrow_c_is_identity_slice, integer()), TRUE)
+  expect_identical(.Call(geoarrow_c_is_identity_slice, 1L), TRUE)
+  expect_identical(.Call(geoarrow_c_is_identity_slice, 1:3), TRUE)
+  expect_identical(.Call(geoarrow_c_is_identity_slice, 2L), FALSE)
+
+
 })

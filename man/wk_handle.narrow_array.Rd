@@ -3,7 +3,7 @@
 \name{wk_handle.narrow_array}
 \alias{wk_handle.narrow_array}
 \alias{wk_handle.narrow_array_stream}
-\alias{wk_handle.narrow_vctr_geoarrow}
+\alias{wk_handle.geoarrow_vctr}
 \title{Handle Arrow arrays}
 \usage{
 \method{wk_handle}{narrow_array}(handleable, handler, ...)
@@ -16,7 +16,7 @@
   geoarrow_n_features = NA_integer_
 )
 
-\method{wk_handle}{narrow_vctr_geoarrow}(handleable, handler, ...)
+\method{wk_handle}{geoarrow_vctr}(handleable, handler, ...)
 }
 \arguments{
 \item{handleable}{A geometry vector (e.g., \code{\link[wk:wkb]{wkb()}}, \code{\link[wk:wkt]{wkt()}}, \code{\link[wk:xy]{xy()}},

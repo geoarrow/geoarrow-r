@@ -2,8 +2,6 @@
 % Please edit documentation in R/geoarrow-package.R
 \docType{package}
 \name{geoarrow-package}
-\alias{geoarrow}
-\alias{geoarrow-package}
 \title{geoarrow: Extension types for geospatial data for use with 'Arrow'}
 \description{
 Provides extension types and conversions to between R-native object types and 'Arrow' columnar types.
