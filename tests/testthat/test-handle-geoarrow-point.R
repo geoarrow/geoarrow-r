@@ -3,78 +3,34 @@ test_that("geoarrow point reader works for point", {
   coords_base <- wk::xy(1:10, 11:20)
 
   # helpful for interactive debugging
-  point_schema <- geoarrow_schema_point
   coord_dim <- "xy"
 
-  for (point_schema in list(geoarrow_schema_point, geoarrow_schema_point_struct)) {
-    for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
-      dims_exploded <- strsplit(coord_dim, "")[[1]]
-      features <- wk::as_wkb(wk::as_xy(coords_base, dims = dims_exploded))
+  for (coord_dim in c("xy", "xyz", "xym", "xyzm")) {
+    dims_exploded <- strsplit(coord_dim, "")[[1]]
+    features <- wk::as_wkb(wk::as_xy(coords_base, dims = dims_exploded))
 
-      features_array <- geoarrow_create_narrow_from_buffers(
-        features,
-        schema = point_schema(dim = coord_dim),
-        strict = TRUE
-      )
+    features_array <- geoarrow_create_narrow(
+      features,
+      schema = geoarrow_schema_point(dim = coord_dim),
+      strict = TRUE
+    )
 
-      expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
-      expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
-      expect_identical(
-        wk::wk_vector_meta(features_array),
-        data.frame(
-          geometry_type = 1L,
-          size = 10,
-          has_z = "z" %in% dims_exploded,
-          has_m = "m" %in% dims_exploded
-        )
+    expect_identical(wk_handle(features_array, wk::wkb_writer()), features)
+    expect_identical(wk::as_wkt(features_array), wk::as_wkt(features))
+    expect_identical(
+      wk::wk_vector_meta(features_array),
+      data.frame(
+        geometry_type = 1L,
+        size = 10,
+        has_z = "z" %in% dims_exploded,
+        has_m = "m" %in% dims_exploded
       )
-      expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
-    }
+    )
+    expect_identical(wk::wk_meta(features_array), wk::wk_meta(features))
   }
 })
 
 test_that("geoarrow point reader errors for invalid schemas", {
-  schema <- geoarrow_schema_point_struct()
-  schema$children[[1]]$name <- "xray"
-  points_array <- narrow::narrow_array(
-    schema,
-    validate = FALSE
-  )
-  expect_error(
-    wk::wk_void(points_array),
-    "Expected struct geoarrow.point child 0 to have name"
-  )
-
-  schema$children[[1]]$name <- "a"
-  points_array <- narrow::narrow_array(
-    schema,
-    validate = FALSE
-  )
-  expect_error(
-    wk::wk_void(points_array),
-    "Expected struct geoarrow.point child 0 to have name"
-  )
-
-  schema$children[[1]]$name <- "y"
-  points_array <- narrow::narrow_array(
-    schema,
-    validate = FALSE
-  )
-  expect_error(
-    wk::wk_void(points_array),
-    "Struct geoarrow.point child names must be"
-  )
-
-  schema <- geoarrow_schema_point_struct()
-  schema$children[[1]] <- narrow::narrow_schema("n")
-  points_array <- narrow::narrow_array(schema, validate = FALSE)
-  expect_error(wk::wk_void(points_array), "had an unsupported storage type 'n'")
-
-  schema <- geoarrow_schema_point_struct()
-  schema$children[[1]] <- narrow::narrow_schema("+l")
-  points_array <- narrow::narrow_array(schema, validate = FALSE)
-  expect_error(wk::wk_void(points_array), "child 0 has an invalid schema")
-
   schema <- geoarrow_schema_point()
   points_array <- narrow::narrow_array(
     schema,
@@ -127,5 +83,5 @@ test_that("geoarrow point reader errors for invalid schemas", {
     narrow::narrow_array_data(),
     validate = FALSE
   )
-  expect_error(wk::wk_void(points_array), "struct or a fixed-width list")
+  expect_error(wk::wk_void(points_array), "a fixed-width list")
 })

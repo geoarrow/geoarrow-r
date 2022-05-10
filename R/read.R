@@ -57,20 +57,15 @@ geoarrow_collect <- function(x, ..., handler = NULL, metadata = NULL) {
 #' @rdname read_geoparquet
 #' @export
 geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
+  metadata_specified <- !is.null(metadata) || !is.null(x$metadata$geo)
   metadata <- geoarrow_object_metadata(x, metadata)
 
+  # try to guess metadata columns (there may be zero)
   if (is.null(metadata$columns)) {
-    metadata$columns <- guess_metadata_columns(x)
-
-    # if nothing could be guessed, fall back on x$metadata$geo
-    if (length(metadata$columns) == 0) {
-      geo <- x$metadata$geo
-      if (is.character(geo)) {
-        geo <- jsonlite::fromJSON(geo)
-      }
-
-      metadata$columns <- geo$columns
-    }
+    metadata$columns <- guess_metadata_columns(
+      x,
+      default_crs_is_ogc_crs84 = metadata_specified
+    )
   }
 
   handleable_cols <- intersect(names(x), names(metadata$columns))
@@ -102,8 +97,8 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
 
       if (!is.null(result)) {
         wk::wk_crs(result) <- recursive_extract_narrow_schema(geoarrow_schema, "crs")
-        geodesic <- recursive_extract_narrow_schema(geoarrow_schema, "crs")
-        if (identical(geodesic, "true")) {
+        edges <- recursive_extract_narrow_schema(geoarrow_schema, "edges")
+        if (identical(edges, "spherical")) {
           wk::wk_is_geodesic(result) <- TRUE
         }
       }
@@ -122,10 +117,8 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
     attr_results <- as.data.frame(x[attr_cols])
     attr_results[names(handleable_results)] <- handleable_results
     attr_results
-  } else if (length(handleable_results) > 0) {
-    new_data_frame(handleable_results)
   } else {
-    new_data_frame(list(), nrow = 1)
+    new_data_frame(handleable_results)
   }
 }
 
@@ -196,7 +189,7 @@ geoarrow_object_metadata <- function(x, metadata = NULL) {
   }
 }
 
-guess_metadata_columns <- function(x) {
+guess_metadata_columns <- function(x, default_crs_is_ogc_crs84 = TRUE) {
   # first, look for extension metadata
   guessed_encodings <- vapply(names(x), function(col_name) {
     schema <- narrow::as_narrow_schema(x$schema[[col_name]])
@@ -224,5 +217,11 @@ guess_metadata_columns <- function(x) {
   # types and would be annoying if guessed wrong
   guessed_encodings <- guessed_encodings[!(guessed_encodings %in% c("WKT", "WKB"))]
 
-  lapply(guessed_encodings, function(e) list(encoding = e))
+  # not including the crs key here will result in an assume lon/lat; however
+  # in "recovery" mode, we don't make assumptions
+  if (default_crs_is_ogc_crs84) {
+    lapply(guessed_encodings, function(e) list(encoding = e))
+  } else {
+    lapply(guessed_encodings, function(e) list(encoding = e, crs = NULL))
+  }
 }

@@ -248,16 +248,8 @@ test_that("bad arrays error", {
   )
 })
 
-test_that("large binary/unicode is supported", {
-  arr_wkt <- geoarrow_create_narrow_from_buffers(
-    wk::wkt("POINT (0 1)"),
-    schema = geoarrow_schema_wkt(format = "Z"),
-    strict = TRUE
-  )
-
-  expect_identical(wk::as_wkt(arr_wkt), wk::wkt("POINT (0 1)"))
-
-  arr_wkt <- geoarrow_create_narrow_from_buffers(
+test_that("large unicode is supported", {
+  arr_wkt <- geoarrow_create_narrow(
     wk::wkt("POINT (0 1)"),
     schema = geoarrow_schema_wkt(format = "U"),
     strict = TRUE

@@ -29,11 +29,11 @@ library(geoarrow)
 We'll also need some test arrays with each of the six types supported in the Arrow-native format.
 
 ```{r}
-points <- geoarrow_create_narrow_from_buffers(
+points <- geoarrow_create_narrow(
   wk::wkt(c("POINT (30 10)", "POINT (40 30)"))
 )
 
-linestrings <- geoarrow_create_narrow_from_buffers(
+linestrings <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "LINESTRING (30 10, 10 30, 40 40)",
@@ -42,7 +42,7 @@ linestrings <- geoarrow_create_narrow_from_buffers(
   )
 )
 
-polygons <- geoarrow_create_narrow_from_buffers(
+polygons <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
@@ -53,11 +53,11 @@ polygons <- geoarrow_create_narrow_from_buffers(
   )
 )
 
-multipoints <- geoarrow_create_narrow_from_buffers(
+multipoints <- geoarrow_create_narrow(
   wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (0 0, 3 8)"))
 )
 
-multilinestrings <- geoarrow_create_narrow_from_buffers(
+multilinestrings <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))",
@@ -68,7 +68,7 @@ multilinestrings <- geoarrow_create_narrow_from_buffers(
   )
 )
 
-multipolygons <- geoarrow_create_narrow_from_buffers(
+multipolygons <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "MULTIPOLYGON (
@@ -310,7 +310,7 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
 geoarrow_metadata_dump(points$schema)
 geoarrow_metadata_dump(linestrings$schema)
 geoarrow_metadata_dump(
-  geoarrow_create_narrow_from_buffers(
+  geoarrow_create_narrow(
     wk::wkt(crs = "EPSG:1234", geodesic = TRUE),
     geoarrow_schema_linestring()
   )$schema
@@ -331,7 +331,7 @@ If you need to deal with arbitrary vectors of that may have different types or d
 
 ### Points
 
-For points encoded as a fixed-size list (the default), you need three pieces of information: the length, the initial offset into the array, and the buffer of `double`s containing the coordinates.
+For points, you need three pieces of information: the length, the initial offset into the array, and the buffer of `double`s containing the coordinates.
 
 ```{c, results="hide"}
 #include <R.h>
@@ -369,49 +369,6 @@ point_print <- function(x) {
 }
 
 point_print(points)
-```
-
-For points encoded as a struct, the approach is similar but one buffer per dimension is required.
-
-```{c, results="hide"}
-#include <R.h>
-#include "narrow.h"
-
-SEXP c_point_struct_print(SEXP array_data_xptr) {
-  struct ArrowArray* array_data = array_data_from_xptr(array_data_xptr, "array_data");
-
-  double* x = (double*) array_data->children[0]->buffers[1];
-  double* y = (double*) array_data->children[1]->buffers[1];
-  x = x + array_data->offset;
-  y = y + array_data->offset;
-
-  for (int64_t point_id = 0; point_id < array_data->length; point_id++) {
-    Rprintf("point[%d] (%g %g)\n", point_id, x[point_id], y[point_id]);
-  }
-
-  return R_NilValue;
-}
-```
-
-```{r}
-point_struct_print <- function(x) {
-  x <- as_narrow_array(x)
-
-  stopifnot(
-    x$schema$format == "+s",
-    x$schema$children[[1]]$format == "g",
-    x$schema$children[[2]]$format == "g"
-  )
-
-  invisible(.Call("c_point_struct_print", x$array_data))
-}
-
-points_struct <- geoarrow_create_narrow_from_buffers(
-  points,
-  schema = geoarrow_schema_point_struct()
-)
-
-point_struct_print(points_struct)
 ```
 
 ### Linestrings
@@ -698,7 +655,7 @@ SEXP c_dump_metadata(SEXP schema_xptr) {
 ```{r}
 invisible(.Call("c_dump_metadata", points$schema))
 
-with_crs <- geoarrow_create_narrow_from_buffers(
+with_crs <- geoarrow_create_narrow(
   wk::wkt(crs = "EPSG:1234"),
   schema = geoarrow_schema_point()
 )

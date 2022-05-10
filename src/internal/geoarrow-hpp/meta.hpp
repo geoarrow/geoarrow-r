@@ -111,42 +111,9 @@ class Meta {
                     return false;
                 }
                 break;
-            case util::StorageType::Struct:
-                for (int64_t i = 0; i < schema->n_children; i++) {
-                    if (!child.set_schema(schema->children[i])) {
-                        set_child_error(
-                            child.error_,
-                            "Struct geoarrow.point child %lld has an invalid schema", i);
-                        return false;
-                    }
-
-                    if (child.storage_type_ != util::StorageType::Float64) {
-                        set_error(
-                            "Struct geoarrow.point child %lld had an unsupported storage type '%s'",
-                            i, schema->children[i]->format);
-                        return false;
-                    }
-
-                    dim_[i] = schema->children[i]->name[0];
-                    if (strlen(schema->children[i]->name) != 1 || strchr("xyzm", dim_[i]) == nullptr) {
-                        set_error(
-                            "Expected struct geoarrow.point child %lld to have name 'x', 'y', 'z', or 'm', but found '%s'",
-                            i, schema->children[i]->name);
-                        return false;
-                    }
-                }
-
-                dimensions_ = dimensions_from_dim(dim_);
-                if (dimensions_ == util::Dimensions::DIMENSIONS_UNKNOWN) {
-                    set_error(
-                        "Struct geoarrow.point child names must be 'xy', 'xyz', 'xym', or 'xyzm'");
-                    return false;
-                }
-
-                break;
             default:
                 set_error(
-                    "Expected geoarrow.point to be a struct or a fixed-width list but found '%s'",
+                    "Expected geoarrow.point to be a fixed-width list but found '%s'",
                     schema->format);
                 return false;
             }

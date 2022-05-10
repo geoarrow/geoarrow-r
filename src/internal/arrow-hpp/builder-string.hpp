@@ -12,11 +12,7 @@ namespace builder {
 class BinaryArrayBuilder: public ArrayBuilder {
 public:
   BinaryArrayBuilder(): is_large_(false), item_size_(0) {
-    if (is_large_) {
-      large_offset_buffer_builder_.write_element(0);
-    } else {
-      offset_buffer_builder_.write_element(0);
-    }
+    offset_buffer_builder_.write_element(0);
   }
 
   void reserve(int64_t additional_capacity) {

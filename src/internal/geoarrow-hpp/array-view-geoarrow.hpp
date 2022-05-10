@@ -7,20 +7,6 @@
 
 namespace geoarrow {
 
-namespace {
-
-    template <class TArrayView>
-    Handler::Result read_point_geometry(TArrayView& view, Handler* handler, int64_t offset) {
-        Handler::Result result;
-        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POINT, 1));
-        HANDLE_OR_RETURN(view.read_coords(handler, offset, 1));
-        HANDLE_OR_RETURN(handler->geom_end());
-        return Handler::Result::CONTINUE;
-    }
-
-} // anonymous namespace
-
-
 class PointArrayView: public ArrayView {
   public:
     PointArrayView(const struct ArrowSchema* schema):
@@ -42,77 +28,25 @@ class PointArrayView: public ArrayView {
     }
 
     Handler::Result read_geometry(Handler* handler, int64_t offset) {
-        return read_point_geometry<PointArrayView>(*this, handler, offset);
+        Handler::Result result;
+        HANDLE_OR_RETURN(handler->geom_start(util::GeometryType::POINT, 1));
+        HANDLE_OR_RETURN(read_coords(handler, offset, 1));
+        HANDLE_OR_RETURN(handler->geom_end());
+        return Handler::Result::CONTINUE;
     }
 
     Handler::Result read_coords(Handler* handler, int64_t offset, int64_t n) {
         Handler::Result result;
-        HANDLE_OR_RETURN(handler->coords(data_buffer_ + (offset + array_->offset) * coord_size_, n, coord_size_));
+        HANDLE_OR_RETURN(
+            handler->coords(
+                data_buffer_ + (offset + array_->offset) * coord_size_,
+                n,
+                coord_size_));
         return Handler::Result::CONTINUE;
     }
 
     int coord_size_;
     const double* data_buffer_;
-};
-
-
-class GeoArrowPointStructView: public ArrayView {
-  public:
-    GeoArrowPointStructView(const struct ArrowSchema* schema): ArrayView(schema) {
-        switch (meta_.dimensions_) {
-        case util::Dimensions::XYZ:
-        case util::Dimensions::XYM:
-            coord_size_ = 3;
-            break;
-        case util::Dimensions::XYZM:
-            coord_size_ = 4;
-            break;
-        default:
-            coord_size_ = 2;
-            break;
-        }
-
-        memset(coord_buffer_, 0, sizeof(coord_buffer_));
-    }
-
-    void set_array(const struct ArrowArray* array) {
-        ArrayView::set_array(array);
-        memset(coord_buffer_, 0, sizeof(coord_buffer_));
-        for (int i = 0; i < coord_size_; i++) {
-            const void* buffer_void = array->children[i]->buffers[1];
-            coord_buffer_[i] = reinterpret_cast<const double*>(buffer_void);
-        }
-    }
-
-    Handler::Result read_features(Handler* handler) {
-        return internal::read_features_templ<GeoArrowPointStructView>(*this, handler);
-    }
-
-    Handler::Result read_feature(Handler* handler, int64_t offset) {
-        return internal::read_feature_templ<GeoArrowPointStructView>(*this, offset, handler);
-    }
-
-    Handler::Result read_geometry(Handler* handler, int64_t offset) {
-        return read_point_geometry<GeoArrowPointStructView>(*this, handler, offset);
-    }
-
-    Handler::Result read_coords(Handler* handler, int64_t offset, int64_t n) {
-        Handler::Result result;
-
-        for (int64_t i = 0; i < n; i++) {
-            for (int j = 0; j < coord_size_; j++) {
-                coord_[j] = coord_buffer_[j][array_->offset + offset + i];
-            }
-
-            HANDLE_OR_RETURN(handler->coords(coord_, 1, coord_size_));
-        }
-
-        return Handler::Result::CONTINUE;
-    }
-
-    int coord_size_;
-    double coord_[4];
-    const double* coord_buffer_[4];
 };
 
 
@@ -141,10 +75,9 @@ class ListArrayView: public ArrayView {
 };
 
 
-template <class PointView = PointArrayView>
-class LinestringArrayView: public ListArrayView<PointView> {
+class LinestringArrayView: public ListArrayView<PointArrayView> {
   public:
-    LinestringArrayView(struct ArrowSchema* schema): ListArrayView<PointView>(schema) {}
+    LinestringArrayView(struct ArrowSchema* schema): ListArrayView<PointArrayView>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
         return internal::read_features_templ<LinestringArrayView>(*this, handler);
@@ -168,10 +101,10 @@ class LinestringArrayView: public ListArrayView<PointView> {
 };
 
 
-template <class PointView = PointArrayView>
-class PolygonArrayView: public ListArrayView<ListArrayView<PointView>> {
+class PolygonArrayView: public ListArrayView<ListArrayView<PointArrayView>> {
   public:
-    PolygonArrayView(struct ArrowSchema* schema): ListArrayView<ListArrayView<PointView>>(schema) {}
+    PolygonArrayView(struct ArrowSchema* schema):
+        ListArrayView<ListArrayView<PointArrayView>>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
         return internal::read_features_templ<PolygonArrayView>(*this, handler);
@@ -194,7 +127,9 @@ class PolygonArrayView: public ListArrayView<ListArrayView<PointView>> {
             int64_t ring_size = this->child_.child_size(initial_child_offset + i);
 
             HANDLE_OR_RETURN(handler->ring_start(ring_size));
-            HANDLE_OR_RETURN(this->child_.child_.read_coords(handler, initial_coord_offset, ring_size));
+            HANDLE_OR_RETURN(
+                this->child_.child_.read_coords(
+                    handler, initial_coord_offset, ring_size));
             HANDLE_OR_RETURN(handler->ring_end());
         }
 
@@ -226,7 +161,8 @@ class CollectionArrayView: public ListArrayView<ChildView> {
 
         HANDLE_OR_RETURN(handler->geom_start(this->meta_.geometry_type_, size));
         for (int64_t i = 0; i < size; i++) {
-            HANDLE_OR_RETURN(this->child_.read_geometry(handler, initial_child_offset + i));
+            HANDLE_OR_RETURN(
+                this->child_.read_geometry(handler, initial_child_offset + i));
         }
         HANDLE_OR_RETURN(handler->geom_end());
         return Handler::Result::CONTINUE;

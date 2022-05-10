@@ -9,7 +9,7 @@
 #' @inheritParams geoarrow_create_narrow
 #' @inheritParams geoarrow_schema_point
 #'
-#' @return The result of [geoarrow_create_narrow_from_buffers()] with the specified example type.
+#' @return The result of [geoarrow_create_narrow()] with the specified example type.
 #' @export
 #'
 #' @examples
@@ -70,7 +70,7 @@ geoarrow_example_narrow <- function(which = "nc", schema = NULL,
     schema <- geoarrow_schema_default(handleable)
   }
 
-  geoarrow_create_narrow_from_buffers(handleable, schema = schema, strict = strict)
+  geoarrow_create_narrow(handleable, schema = schema, strict = strict)
 }
 
 #' @rdname geoarrow_example

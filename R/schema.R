@@ -53,30 +53,6 @@ geoarrow_schema_point <- function(name = "", dim = "xy", crs = NULL,
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_point_struct <- function(name = "", dim = "xy", crs = NULL,
-                                         format_coord = "g") {
-  stopifnot(
-    dim_is_xy_xyz_xym_or_xzm(dim),
-    format_is_float_or_double(format_coord)
-  )
-
-  children <- lapply(strsplit(dim, "")[[1]], function(name) {
-    narrow::narrow_schema(format_coord, name = scalar_chr(name))
-  })
-
-  narrow::narrow_schema(
-    name = scalar_chr(name),
-    format = "+s",
-    metadata = list(
-      "ARROW:extension:name" = "geoarrow.point",
-      "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs)
-    ),
-    children = children
-  )
-}
-
-#' @rdname geoarrow_schema_point
-#' @export
 geoarrow_schema_linestring <- function(name = "", edges = NULL,
                                        point = geoarrow_schema_point()) {
   point$name <- "vertices"
@@ -132,21 +108,6 @@ geoarrow_schema_multipoint <- function(child, name = "", dim = "xy",
 
 #' @rdname geoarrow_schema_point
 #' @export
-geoarrow_schema_multipoint_struct <- function(child, name = "", dim = "xy",
-                                              crs = NULL, format_coord = "g") {
-  geoarrow_schema_collection(
-    geoarrow_schema_point_struct(
-      name = "points",
-      dim = dim,
-      crs = crs,
-      format_coord = format_coord
-    ),
-    name = name
-  )
-}
-
-#' @rdname geoarrow_schema_point
-#' @export
 geoarrow_schema_multilinestring <- function(child, name = "", edges = NULL,
                                             point = geoarrow_schema_point()) {
   geoarrow_schema_collection(
@@ -187,8 +148,7 @@ geoarrow_schema_collection <- function(child, name = "") {
     ext <- "geoarrow.multipolygon"
     child$name <- "polygons"
   } else {
-    ext <- "geoarrow.geometrycollection"
-    child$name <- "geometries"
+    stop("Unsupported child type for geoarrow collection type")
   }
 
   narrow::narrow_schema(
@@ -230,10 +190,6 @@ geoarrow_schema_wkt <- function(name = "", format = "u", crs = NULL, edges = NUL
       "ARROW:extension:metadata" = geoarrow_metadata_serialize(crs = crs, edges = edges)
     )
   )
-}
-
-format_is_id <- function(format_id) {
-  isTRUE(scalar_chr(format_id) %in% c("i", "I", "l", "L", "s", "S", "c", "C"))
 }
 
 format_is_float_or_double <- function(format_coord) {

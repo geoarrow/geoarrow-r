@@ -150,7 +150,7 @@ test_that("geoparquet_column_metadata() can include bbox and geometry_type", {
   expect_mapequal(
     geoparquet_column_metadata(
       geoarrow_schema_multipoint(),
-      array = geoarrow_create_narrow_from_buffers(
+      array = geoarrow_create_narrow(
         wk::wkt("MULTIPOINT (0 1, 2 3)")
       )
     ),
@@ -167,28 +167,28 @@ test_that("geometry_type column metadata is correct", {
   # works with vector meta
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT (0 1)"))
+      geoarrow_create_narrow(wk::wkt("POINT (0 1)"))
     ),
     "Point"
   )
 
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT Z (0 1 2)"))
+      geoarrow_create_narrow(wk::wkt("POINT Z (0 1 2)"))
     ),
     "Point Z"
   )
 
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT M (0 1 2)"))
+      geoarrow_create_narrow(wk::wkt("POINT M (0 1 2)"))
     ),
     "Point M"
   )
 
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT ZM (0 1 2 3)"))
+      geoarrow_create_narrow(wk::wkt("POINT ZM (0 1 2 3)"))
     ),
     "Point ZM"
   )
@@ -196,7 +196,7 @@ test_that("geometry_type column metadata is correct", {
   # needs compute
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("POINT (0 1)"),
         schema = geoarrow_schema_wkt()
       )
@@ -207,7 +207,7 @@ test_that("geometry_type column metadata is correct", {
   # with multiple types
   expect_setequal(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt(c("POINT (0 1)", "LINESTRING (0 1, 2 3)")),
         schema = geoarrow_schema_wkt()
       )
@@ -219,7 +219,7 @@ test_that("geometry_type column metadata is correct", {
 test_that("bbox column metadata is correct", {
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING EMPTY")
       )
     ),
@@ -228,7 +228,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING (0 1, 2 3)")
       )
     ),
@@ -237,7 +237,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING Z (0 1 2, 2 3 4)")
       )
     ),
@@ -246,7 +246,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING M (0 1 2, 2 3 4)")
       )
     ),
@@ -255,7 +255,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING ZM (0 1 2 3, 2 3 4 5)")
       )
     ),
@@ -431,50 +431,6 @@ test_that("schema_from_geoparquet_metadata() works for point", {
     narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
     narrow::narrow_schema_info(
       geoarrow_schema_point(dim = "xyzm", crs = "EPSG:1234"),
-      recursive = TRUE
-    )
-  )
-})
-
-test_that("schema_from_geoparquet_metadata() works for point struct", {
-  bare_point <- geoarrow_schema_point_struct(dim = "xy")
-  bare_point$metadata <- NULL
-
-  schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = NULL, encoding = "geoarrow.point"),
-    bare_point
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_point_struct(),
-      recursive = TRUE
-    )
-  )
-
-  # with crs
-  schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = "EPSG:1234", encoding = "geoarrow.point"),
-    bare_point
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_point_struct(crs = "EPSG:1234"),
-      recursive = TRUE
-    )
-  )
-
-  # with dim
-  bare_point$children <- lapply(1:4, function(x) narrow::narrow_schema("g"))
-  schema_reconstructed <- schema_from_geoparquet_metadata(
-    list(crs = "EPSG:1234", encoding = "geoarrow.point"),
-    bare_point
-  )
-  expect_identical(
-    narrow::narrow_schema_info(schema_reconstructed, recursive = TRUE),
-    narrow::narrow_schema_info(
-      geoarrow_schema_point_struct(dim = "xyzm", crs = "EPSG:1234"),
       recursive = TRUE
     )
   )
@@ -884,6 +840,34 @@ test_that("guess_column_encoding() works for extensioned arrays", {
   expect_error(guess_column_encoding(schema), "Unsupported child encoding for collection")
 })
 
+test_that("guess_column_crs() works", {
+  expect_identical(
+    guess_column_crs(
+      geoarrow_schema_linestring(point = geoarrow_schema_point(crs = "EPSG:1234"))
+    ),
+    "EPSG:1234"
+  )
+
+  expect_identical(
+    guess_column_crs(
+      geoarrow_schema_wkb(crs = "EPSG:1234")
+    ),
+    "EPSG:1234"
+  )
+
+  expect_identical(
+    guess_column_crs(
+      geoarrow_schema_wkt(crs = "EPSG:1234")
+    ),
+    "EPSG:1234"
+  )
+
+  expect_identical(
+    guess_column_crs(narrow::narrow_schema("i")),
+    crs_unspecified()
+  )
+})
+
 test_that("guess_column_encoding() works for unextensioned arrays", {
   expect_identical(
     guess_column_encoding(
@@ -974,19 +958,19 @@ test_that("guess_column_encoding() works for unextensioned arrays", {
     "geoarrow.point"
   )
 
-  schema <- geoarrow_schema_point_struct(dim = "xy")
+  schema <- geoarrow_schema_point(dim = "xy")
   schema$metadata <- NULL
   expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
-  schema <- geoarrow_schema_point_struct(dim = "xyz")
+  schema <- geoarrow_schema_point(dim = "xyz")
   schema$metadata <- NULL
   expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
-  schema <- geoarrow_schema_point_struct(dim = "xym")
+  schema <- geoarrow_schema_point(dim = "xym")
   schema$metadata <- NULL
   expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
-  schema <- geoarrow_schema_point_struct(dim = "xyzm")
+  schema <- geoarrow_schema_point(dim = "xyzm")
   schema$metadata <- NULL
   expect_identical(guess_column_encoding(schema), "geoarrow.point")
 
@@ -1046,29 +1030,6 @@ test_that("guess_column_dim() works", {
 
   bare_schema <- geoarrow_schema_point(dim = "xyzm")
   bare_schema$children[[1]]$name <- ""
-  expect_identical(
-    guess_column_dim(bare_schema),
-    "xyzm"
-  )
-
-  expect_identical(
-    guess_column_dim(geoarrow_schema_point_struct(dim = "xyz")),
-    "xyz"
-  )
-
-  bare_schema <- geoarrow_schema_point_struct(dim = "xy")
-  for (i in seq_along(bare_schema$children)) {
-    bare_schema$children[[i]]$name <- ""
-  }
-  expect_identical(
-    guess_column_dim(bare_schema),
-    "xy"
-  )
-
-  bare_schema <- geoarrow_schema_point_struct(dim = "xyzm")
-  for (i in seq_along(bare_schema$children)) {
-    bare_schema$children[[i]]$name <- ""
-  }
   expect_identical(
     guess_column_dim(bare_schema),
     "xyzm"

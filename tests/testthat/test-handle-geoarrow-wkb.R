@@ -3,9 +3,8 @@ test_that("geoarrow.wkb works and missing values", {
   point <- as.raw(c(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x3e, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x24, 0x40))
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(point, NULL)),
-    schema = geoarrow_schema_wkb()
+  arr_wkb <- geoarrow_create_wkb(
+    wk::new_wk_wkb(list(point, NULL))
   )
 
   expect_identical(wk::as_wkt(arr_wkb), wk::wkt(c("POINT (30 10)", NA)))
@@ -21,9 +20,8 @@ test_that("geoarrow.wkb works with multiple endians", {
                        0x00, 0x00, 0x00, 0x00, 0x3e, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
                        0x00, 0x24, 0x40))
 
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(point_be, point_le)),
-    schema = geoarrow_schema_wkb()
+  arr_wkb <- geoarrow_create_wkb(
+    wk::new_wk_wkb(list(point_be, point_le))
   )
 
   expect_identical(wk::as_wkt(arr_wkb), wk::wkt(c("POINT (30 10)", "POINT (30 10)")))
@@ -69,14 +67,13 @@ test_that("geoarrow.wkb works with ND points and SRID", {
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x40,
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2c, 0x40))
 
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
+  arr_wkb <- geoarrow_create_wkb(
     wk::new_wk_wkb(
       list(
         point_xy, point_z, point_m, point_zm,
         point_s, point_zms
       )
-    ),
-    schema = geoarrow_schema_wkb()
+    )
   )
 
   expect_identical(
@@ -122,9 +119,8 @@ test_that("geoarrow.wkb works simple geometries", {
                       0x00, 0x00, 0x00, 0x00, 0x34, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
                       0x00, 0x34, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x40))
 
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(point, linestring, polygon)),
-    schema = geoarrow_schema_wkb()
+  arr_wkb <- geoarrow_create_wkb(
+    wk::new_wk_wkb(list(point, linestring, polygon))
   )
 
   expect_identical(
@@ -151,9 +147,8 @@ test_that("geoarrow.wkb works with multi geometries", {
                          0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3e,
                          0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x40))
 
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(multipoint)),
-    schema = geoarrow_schema_wkb()
+  arr_wkb <- geoarrow_create_wkb(
+    wk::new_wk_wkb(list(multipoint))
   )
 
   expect_identical(
@@ -211,9 +206,8 @@ test_that("geoarrow.wkb works with nested collections", {
                          0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                          0x3e, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x40))
 
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(collection)),
-    schema = geoarrow_schema_wkb()
+  arr_wkb <- geoarrow_create_wkb(
+    wk::new_wk_wkb(list(collection))
   )
 
   expect_identical(
@@ -236,9 +230,8 @@ test_that("wkb reader can read 1000-3000 style WKB input", {
                        0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x40, 0x00, 0x00,
                        0x00, 0x00, 0x00, 0x00, 0x10, 0x40))
 
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(wkb_xyz, wkb_xym, wkb_xyzm)),
-    schema = geoarrow_schema_wkb()
+  arr_wkb <- geoarrow_create_wkb(
+    wk::new_wk_wkb(list(wkb_xyz, wkb_xym, wkb_xyzm))
   )
 
   expect_identical(
@@ -251,7 +244,7 @@ test_that("large binary is supported", {
   point <- as.raw(c(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x3e, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x24, 0x40))
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
+  arr_wkb <- geoarrow_create_narrow(
     wk::new_wk_wkb(list(point)),
     schema = geoarrow_schema_wkb(format = "Z"),
     strict = TRUE
@@ -261,29 +254,21 @@ test_that("large binary is supported", {
 })
 
 test_that("invalid geometry type code errors", {
+  skip_if_not(has_arrow_with_extension_type())
+
   bad_point <- as.raw(c(0x01,
                         0x01, 0x01, 0x01, 0x01,
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3e, 0x40,
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x40))
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(bad_point)),
-    schema = geoarrow_schema_wkb()
-  )
 
+  array <- arrow::Array$create(list(bad_point), arrow::binary())
+  arr_wkb <- narrow::as_narrow_array(array)
+  arr_wkb$schema <- geoarrow_schema_wkb()
   expect_error(wk::wk_void(arr_wkb), "Unrecognized geometry type")
 
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(as.raw(0x01))),
-    schema = geoarrow_schema_wkb()
-  )
-  expect_error(wk::wk_void(arr_wkb), "Unexpected end of buffer")
-})
-
-test_that("truncated buffer errors", {
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(as.raw(0x01))),
-    schema = geoarrow_schema_wkb()
-  )
+  array <- arrow::Array$create(list(as.raw(0x01)), arrow::binary())
+  arr_wkb <- narrow::as_narrow_array(array)
+  arr_wkb$schema <- geoarrow_schema_wkb()
   expect_error(wk::wk_void(arr_wkb), "Unexpected end of buffer")
 })
 
@@ -307,9 +292,8 @@ test_that("Early returns are supported from the WKB reader", {
   point <- as.raw(c(0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x00, 0x00, 0x00, 0x3e, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00,
                     0x00, 0x24, 0x40))
-  arr_wkb <- geoarrow_create_narrow_from_buffers(
-    wk::new_wk_wkb(list(point)),
-    schema = geoarrow_schema_wkb()
+  arr_wkb <- geoarrow_create_wkb(
+    wk::new_wk_wkb(list(point))
   )
 
   expect_identical(wk::wk_vector_meta(arr_wkb)$size, 1)

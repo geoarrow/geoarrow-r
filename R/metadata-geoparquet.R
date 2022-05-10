@@ -77,12 +77,6 @@ geoparquet_column_metadata <- function(schema, array = NULL, include_crs = TRUE)
     result$edges <- NULL
   }
 
-  # don't include crs, edges, or dim if not top level
-  if (!include_crs) {
-    result$crs <- NULL
-    result$edges <- NULL
-  }
-
   # add bbox and geometry_type if we have the information to do so
   if (include_crs && !is.null(array)) {
     result$bbox <- geoparquet_bbox(array)
@@ -148,14 +142,7 @@ geoparquet_geometry_type <- function(array) {
 
 schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(), edges = NULL) {
   if (!is.null(schema$dictionary)) {
-    schema$dictionary <- schema_from_geoparquet_metadata(
-      meta,
-      schema$dictionary,
-      crs = crs,
-      edges = edges
-    )
-
-    return(schema)
+    stop("dictionary-encoded encoding is not supported")
   }
 
   encoding <- scalar_chr(meta$encoding %||% guess_column_encoding(schema))
@@ -187,31 +174,12 @@ schema_from_geoparquet_metadata <- function(meta, schema, crs = crs_unspecified(
     ),
     "geoarrow.point" = {
       stopifnot(is.null(edges) || identical(edges, "planar"), !is.null(dim))
-
-      if (identical(schema$format, "+s")) {
-        stopifnot(identical(nchar(dim), length(schema$children)))
-
-        format_coord <- vapply(schema$children, function(s) s$format, character(1))
-        format_coord <- unique(format_coord)
-        if (length(format_coord) != 1) {
-          stop("Can't parse schema with multiple child formats as point struct", call. = FALSE)
-        }
-
-        geoarrow_schema_point_struct(
-          name = schema$name,
-          crs = crs_chr_or_null(crs),
-          dim = dim,
-          format_coord = format_coord
-        )
-      } else {
-        stopifnot(!is.null(dim))
-        geoarrow_schema_point(
-          name = schema$name,
-          dim = dim,
-          crs = crs_chr_or_null(crs),
-          format_coord = schema$children[[1]]$format
-        )
-      }
+      geoarrow_schema_point(
+        name = schema$name,
+        dim = dim,
+        crs = crs_chr_or_null(crs),
+        format_coord = schema$children[[1]]$format
+      )
     },
     "geoarrow.linestring" = {
       stopifnot(identical(schema$format, "+l"))
@@ -303,7 +271,6 @@ guess_column_encoding <- function(schema) {
           "geoarrow.point" = return("geoarrow.multipoint"),
           "geoarrow.linestring" = return("geoarrow.multilinestring"),
           "geoarrow.polygon" = return("geoarrow.multipolygon"),
-          "geoarrow.geometry" = return("geoarrow.geometrycollection"),
           stop(sprintf("Unsupported child encoding for collection: '%s'", child_encoding))
         )
       }
@@ -324,12 +291,7 @@ guess_column_encoding <- function(schema) {
 
   # based on format + child names
   child_names <- vapply(schema$children, "[[", "name", FUN.VALUE = character(1))
-  if (schema$format == "+s") {
-     dims <- paste(child_names, collapse = "")
-     if (dims %in% c("xy", "xyz", "xym", "xyzm")) {
-       return("geoarrow.point")
-     }
-  } else if (length(child_names) == 1) {
+  if (length(child_names) == 1) {
     switch(
       child_names,
       "xy" =,
@@ -371,22 +333,7 @@ guess_column_encoding <- function(schema) {
 }
 
 guess_column_dim <- function(schema, array_data = NULL) {
-  if (identical(schema$format, "+s")) {
-    child_formats <- vapply(schema$children, "[[", character(1), "format")
-    child_names <- vapply(schema$children, "[[", character(1), "name")
-    child_names_smush <- paste(child_names, collapse = "")
-    has_child_types <- all(child_formats == "g") || all(child_formats == "f")
-    has_child_names <- child_names_smush %in% c("xy", "xyz", "xym", "xyzm")
-    if (has_child_types && has_child_names) {
-      return(child_names_smush)
-    }
-
-    if (has_child_types && length(child_names) == 2) {
-      return("xy")
-    } else if (has_child_types && length(child_names) == 4) {
-      return("xyzm")
-    }
-  } else if (startsWith(schema$format, "+w:") && length(schema$children) == 1) {
+  if (startsWith(schema$format, "+w:") && length(schema$children) == 1) {
     has_child_type <- schema$children[[1]]$format %in% c("f", "g")
     has_child_name <- schema$children[[1]]$name %in% c("xy", "xyz", "xym", "xyzm")
     if (has_child_type && has_child_name) {
@@ -421,7 +368,9 @@ guess_column_dim <- function(schema, array_data = NULL) {
 
 guess_column_crs <- function(schema) {
   ext <- schema$metadata[["ARROW:extension:name"]]
-  if (identical(ext, "geoarrow.point")) {
+  if (identical(ext, "geoarrow.point") ||
+      identical(ext, "geoarrow.wkb") ||
+      identical(ext, "geoarrow.wkt")) {
     return(geoarrow_metadata(schema)$crs)
   }
 
