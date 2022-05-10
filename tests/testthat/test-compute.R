@@ -33,6 +33,55 @@ test_that("geoarrow_compute() errors for bad options", {
     ),
     '`names\\(options\\)\\[1\\]` is NA'
   )
+
+  expect_error(
+    geoarrow_compute(
+      geoarrow_example_narrow("point"),
+      "cast",
+      list(schema = geoarrow_schema_wkb()),
+      filter = new.env()
+    ),
+    "Filter type not supported"
+  )
+})
+
+test_that("geoarrow_compute() can read using a logical subset", {
+  array <- geoarrow_create_narrow(wk::xy(1:3, 4:6))
+  array_subs <- wk::as_xy(
+    geoarrow_compute(
+      array,
+      "cast",
+      list(schema = geoarrow_schema_wkb()),
+      filter = c(TRUE, FALSE, NA)
+    )
+  )
+  expect_identical(array_subs, wk::xy(c(1, NA), c(4, NA)))
+})
+
+test_that("geoarrow_compute() can read using an integer subset", {
+  array <- geoarrow_create_narrow(wk::xy(1:3, 4:6))
+  array_subs <- wk::as_xy(
+    geoarrow_compute(
+      array,
+      "cast",
+      list(schema = geoarrow_schema_wkb()),
+      filter = c(2L, 1L, 1L, NA_integer_)
+    )
+  )
+  expect_identical(array_subs, wk::xy(c(2, 1, 1, NA), c(5, 4, 4, NA)))
+})
+
+test_that("geoarrow_compute() can read using an double subset", {
+  array <- geoarrow_create_narrow(wk::xy(1:3, 4:6))
+  array_subs <- wk::as_xy(
+    geoarrow_compute(
+      array,
+      "cast",
+      list(schema = geoarrow_schema_wkb()),
+      filter = c(2, 1, 1, NA_real_)
+    )
+  )
+  expect_identical(array_subs, wk::xy(c(2, 1, 1, NA), c(5, 4, 4, NA)))
 })
 
 test_that("geoarrow_compute() can cast all the examples to WKT", {
