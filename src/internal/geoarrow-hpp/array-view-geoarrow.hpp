@@ -37,7 +37,11 @@ class PointArrayView: public ArrayView {
 
     Handler::Result read_coords(Handler* handler, int64_t offset, int64_t n) {
         Handler::Result result;
-        HANDLE_OR_RETURN(handler->coords(data_buffer_ + (offset + array_->offset) * coord_size_, n, coord_size_));
+        HANDLE_OR_RETURN(
+            handler->coords(
+                data_buffer_ + (offset + array_->offset) * coord_size_,
+                n,
+                coord_size_));
         return Handler::Result::CONTINUE;
     }
 
@@ -99,7 +103,8 @@ class LinestringArrayView: public ListArrayView<PointArrayView> {
 
 class PolygonArrayView: public ListArrayView<ListArrayView<PointArrayView>> {
   public:
-    PolygonArrayView(struct ArrowSchema* schema): ListArrayView<ListArrayView<PointArrayView>>(schema) {}
+    PolygonArrayView(struct ArrowSchema* schema):
+        ListArrayView<ListArrayView<PointArrayView>>(schema) {}
 
     Handler::Result read_features(Handler* handler) {
         return internal::read_features_templ<PolygonArrayView>(*this, handler);
@@ -122,7 +127,9 @@ class PolygonArrayView: public ListArrayView<ListArrayView<PointArrayView>> {
             int64_t ring_size = this->child_.child_size(initial_child_offset + i);
 
             HANDLE_OR_RETURN(handler->ring_start(ring_size));
-            HANDLE_OR_RETURN(this->child_.child_.read_coords(handler, initial_coord_offset, ring_size));
+            HANDLE_OR_RETURN(
+                this->child_.child_.read_coords(
+                    handler, initial_coord_offset, ring_size));
             HANDLE_OR_RETURN(handler->ring_end());
         }
 
@@ -154,7 +161,8 @@ class CollectionArrayView: public ListArrayView<ChildView> {
 
         HANDLE_OR_RETURN(handler->geom_start(this->meta_.geometry_type_, size));
         for (int64_t i = 0; i < size; i++) {
-            HANDLE_OR_RETURN(this->child_.read_geometry(handler, initial_child_offset + i));
+            HANDLE_OR_RETURN(
+                this->child_.read_geometry(handler, initial_child_offset + i));
         }
         HANDLE_OR_RETURN(handler->geom_end());
         return Handler::Result::CONTINUE;
