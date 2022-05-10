@@ -9,7 +9,7 @@ test_that("geoarrow reader works for linestring", {
       feature_id = c(rep(1, 5), rep(2, 5))
     )
 
-    features_array <- geoarrow_create_narrow_from_buffers(
+    features_array <- geoarrow_create_narrow(
       features,
       schema = geoarrow_schema_linestring(
         point = geoarrow_schema_point(dim = coord_dim)
@@ -33,7 +33,7 @@ test_that("geoarrow reader works for linestring", {
 })
 
 test_that("geoarrow linestring reader works for null features", {
-  features <- geoarrow_create_narrow_from_buffers(wk::wkt(c(NA, "LINESTRING (1 1, 2 2)")))
+  features <- geoarrow_create_narrow(wk::wkt(c(NA, "LINESTRING (1 1, 2 2)")))
   expect_identical(is.na(wk::as_wkt(features)), c(TRUE, FALSE))
 })
 

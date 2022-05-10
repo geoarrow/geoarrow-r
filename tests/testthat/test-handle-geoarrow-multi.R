@@ -14,7 +14,7 @@ test_that("geoarrow point reader works for multipoint", {
       geometry_type = wk::wk_geometry_type("multipoint")
     )
 
-    features_array <- geoarrow_create_narrow_from_buffers(
+    features_array <- geoarrow_create_narrow(
       features,
       schema = geoarrow_schema_collection(
         geoarrow_schema_point(dim = coord_dim),
@@ -55,7 +55,7 @@ test_that("geoarrow point reader works for multilinestring", {
       geometry_type = wk::wk_geometry_type("multilinestring")
     )
 
-    features_array <- geoarrow_create_narrow_from_buffers(
+    features_array <- geoarrow_create_narrow(
       features,
       schema = geoarrow_schema_multilinestring(
         point = geoarrow_schema_point(dim = coord_dim)
@@ -109,7 +109,7 @@ test_that("geoarrow point reader works for multipolygon", {
       features <- wk::wk_set_m(features, 3)
     }
 
-    features_array <- geoarrow_create_narrow_from_buffers(
+    features_array <- geoarrow_create_narrow(
       features,
       schema = geoarrow_schema_multipolygon(
         point = geoarrow_schema_point(dim = coord_dim)
@@ -133,7 +133,7 @@ test_that("geoarrow point reader works for multipolygon", {
 })
 
 test_that("geoarrow.multi* reader works for null features", {
-  features <- geoarrow_create_narrow_from_buffers(wk::wkt(c(NA, "MULTIPOLYGON (((0 0, 0 1, 1 0, 0 0)))")))
+  features <- geoarrow_create_narrow(wk::wkt(c(NA, "MULTIPOLYGON (((0 0, 0 1, 1 0, 0 0)))")))
   expect_identical(is.na(wk::as_wkt(features)), c(TRUE, FALSE))
 })
 

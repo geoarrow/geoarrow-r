@@ -150,7 +150,7 @@ test_that("geoparquet_column_metadata() can include bbox and geometry_type", {
   expect_mapequal(
     geoparquet_column_metadata(
       geoarrow_schema_multipoint(),
-      array = geoarrow_create_narrow_from_buffers(
+      array = geoarrow_create_narrow(
         wk::wkt("MULTIPOINT (0 1, 2 3)")
       )
     ),
@@ -167,28 +167,28 @@ test_that("geometry_type column metadata is correct", {
   # works with vector meta
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT (0 1)"))
+      geoarrow_create_narrow(wk::wkt("POINT (0 1)"))
     ),
     "Point"
   )
 
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT Z (0 1 2)"))
+      geoarrow_create_narrow(wk::wkt("POINT Z (0 1 2)"))
     ),
     "Point Z"
   )
 
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT M (0 1 2)"))
+      geoarrow_create_narrow(wk::wkt("POINT M (0 1 2)"))
     ),
     "Point M"
   )
 
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(wk::wkt("POINT ZM (0 1 2 3)"))
+      geoarrow_create_narrow(wk::wkt("POINT ZM (0 1 2 3)"))
     ),
     "Point ZM"
   )
@@ -196,7 +196,7 @@ test_that("geometry_type column metadata is correct", {
   # needs compute
   expect_identical(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("POINT (0 1)"),
         schema = geoarrow_schema_wkt()
       )
@@ -207,7 +207,7 @@ test_that("geometry_type column metadata is correct", {
   # with multiple types
   expect_setequal(
     geoparquet_geometry_type(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt(c("POINT (0 1)", "LINESTRING (0 1, 2 3)")),
         schema = geoarrow_schema_wkt()
       )
@@ -219,7 +219,7 @@ test_that("geometry_type column metadata is correct", {
 test_that("bbox column metadata is correct", {
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING EMPTY")
       )
     ),
@@ -228,7 +228,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING (0 1, 2 3)")
       )
     ),
@@ -237,7 +237,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING Z (0 1 2, 2 3 4)")
       )
     ),
@@ -246,7 +246,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING M (0 1 2, 2 3 4)")
       )
     ),
@@ -255,7 +255,7 @@ test_that("bbox column metadata is correct", {
 
   expect_identical(
     geoparquet_bbox(
-      geoarrow_create_narrow_from_buffers(
+      geoarrow_create_narrow(
         wk::wkt("LINESTRING ZM (0 1 2 3, 2 3 4 5)")
       )
     ),

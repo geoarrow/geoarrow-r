@@ -29,11 +29,11 @@ library(geoarrow)
 We'll also need some test arrays with each of the six types supported in the Arrow-native format.
 
 ```{r}
-points <- geoarrow_create_narrow_from_buffers(
+points <- geoarrow_create_narrow(
   wk::wkt(c("POINT (30 10)", "POINT (40 30)"))
 )
 
-linestrings <- geoarrow_create_narrow_from_buffers(
+linestrings <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "LINESTRING (30 10, 10 30, 40 40)",
@@ -42,7 +42,7 @@ linestrings <- geoarrow_create_narrow_from_buffers(
   )
 )
 
-polygons <- geoarrow_create_narrow_from_buffers(
+polygons <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))",
@@ -53,11 +53,11 @@ polygons <- geoarrow_create_narrow_from_buffers(
   )
 )
 
-multipoints <- geoarrow_create_narrow_from_buffers(
+multipoints <- geoarrow_create_narrow(
   wk::wkt(c("MULTIPOINT (0 1, 2 3)", "MULTIPOINT (0 0, 3 8)"))
 )
 
-multilinestrings <- geoarrow_create_narrow_from_buffers(
+multilinestrings <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))",
@@ -68,7 +68,7 @@ multilinestrings <- geoarrow_create_narrow_from_buffers(
   )
 )
 
-multipolygons <- geoarrow_create_narrow_from_buffers(
+multipolygons <- geoarrow_create_narrow(
   wk::wkt(
     c(
       "MULTIPOLYGON (
@@ -310,7 +310,7 @@ void geoarrow_metadata_dump(sexp schema_xptr) {
 geoarrow_metadata_dump(points$schema)
 geoarrow_metadata_dump(linestrings$schema)
 geoarrow_metadata_dump(
-  geoarrow_create_narrow_from_buffers(
+  geoarrow_create_narrow(
     wk::wkt(crs = "EPSG:1234", geodesic = TRUE),
     geoarrow_schema_linestring()
   )$schema
@@ -655,7 +655,7 @@ SEXP c_dump_metadata(SEXP schema_xptr) {
 ```{r}
 invisible(.Call("c_dump_metadata", points$schema))
 
-with_crs <- geoarrow_create_narrow_from_buffers(
+with_crs <- geoarrow_create_narrow(
   wk::wkt(crs = "EPSG:1234"),
   schema = geoarrow_schema_point()
 )

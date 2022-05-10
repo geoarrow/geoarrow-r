@@ -171,7 +171,7 @@ test_that("geoarrow_compute_handler(op = 'global_bounds') works for all examples
 
     # with null_is_empty = TRUE
     result_narrow <- geoarrow_compute(
-      geoarrow_create_narrow_from_buffers(src_wkt),
+      geoarrow_create_narrow(src_wkt),
       "global_bounds",
       list(null_is_empty = TRUE)
     )

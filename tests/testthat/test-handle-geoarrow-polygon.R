@@ -19,7 +19,7 @@ test_that("geoarrow point reader works for polygon", {
       ring_id = c(rep(1, 5), rep(2, 5))
     )
 
-    features_array <- geoarrow_create_narrow_from_buffers(
+    features_array <- geoarrow_create_narrow(
       features,
       schema = geoarrow_schema_polygon(
         point = geoarrow_schema_point(dim = coord_dim)
@@ -43,7 +43,7 @@ test_that("geoarrow point reader works for polygon", {
 })
 
 test_that("geoarrow polygon reader works for null features", {
-  features <- geoarrow_create_narrow_from_buffers(wk::wkt(c(NA, "POLYGON ((0 0, 0 1, 1 0, 0 0))")))
+  features <- geoarrow_create_narrow(wk::wkt(c(NA, "POLYGON ((0 0, 0 1, 1 0, 0 0))")))
   expect_identical(is.na(wk::as_wkt(features)), c(TRUE, FALSE))
 })
 
