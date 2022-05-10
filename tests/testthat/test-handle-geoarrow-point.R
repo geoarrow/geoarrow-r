@@ -83,5 +83,5 @@ test_that("geoarrow point reader errors for invalid schemas", {
     narrow::narrow_array_data(),
     validate = FALSE
   )
-  expect_error(wk::wk_void(points_array), "struct or a fixed-width list")
+  expect_error(wk::wk_void(points_array), "a fixed-width list")
 })

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "array-view.hpp"
+#include "array-view-geoarrow.hpp"
 #include "array-view-wkb.hpp"
 #include "array-view-wkt.hpp"
 
@@ -15,9 +15,6 @@ ArrayView* create_view_point(struct ArrowSchema* schema, Meta& point_meta) {
     switch (point_meta.storage_type_) {
     case util::StorageType::FixedSizeList:
         return new PointArrayView(schema);
-
-    case util::StorageType::Struct:
-        return new GeoArrowPointStructView(schema);
 
     default:
         throw Meta::ValidationError(
@@ -36,10 +33,7 @@ ArrayView* create_view_linestring(struct ArrowSchema* schema,
 
             switch (point_meta.storage_type_) {
             case util::StorageType::FixedSizeList:
-                return new LinestringArrayView<PointArrayView>(schema);
-
-            case util::StorageType::Struct:
-                return new LinestringArrayView<GeoArrowPointStructView>(schema);
+                return new LinestringArrayView(schema);
 
             default:
                 throw Meta::ValidationError(
@@ -68,10 +62,7 @@ ArrayView* create_view_polygon(struct ArrowSchema* schema, Meta& polygon_meta) {
 
                         switch (point_meta.storage_type_) {
                         case util::StorageType::FixedSizeList:
-                            return new PolygonArrayView<PointArrayView>(schema);
-
-                        case util::StorageType::Struct:
-                            return new PolygonArrayView<GeoArrowPointStructView>(schema);
+                            return new PolygonArrayView(schema);
 
                         default:
                             throw Meta::ValidationError(
@@ -105,9 +96,6 @@ ArrayView* create_view_multipoint(struct ArrowSchema* schema,
     case util::StorageType::FixedSizeList:
         return new CollectionArrayView<PointArrayView>(schema);
 
-    case util::StorageType::Struct:
-        return new CollectionArrayView<GeoArrowPointStructView>(schema);
-
     default:
         throw Meta::ValidationError(
             "Unsupported storage type for extension geoarrow.point");
@@ -134,10 +122,7 @@ ArrayView* create_view_multilinestring(struct ArrowSchema* schema,
 
         switch (point_meta.storage_type_) {
         case util::StorageType::FixedSizeList:
-            return new CollectionArrayView<LinestringArrayView<PointArrayView>>(schema);
-
-        case util::StorageType::Struct:
-            return new CollectionArrayView<LinestringArrayView<GeoArrowPointStructView>>(schema);
+            return new CollectionArrayView<LinestringArrayView>(schema);
 
         default:
             throw Meta::ValidationError(
@@ -175,10 +160,7 @@ ArrayView* create_view_multipolygon(struct ArrowSchema* schema,
 
                 switch (point_meta.storage_type_) {
                 case util::StorageType::FixedSizeList:
-                    return new CollectionArrayView<PolygonArrayView<PointArrayView>>(schema);
-
-                case util::StorageType::Struct:
-                    return new CollectionArrayView<PolygonArrayView<GeoArrowPointStructView>>(schema);
+                    return new CollectionArrayView<PolygonArrayView>(schema);
 
                 default:
                     throw Meta::ValidationError(
