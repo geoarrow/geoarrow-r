@@ -53,7 +53,7 @@ that is generated."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/aj
     </div>
 
     <div class="ref-description section level2">
-    <p>Like <code>arrow::as_arrow_table()</code>, <code>as_geoarrow_table()</code> creates an
+    <p>Like <code><a href="https://arrow.apache.org/docs/r/reference/as_arrow_table.html" class="external-link">arrow::as_arrow_table()</a></code>, <code>as_geoarrow_table()</code> creates an
 <a href="https://arrow.apache.org/docs/r/reference/Table.html" class="external-link">arrow::Table</a> object. The geo-enabled version has a few additional options
 that customize the specific output schema and table-level metadata
 that is generated.</p>
@@ -96,7 +96,10 @@ output schema metadata.</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu">as_geoarrow_table</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>col1 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, col2 <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/xy.html" class="external-link">xy</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> 'as_arrow_table' is not an exported object from 'namespace:arrow'</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Table</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 rows x 2 columns</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $col1 &lt;int32&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $col2 &lt;point &lt;unspecified&gt;&gt;</span>
 <span class="r-in"></span>
 </code></pre></div>
     </div>
