@@ -89,7 +89,7 @@ is_slice <- function(x) {
 }
 
 is_identity_slice <- function(x, len) {
-  is_slice(x) && (x[1] == 1L) && (x[length(x)] == len)
+  .Call(geoarrow_c_is_identity_slice, x, as.integer(len))
 }
 
 #' @importFrom narrow as_narrow_array_stream
@@ -100,7 +100,7 @@ as_narrow_array_stream.geoarrow_vctr <- function(x, ...) {
 
   if (length(array_data) == 1) {
     arrays <- list(narrow::as_narrow_array(x))
-  } else {
+  } else if (is_identity_slice(x)) {
     arrays <- vector("list", length(array_data))
     length <- 0L
     for (i in seq_along(arrays)) {
@@ -138,7 +138,7 @@ as_narrow_array.geoarrow_vctr <- function(x, ...) {
   } else {
     # concatenation
     wk::wk_handle(
-      stream,
+      narrow::as_narrow_array_stream(x),
       geoarrow_compute_handler("cast", list(schema = schema))
     )
   }
@@ -199,6 +199,27 @@ str.geoarrow_vctr <- function(object, ..., indent.str = "", width = getOption("w
 }
 
 #' @export
+is.na.geoarrow_vctr <- function(x) {
+  schema <- attr(x, "schema", exact = TRUE)
+  array_data <- attr(x, "array_data", exact = TRUE)
+
+  index_na <- is.na(unclass(x))
+  any_array_data_na <- FALSE
+  for(array_datum in array_data) {
+    if (array_datum$null_count != 0) {
+      any_array_data_na <- TRUE
+      break
+    }
+  }
+
+  if (any_array_data_na) {
+    index_na | is.na(wk::wk_meta(x)$geometry_type)
+  } else {
+    index_na
+  }
+}
+
+#' @export
 `[.geoarrow_vctr` <- function(x, i) {
   vctr_restore(NextMethod(), x)
 }
@@ -233,7 +254,7 @@ rep.geoarrow_vctr <- function(x, ...) {
 #' @method rep_len geoarrow_vctr
 #' @export
 rep_len.geoarrow_vctr <- function(x, ...) {
-  indices <- rep_len(vctr_indices(x), ...)
+  indices <- rep_len(unclass(x), ...)
   vctr_restore(indices, x)
 }
 
@@ -250,5 +271,7 @@ as.data.frame.geoarrow_vctr <- function(x, ..., optional = FALSE) {
 # ...because of the RStudio Viewer
 #' @export
 as.character.geoarrow_vctr <- function(x, ...) {
-  format(x)
+  formatted <- format(x)
+  formatted[is.na(x)] <- NA_character_
+  formatted
 }

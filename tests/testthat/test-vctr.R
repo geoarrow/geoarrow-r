@@ -51,7 +51,7 @@ test_that("subset methods work for geoarrow_vctr", {
   )
 })
 
-test_that("rep methods work for geoarrow_vctr", {
+test_that("rep method works for geoarrow_vctr", {
   vctr <- geoarrow(wk::xy(1:4, 5:8))
 
   expect_identical(rep(vctr, 0), vctr[integer()])
@@ -74,6 +74,15 @@ test_that("rep methods work for geoarrow_vctr", {
     wk::as_xy(vctr[[1]]),
     wk::as_xy(vctr[1])
   )
+})
+
+test_that("rep_len method works for geoarrow_vctr", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+
+  expect_identical(rep_len(vctr, 0), vctr[integer()])
+  expect_identical(rep_len(vctr, 1), vctr[1])
+  expect_identical(rep_len(vctr, 4), vctr)
+  expect_identical(rep_len(vctr, 8), rep(vctr, 2))
 })
 
 test_that("vctrs support works for all extensions", {
@@ -135,7 +144,7 @@ test_that("vctrs support works for all extensions", {
 })
 
 test_that("identity slice detector works", {
-  expect_identical(is_identity_slice(environment()), FALSE)
+  expect_identical(is_identity_slice(environment(), 0), FALSE)
 
   expect_identical(is_slice(integer()), FALSE)
   expect_identical(is_slice(1L), TRUE)
