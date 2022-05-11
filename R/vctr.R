@@ -92,27 +92,73 @@ is_identity_slice <- function(x, len) {
   .Call(geoarrow_c_is_identity_slice, x, as.integer(len))
 }
 
+all_increasing <- function(x) {
+  indices <- unclass(x)
+  all(diff(indices[!is.na(indices)]) >= 0)
+}
+
 #' @importFrom narrow as_narrow_array_stream
 #' @export
 as_narrow_array_stream.geoarrow_vctr <- function(x, ...) {
   schema <- attr(x, "schema", exact = TRUE)
   array_data <- attr(x, "array_data", exact = TRUE)
 
-  if (length(array_data) == 1) {
+  # We do need at least one array to work with, even if it's empty
+  if (length(array_data) == 0) {
+    array_data <- list(
+      wk::wk_handle(
+        narrow::narrow_array_stream(list(), schema = schema),
+        geoarrow_compute_handler("cast", list(schema = schema, strict = TRUE))
+      )
+    )
+  }
+
+  if (length(x) == 0) {
+    arrays <- list()
+  } else if (length(array_data) == 1) {
+    # with a single array, the as_narrow_array() method can handle conversion
     arrays <- list(narrow::as_narrow_array(x))
-  } else if (is_identity_slice(x)) {
+  } else if (all_increasing(x)) {
+    # As long as we have strictly increasing or NA indices, we can
+    # use compute + cast + filter to resolve each array. This probably happens
+    # after conversion from ChunkedArray where a filter() or slice() or
+    # group_by() has occurred.
     arrays <- vector("list", length(array_data))
-    length <- 0L
+
+    array_index_begin <- 0L
+    array_index_end <- 0L
+    first_index <- 0L
+    last_index <- 0L
+
+    indices <- unclass(x)
+
     for (i in seq_along(arrays)) {
+      array_index_end <- array_index_end + array_data[[i]]$length
+
+      first_index <- last_index + 1L
+      index_filter <- indices >= first_index & indices <= array_index_end
+      if (!any(index_filter)) {
+        next
+      }
+      last_index <- max(which(index_filter))
+
       arrays[[i]] <- geoarrow_compute(
         narrow::narrow_array(schema, array_data[[i]]),
         "cast",
         list(schema = schema),
-        filter = x - length
+        filter = indices[first_index:last_index] - array_index_begin
       )
 
-      length <- length + array_data[[i]]$length
+      array_index_begin <- array_index_begin + array_data[[i]]$length
     }
+
+    arrays <- arrays[!vapply(arrays, is.null, logical(1))]
+  } else {
+    # This is where the user has requested a reordered version of the vctr,
+    # most likely because it was a ChunkedArray that became a geoarrow_vctr
+    # that is getting rearranged along another variable. Punt this to Arrow
+    # for now.
+    stop("Scrambled multi-chunk geoarrow_vctr not implemented")
   }
 
   narrow::narrow_array_stream(arrays, schema = schema)

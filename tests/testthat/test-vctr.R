@@ -85,6 +85,29 @@ test_that("rep_len method works for geoarrow_vctr", {
   expect_identical(rep_len(vctr, 8), rep(vctr, 2))
 })
 
+test_that("as_narrow_array() works for geoarrow_vctr", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  array_data <- attr(vctr, "array_data")[[1]]
+
+  # freshly constructed version shouldn't reallocate
+  expect_identical(as_narrow_array(vctr)$array_data, array_data)
+
+  # subsetted version
+  vctr_subset <- vctr_restore(2L, vctr)
+  expect_identical(
+    wk::wk_handle(narrow::as_narrow_array(vctr_subset), wk::xy_writer()),
+    wk::xy(2, 6)
+  )
+
+  # concatenated version
+  attr(vctr, "array_data") <- c(list(array_data, array_data))
+  vctr_concat <- vctr_restore(c(4L, 5L), vctr)
+  expect_identical(
+    wk::wk_handle(narrow::as_narrow_array(vctr_concat), wk::xy_writer()),
+    wk::xy(c(4, 1), c(8, 5))
+  )
+})
+
 test_that("vctrs support works for all extensions", {
   vctr <- geoarrow_wkt(wk::wkt(c("POINT (1 2)")))
   expect_true(vctrs::vec_is(vctr))
@@ -143,16 +166,23 @@ test_that("vctrs support works for all extensions", {
   )
 })
 
-test_that("identity slice detector works", {
-  expect_identical(is_identity_slice(environment(), 0), FALSE)
+test_that("identity/slice/is increasing detector works", {
+  expect_false(is_identity_slice(environment(), 0))
 
-  expect_identical(is_slice(integer()), FALSE)
-  expect_identical(is_slice(1L), TRUE)
-  expect_identical(is_slice(1:3), TRUE)
-  expect_identical(is_slice(2:4), TRUE)
+  expect_false(is_slice(integer()))
+  expect_true(is_slice(1L))
+  expect_true(is_slice(1:3))
+  expect_true(is_slice(2:4))
 
-  expect_identical(is_identity_slice(integer(), 0), FALSE)
-  expect_identical(is_identity_slice(1L, 1), TRUE)
-  expect_identical(is_identity_slice(1:3, 3), TRUE)
-  expect_identical(is_identity_slice(2:4, 3), FALSE)
+  expect_false(is_identity_slice(integer(), 0))
+  expect_true(is_identity_slice(1L, 1))
+  expect_true(is_identity_slice(1:3, 3))
+  expect_false(is_identity_slice(2:4, 3))
+
+  expect_true(all_increasing(integer()))
+  expect_true(all_increasing(1))
+  expect_true(all_increasing(1:5))
+  expect_true(all_increasing(c(1, 2, 2, 3)))
+  expect_true(all_increasing(c(1, NA, 2, 2, NA, 2, 3)))
+  expect_false(all_increasing(c(2, 1)))
 })
