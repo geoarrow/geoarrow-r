@@ -73,7 +73,7 @@ register_arrow_extension_type <- function() {
       },
 
       as_vector = function(array) {
-        wk_handle_wrapper(narrow::as_narrow_array_stream(array), NULL)
+        as_geoarrow(array)
       },
 
       ToString = function() {

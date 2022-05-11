@@ -39,6 +39,63 @@ geoarrow_wkt <- function(x = wk::wkb()) {
   )
 }
 
+#' @rdname geoarrow
+#' @export
+as_geoarrow <- function(x, ..., ptype = NULL) {
+  UseMethod("as_geoarrow")
+}
+
+#' @export
+as_geoarrow.default <- function(x, ..., ptype = NULL) {
+  if (is.null(ptype)) {
+    schema <- geoarrow_schema_default(x)
+  } else {
+    schema <- narrow::as_narrow_schema(ptype)
+  }
+
+  geoarrow_vctr(x, schema)
+}
+
+#' @export
+as_geoarrow.narrow_array <- function(x, ..., ptype = NULL) {
+  if (is.null(ptype)) {
+    cls <- gsub("\\.", "_", x$schema$metadata[["ARROW:extension:name"]])
+    stopifnot(grepl("^geoarrow_", cls))
+
+    new_geoarrow_vctr(
+      x$schema,
+      list(x$array_data),
+      cls
+    )
+  } else {
+    NextMethod()
+  }
+}
+
+#' @export
+as_geoarrow.Array <- function(x, ..., ptype = NULL) {
+  as_geoarrow_array(narrow::as_narrow_array(x), ptype = ptype)
+}
+
+#' @export
+as_geoarrow.ChunkedArray <- function(x, ..., ptype = NULL) {
+  if (is.null(ptype)) {
+    schema <- narrow::as_narrow_schema(x$type)
+    cls <- gsub("\\.", "_", x$schema$metadata[["ARROW:extension:name"]])
+    stopifnot(grepl("^geoarrow_", cls))
+
+    arrays <- lapply(x$chunks, narrow::as_narrow_array)
+
+    new_geoarrow_vctr(
+      schema,
+      lapply(arrays, "[[", "array_data"),
+      cls
+    )
+  } else {
+    NextMethod()
+  }
+}
+
 geoarrow_vctr <- function(x, schema) {
   narrow_array <- geoarrow_create_narrow(
     x,
@@ -46,10 +103,13 @@ geoarrow_vctr <- function(x, schema) {
     strict = TRUE
   )
 
+  cls <- gsub("\\.", "_", schema$metadata[["ARROW:extension:name"]])
+  stopifnot(grepl("^geoarrow_", cls))
+
   new_geoarrow_vctr(
     narrow_array$schema,
     list(narrow_array$array_data),
-    gsub("\\.", "_", schema$metadata[["ARROW:extension:name"]])
+    cls
   )
 }
 
