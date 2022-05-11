@@ -51,28 +51,27 @@ test_that("wk_set_crs() and wk_set_geodesic() work for arrays", {
 })
 
 test_that("wk_set_crs() and wk_set_geodesic() work for vctrs", {
-  vctr <- geoarrow_create(wk::wkt("POINT (1 2)"))
+  vctr <- geoarrow(wk::wkt("POINT (1 2)"))
   wk::wk_crs(vctr) <- "OGC:CRS84"
   expect_identical(wk::wk_crs(vctr), "OGC:CRS84")
   wk::wk_crs(vctr) <- NULL
   expect_identical(wk::wk_crs(vctr), NULL)
 
-  vctr <- geoarrow_create(wk::wkt("LINESTRING (1 2, 3 4)"))
+  vctr <- geoarrow(wk::wkt("LINESTRING (1 2, 3 4)"))
   wk::wk_crs(vctr) <- "OGC:CRS84"
   expect_identical(wk::wk_crs(vctr), "OGC:CRS84")
   wk::wk_crs(vctr) <- NULL
   expect_identical(wk::wk_crs(vctr), NULL)
 
-  vctr <- geoarrow_create(wk::wkt("LINESTRING (1 2, 3 4)"))
+  vctr <- geoarrow(wk::wkt("LINESTRING (1 2, 3 4)"))
   wk::wk_is_geodesic(vctr) <- TRUE
   expect_true(wk::wk_is_geodesic(vctr))
   wk::wk_is_geodesic(vctr) <- FALSE
   expect_false(wk::wk_is_geodesic(vctr))
 
-  vctr <- geoarrow_create(wk::wkt("MULTILINESTRING ((1 2, 3 4))"))
+  vctr <- geoarrow(wk::wkt("MULTILINESTRING ((1 2, 3 4))"))
   wk::wk_is_geodesic(vctr) <- TRUE
   expect_true(wk::wk_is_geodesic(vctr))
   wk::wk_is_geodesic(vctr) <- FALSE
   expect_false(wk::wk_is_geodesic(vctr))
 })
-

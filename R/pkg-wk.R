@@ -31,26 +31,32 @@ wk_set_geodesic.narrow_array <- function(x, geodesic) {
 
 
 #' @export
-wk_crs.narrow_vctr_geoarrow <- function(x) {
-  wk_crs(narrow::as_narrow_array(x))
+wk_crs.geoarrow_vctr <- function(x) {
+  recursive_extract_narrow_schema(attr(x, "schema", exact = TRUE), "crs")
 }
 
 #' @export
-wk_is_geodesic.narrow_vctr_geoarrow <- function(x) {
-  wk_is_geodesic(narrow::as_narrow_array(x))
+wk_is_geodesic.geoarrow_vctr <- function(x) {
+  identical(
+    recursive_extract_narrow_schema(attr(x, "schema", exact = TRUE), "edges"),
+    "spherical"
+  )
 }
 
 #' @export
-wk_set_crs.narrow_vctr_geoarrow <- function(x, crs) {
-  array <- attr(x, "array", exact = TRUE)
-  attr(x, "array") <- wk::wk_set_crs(array, crs)
+wk_set_crs.geoarrow_vctr <- function(x, crs) {
+  crs <- if (!is.null(crs)) wk::wk_crs_proj_definition(crs, verbose = TRUE)
+  attr(x, "schema") <- geoarrow_schema_set_crs(attr(x, "schema", exact = TRUE), crs)
   x
 }
 
 #' @export
-wk_set_geodesic.narrow_vctr_geoarrow <- function(x, geodesic) {
-  array <- attr(x, "array", exact = TRUE)
-  attr(x, "array") <- wk::wk_set_geodesic(array, geodesic)
+wk_set_geodesic.geoarrow_vctr <- function(x, geodesic) {
+  attr(x, "schema") <- geoarrow_schema_set_geodesic(
+    attr(x, "schema", exact = TRUE),
+    geodesic
+  )
+
   x
 }
 

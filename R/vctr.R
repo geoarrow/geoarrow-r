@@ -21,8 +21,8 @@ geoarrow_wkb <- function(x = wk::wkb()) {
   geoarrow_vctr(
     x,
     geoarrow_schema_wkb(
-      crs = crs %||% wk::wk_crs(x),
-      edges = edges
+      crs = wk::wk_crs(x),
+      edges = if (wk::wk_is_geodesic(x)) "spherical"
     )
   )
 }
@@ -33,13 +33,13 @@ geoarrow_wkt <- function(x = wk::wkb()) {
   geoarrow_vctr(
     x,
     geoarrow_schema_wkt(
-      crs = crs %||% wk::wk_crs(x),
-      edges = edges
+      crs = wk::wk_crs(x),
+      edges = if (wk::wk_is_geodesic(x)) "spherical"
     )
   )
 }
 
-geoarrow_vctr <- function(x, schema, subclass) {
+geoarrow_vctr <- function(x, schema) {
   narrow_array <- geoarrow_create_narrow(
     x,
     schema = schema,
@@ -84,8 +84,12 @@ vctr_normalize <- function(x) {
   new_geoarrow_vctr(array$schema, list(array$array_data), class(x))
 }
 
-is_identity_slice <- function(x) {
-  .Call(geoarrow_c_is_identity_slice, x)
+is_slice <- function(x) {
+  .Call(geoarrow_c_is_slice, x)
+}
+
+is_identity_slice <- function(x, len) {
+  is_slice(x) && (x[1] == 1L) && (x[length(x)] == len)
 }
 
 #' @importFrom narrow as_narrow_array_stream
@@ -120,7 +124,7 @@ as_narrow_array.geoarrow_vctr <- function(x, ...) {
   schema <- attr(x, "schema", exact = TRUE)
   array_data <- attr(x, "array_data", exact = TRUE)
 
-  if (length(array_data) == 1 && is_identity_slice(x)) {
+  if (length(array_data) == 1 && is_identity_slice(x, array_data[[1]]$length)) {
     # freshly constructed!
     narrow::narrow_array(schema, array_data[[1]])
   } else if (length(array_data) == 1) {

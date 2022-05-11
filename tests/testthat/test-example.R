@@ -3,7 +3,7 @@ test_that("all examples can be created with default arguments", {
   for (which in names(geoarrow::geoarrow_example_wkt)) {
     expect_s3_class(
       geoarrow_example(!! which),
-      "narrow_vctr_geoarrow"
+      "geoarrow_vctr"
     )
   }
 })
