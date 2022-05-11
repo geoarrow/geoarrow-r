@@ -213,7 +213,19 @@ as_narrow_array_stream.geoarrow_vctr <- function(x, ...) {
     # most likely because it was a ChunkedArray that became a geoarrow_vctr
     # that is getting rearranged along another variable. Punt this to Arrow
     # for now.
-    stop("Scrambled multi-chunk geoarrow_vctr not implemented")
+    stopifnot(has_arrow_with_extension_type())
+
+    # (concatenate with extension arrays not supported, so we have to do this
+    # with the storage chunked array...)
+    chunked_array <- arrow::as_chunked_array(x)
+    storage_arrays <- lapply(chunked_array$chunks, function(chunk) chunk$storage())
+    storage_chunked_array <- arrow::chunked_array(!!! storage_arrays)
+    result_chunked <- storage_chunked_array$Take(unclass(x) - 1L)
+    stopifnot(result_chunked$num_chunks == 1L)
+    result_narrow <- narrow::as_narrow_array(result_chunked$chunk(0))
+    result_narrow$schema <- attr(x, "schema", exact = TRUE)
+
+    arrays <- list(result_narrow)
   }
 
   narrow::narrow_array_stream(arrays, schema = schema)
@@ -256,7 +268,6 @@ as_narrow_array.geoarrow_vctr <- function(x, ...) {
     )
   }
 }
-
 
 #' @export
 format.geoarrow_vctr <- function(x, ...) {

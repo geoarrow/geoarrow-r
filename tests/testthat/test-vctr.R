@@ -76,6 +76,18 @@ test_that("rep method works for geoarrow_vctr", {
   )
 })
 
+test_that("is.na() works for geoarrow_vctr", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  vctr_with_null_index <- vctr_restore(c(1L, NA_integer_, 2L), vctr)
+  expect_identical(is.na(vctr_with_null_index), c(FALSE, TRUE, FALSE))
+
+  vctr_with_null <- geoarrow(wk::wkt(c("POINT (0 1)", "POINT (1 2)", NA)))
+  expect_identical(is.na(vctr_with_null), c(FALSE, FALSE, TRUE))
+
+  vctr_with_both <- vctr_restore(c(1L, NA_integer_, 3L), vctr_with_null)
+  expect_identical(is.na(vctr_with_both), c(FALSE, TRUE, TRUE))
+})
+
 test_that("rep_len method works for geoarrow_vctr", {
   vctr <- geoarrow(wk::xy(1:4, 5:8))
 
@@ -234,6 +246,28 @@ test_that("as_narrow_array_stream() with geoarrow_vctr with >1 (trailing NAs) ar
   array3 <- narrow::narrow_array_stream_get_next(stream)
   expect_identical(wk::as_xy(array3), wk::xy(NA, NA))
 
+  expect_null(narrow::narrow_array_stream_get_next(stream))
+})
+
+test_that("as_narrow_array_stream() works for geoarrow_vctr with >1 (scrambled) array", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  schema <- attr(vctr, "schema")
+  array_data <- attr(vctr, "array_data")[[1]]
+
+  attr(vctr, "array_data") <- list(array_data, array_data)
+  vctr_concat <- vctr_restore(c(5L, 4L), vctr)
+
+  stream <- narrow::as_narrow_array_stream(vctr_concat)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+
+  array1 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array1), wk::xy(c(1, 4), c(5, 8)))
   expect_null(narrow::narrow_array_stream_get_next(stream))
 })
 
