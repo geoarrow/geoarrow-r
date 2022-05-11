@@ -109,7 +109,7 @@ as_narrow_array_stream.geoarrow_vctr <- function(x, ...) {
       wk::wk_handle(
         narrow::narrow_array_stream(list(), schema = schema),
         geoarrow_compute_handler("cast", list(schema = schema, strict = TRUE))
-      )
+      )$array_data
     )
   }
 
@@ -170,6 +170,18 @@ as_narrow_array.geoarrow_vctr <- function(x, ...) {
   schema <- attr(x, "schema", exact = TRUE)
   array_data <- attr(x, "array_data", exact = TRUE)
 
+  # Simpler if we always have an array to work with
+  if (length(array_data) == 0) {
+    attr(x, "array_data") <- list(
+      wk::wk_handle(
+        narrow::narrow_array_stream(list(), schema = schema),
+        geoarrow_compute_handler("cast", list(schema = schema, strict = TRUE))
+      )$array_data
+    )
+
+    array_data <- attr(x, "array_data", exact = TRUE)
+  }
+
   if (length(array_data) == 1 && is_identity_slice(x, array_data[[1]]$length)) {
     # freshly constructed!
     narrow::narrow_array(schema, array_data[[1]])
@@ -178,14 +190,14 @@ as_narrow_array.geoarrow_vctr <- function(x, ...) {
     geoarrow_compute(
       narrow::narrow_array(schema, array_data[[1]]),
       "cast",
-      list(schema = schema),
+      list(schema = schema, strict = TRUE),
       filter = x
     )
   } else {
     # concatenation
     wk::wk_handle(
       narrow::as_narrow_array_stream(x),
-      geoarrow_compute_handler("cast", list(schema = schema))
+      geoarrow_compute_handler("cast", list(schema = schema, strict = TRUE))
     )
   }
 }

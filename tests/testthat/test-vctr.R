@@ -85,6 +85,10 @@ test_that("rep_len method works for geoarrow_vctr", {
   expect_identical(rep_len(vctr, 8), rep(vctr, 2))
 })
 
+test_that("as_narrow_array_stream()", {
+
+})
+
 test_that("as_narrow_array() works for geoarrow_vctr", {
   vctr <- geoarrow(wk::xy(1:4, 5:8))
   array_data <- attr(vctr, "array_data")[[1]]
@@ -100,11 +104,19 @@ test_that("as_narrow_array() works for geoarrow_vctr", {
   )
 
   # concatenated version
-  attr(vctr, "array_data") <- c(list(array_data, array_data))
+  attr(vctr, "array_data") <- list(array_data, array_data)
   vctr_concat <- vctr_restore(c(4L, 5L), vctr)
   expect_identical(
     wk::wk_handle(narrow::as_narrow_array(vctr_concat), wk::xy_writer()),
     wk::xy(c(4, 1), c(8, 5))
+  )
+
+  # zero-size arrays version
+  attr(vctr, "array_data") <- list()
+  vctr_concat <- vctr_restore(c(4L, 5L), vctr)
+  expect_identical(
+    wk::wk_handle(narrow::as_narrow_array(vctr_concat), wk::xy_writer()),
+    wk::xy(c(NA, NA), c(NA, NA))
   )
 })
 
