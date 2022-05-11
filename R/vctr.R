@@ -131,12 +131,14 @@ as_narrow_array_stream.geoarrow_vctr <- function(x, ...) {
     last_index <- 0L
 
     indices <- unclass(x)
+    index_index <- seq_along(indices)
 
     for (i in seq_along(arrays)) {
       array_index_end <- array_index_end + array_data[[i]]$length
 
       first_index <- last_index + 1L
-      index_filter <- indices >= first_index & indices <= array_index_end
+      index_filter <- index_index >= first_index &
+        is.finite(indices) & indices <= array_index_end
       if (!any(index_filter)) {
         next
       }
@@ -145,11 +147,21 @@ as_narrow_array_stream.geoarrow_vctr <- function(x, ...) {
       arrays[[i]] <- geoarrow_compute(
         narrow::narrow_array(schema, array_data[[i]]),
         "cast",
-        list(schema = schema),
+        list(schema = schema, strict = TRUE),
         filter = indices[first_index:last_index] - array_index_begin
       )
 
       array_index_begin <- array_index_begin + array_data[[i]]$length
+    }
+
+    # there still could be some pending NAs at the end of the index list
+    if (last_index != length(indices)) {
+      arrays[[length(arrays) + 1]] <- geoarrow_compute(
+        narrow::narrow_array(schema, array_data[[1]]),
+        "cast",
+        list(schema = schema, strict = TRUE),
+        filter = rep_len(NA_integer_, length(indices) - last_index)
+      )
     }
 
     arrays <- arrays[!vapply(arrays, is.null, logical(1))]

@@ -85,8 +85,156 @@ test_that("rep_len method works for geoarrow_vctr", {
   expect_identical(rep_len(vctr, 8), rep(vctr, 2))
 })
 
-test_that("as_narrow_array_stream()", {
+test_that("as_narrow_array_stream() works for geoarrow_vctr with 0 or 1 array", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  schema <- attr(vctr, "schema")
+  array_data <- attr(vctr, "array_data")[[1]]
 
+  # freshly constructed version shouldn't reallocate
+  stream <- narrow::as_narrow_array_stream(vctr)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+  expect_identical(
+    narrow::narrow_array_stream_get_next(stream)$array_data$buffers,
+    array_data$buffers
+  )
+  expect_null(narrow::narrow_array_stream_get_next(stream))
+
+  # empty indices version
+  vctr_empty <- vctr_restore(integer(), vctr)
+  stream <- narrow::as_narrow_array_stream(vctr_empty)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+  expect_null(narrow::narrow_array_stream_get_next(stream))
+
+  # empty arrays version
+  vctr_empty <- vctr_restore(1L, vctr)
+  attr(vctr_empty, "array_data") <- list()
+  stream <- narrow::as_narrow_array_stream(vctr_empty)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+  data <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(data$array_data$null_count, 1L)
+  expect_identical(data$array_data$length, 1L)
+  expect_null(narrow::narrow_array_stream_get_next(stream))
+})
+
+test_that("as_narrow_array_stream() works for geoarrow_vctr with >1 array", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  schema <- attr(vctr, "schema")
+  array_data <- attr(vctr, "array_data")[[1]]
+
+  attr(vctr, "array_data") <- list(array_data, array_data)
+  vctr_concat <- vctr_restore(c(4L, 5L), vctr)
+
+  stream <- narrow::as_narrow_array_stream(vctr_concat)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+
+  array1 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array1), wk::xy(4, 8))
+  array2 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array2), wk::xy(1, 5))
+
+  expect_null(narrow::narrow_array_stream_get_next(stream))
+})
+
+test_that("as_narrow_array_stream() with geoarrow_vctr with >1 (empty) array", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  schema <- attr(vctr, "schema")
+  array_data <- attr(vctr, "array_data")[[1]]
+  array_data0 <- narrow::as_narrow_array(vctr[integer()])$array_data
+
+  attr(vctr, "array_data") <- list(array_data, array_data0, array_data)
+  vctr_concat <- vctr_restore(c(4L, 5L), vctr)
+
+  stream <- narrow::as_narrow_array_stream(vctr_concat)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+
+  array1 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array1), wk::xy(4, 8))
+  array2 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array2), wk::xy(1, 5))
+
+  expect_null(narrow::narrow_array_stream_get_next(stream))
+})
+
+test_that("as_narrow_array_stream() with geoarrow_vctr with >1 (leading NAs) array", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  schema <- attr(vctr, "schema")
+  array_data <- attr(vctr, "array_data")[[1]]
+
+  attr(vctr, "array_data") <- list(array_data, array_data)
+  vctr_concat <- vctr_restore(c(NA_integer_, 4L, 5L), vctr)
+
+  stream <- narrow::as_narrow_array_stream(vctr_concat)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+
+  array1 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array1), wk::xy(c(NA, 4), c(NA, 8)))
+  array2 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array2), wk::xy(1, 5))
+
+  expect_null(narrow::narrow_array_stream_get_next(stream))
+})
+
+test_that("as_narrow_array_stream() with geoarrow_vctr with >1 (trailing NAs) array", {
+  vctr <- geoarrow(wk::xy(1:4, 5:8))
+  schema <- attr(vctr, "schema")
+  array_data <- attr(vctr, "array_data")[[1]]
+
+  attr(vctr, "array_data") <- list(array_data, array_data)
+  vctr_concat <- vctr_restore(c(4L, 5L, NA_integer_), vctr)
+
+  stream <- narrow::as_narrow_array_stream(vctr_concat)
+  expect_identical(
+    narrow::narrow_schema_info(
+      narrow::narrow_array_stream_get_schema(stream),
+      recursive = TRUE
+    ),
+    narrow::narrow_schema_info(schema, recursive = TRUE)
+  )
+
+  array1 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array1), wk::xy(4, 8))
+  array2 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array2), wk::xy(1, 5))
+  array3 <- narrow::narrow_array_stream_get_next(stream)
+  expect_identical(wk::as_xy(array3), wk::xy(NA, NA))
+
+  expect_null(narrow::narrow_array_stream_get_next(stream))
 })
 
 test_that("as_narrow_array() works for geoarrow_vctr", {
