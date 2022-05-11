@@ -6,7 +6,7 @@
 #' @return A vector class inheriting from 'geoarrow_vctr'.
 #' @export
 #'
-geoarrow <- function(x = wk::wkb()) {
+geoarrow <- function(x = wk::wkb(crs = NULL)) {
   schema <- geoarrow_schema_default(x)
 
   geoarrow_vctr(
@@ -17,7 +17,7 @@ geoarrow <- function(x = wk::wkb()) {
 
 #' @rdname geoarrow
 #' @export
-geoarrow_wkb <- function(x = wk::wkb()) {
+geoarrow_wkb <- function(x = wk::wkb(crs = NULL)) {
   geoarrow_vctr(
     x,
     geoarrow_schema_wkb(
@@ -29,7 +29,7 @@ geoarrow_wkb <- function(x = wk::wkb()) {
 
 #' @rdname geoarrow
 #' @export
-geoarrow_wkt <- function(x = wk::wkb()) {
+geoarrow_wkt <- function(x = wk::wkb(crs = NULL)) {
   geoarrow_vctr(
     x,
     geoarrow_schema_wkt(
@@ -65,30 +65,6 @@ as_geoarrow.narrow_array <- function(x, ..., ptype = NULL) {
     new_geoarrow_vctr(
       x$schema,
       list(x$array_data),
-      cls
-    )
-  } else {
-    NextMethod()
-  }
-}
-
-#' @export
-as_geoarrow.Array <- function(x, ..., ptype = NULL) {
-  as_geoarrow_array(narrow::as_narrow_array(x), ptype = ptype)
-}
-
-#' @export
-as_geoarrow.ChunkedArray <- function(x, ..., ptype = NULL) {
-  if (is.null(ptype)) {
-    schema <- narrow::as_narrow_schema(x$type)
-    cls <- gsub("\\.", "_", x$schema$metadata[["ARROW:extension:name"]])
-    stopifnot(grepl("^geoarrow_", cls))
-
-    arrays <- lapply(x$chunks, narrow::as_narrow_array)
-
-    new_geoarrow_vctr(
-      schema,
-      lapply(arrays, "[[", "array_data"),
       cls
     )
   } else {
@@ -156,6 +132,13 @@ all_increasing <- function(x) {
   indices <- unclass(x)
   all(diff(indices[!is.na(indices)]) >= 0)
 }
+
+#' @importFrom narrow as_narrow_schema
+#' @export
+as_narrow_schema.geoarrow_vctr <- function(x, ...) {
+  attr(x, "schema", exact = TRUE)
+}
+
 
 #' @importFrom narrow as_narrow_array_stream
 #' @export

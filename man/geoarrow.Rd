@@ -7,11 +7,11 @@
 \alias{as_geoarrow}
 \title{Create GeoArrow Vectors}
 \usage{
-geoarrow(x = wk::wkb())
+geoarrow(x = wk::wkb(crs = NULL))
 
-geoarrow_wkb(x = wk::wkb())
+geoarrow_wkb(x = wk::wkb(crs = NULL))
 
-geoarrow_wkt(x = wk::wkb())
+geoarrow_wkt(x = wk::wkb(crs = NULL))
 
 as_geoarrow(x, ..., ptype = NULL)
 }

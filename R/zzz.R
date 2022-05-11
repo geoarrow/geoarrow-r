@@ -18,8 +18,9 @@
 
     s3_register("arrow::as_arrow_table", "sf")
 
-    s3_register("arrow::as_arrow_array", "narrow_vctr_geoarrow")
-    s3_register("arrow::infer_type", "narrow_vctr_geoarrow")
+    s3_register("arrow::as_arrow_array", "geoarrow_vctr")
+    s3_register("arrow::as_chunked_array", "geoarrow_vctr")
+    s3_register("arrow::infer_type", "geoarrow_vctr")
 
     for (cls in supported_handleable_classes) {
       s3_register("arrow::as_arrow_array", cls, as_arrow_array_handleable)
