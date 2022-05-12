@@ -12,6 +12,18 @@ test_that("st_* methods work for geoarrow_vctr", {
   )
 })
 
+test_that("geoarrow_collect_sf() works on a data.frame", {
+  skip_if_not_installed("sf")
+
+  df <- data.frame(x = 1, geometry = as_geoarrow(wk::wkt("POINT (30 10)")))
+  expect_identical(
+    geoarrow_collect_sf(df),
+    sf::st_as_sf(
+      data.frame(x = 1, geometry = sf::st_as_sfc("POINT (30 10)"))
+    )
+  )
+})
+
 test_that("as_arrow_table() works for sf objects", {
   skip_if_not(has_arrow_extension_type())
   skip_if_not_installed("sf")
