@@ -66,7 +66,7 @@ as_geoarrow.Array <- function(x, ..., ptype = NULL) {
 as_geoarrow.ChunkedArray <- function(x, ..., ptype = NULL) {
   if (is.null(ptype)) {
     schema <- narrow::as_narrow_schema(x$type)
-    cls <- gsub("\\.", "_", x$schema$metadata[["ARROW:extension:name"]])
+    cls <- gsub("\\.", "_", schema$metadata[["ARROW:extension:name"]])
     stopifnot(grepl("^geoarrow_", cls))
 
     arrays <- lapply(x$chunks, narrow::as_narrow_array)
@@ -141,13 +141,15 @@ register_arrow_extension_type <- function() {
       },
 
       ToString = function() {
-        label <- gsub("^geoarrow\\.", "", self$extension_name())
+        label <- self$extension_name()
 
         crs <- self$crs
         if (is.null(crs) || identical(crs, "")) {
-          crs <- "<unspecified>"
+          crs <- "<crs: unspecified>"
         } else if (nchar(crs) > 30) {
-          crs <- paste0(substr(crs, 1, 27), "...")
+          crs <- paste0("<CRS: ", substr(crs, 1, 27), "...")
+        } else {
+          crs <- paste0("<CRS: ", crs, ">")
         }
 
         edges <- self$edges
