@@ -19,13 +19,17 @@ geoarrow_example <- function(which = "nc", schema = NULL,
                              strict = FALSE,
                              crs = NA,
                              edges = "planar") {
-  geoarrow_create(
-    geoarrow_example_narrow(
-      which = which,
-      schema = schema,
-      crs = crs,
-      edges = edges
-    )
+  array <- geoarrow_example_narrow(
+    which = which,
+    schema = schema,
+    crs = crs,
+    edges = edges
+  )
+
+  new_geoarrow_vctr(
+    array$schema,
+    list(array$array_data),
+    gsub("\\.", "_", schema$metadata[["ARROW:extension:name"]])
   )
 }
 

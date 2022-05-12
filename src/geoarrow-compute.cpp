@@ -8,8 +8,17 @@
 #include "util.h"
 #include "compute-util.h"
 
+#define HANDLE_CONTINUE_OR_BREAK(expr)                         \
+    result = expr;                                             \
+    if (result == geoarrow::Handler::Result::ABORT_FEATURE) \
+        continue; \
+    else if (result == geoarrow::Handler::Result::ABORT) break
 
-extern "C" SEXP geoarrow_c_compute(SEXP op_sexp, SEXP array_from_sexp, SEXP array_to_sexp,
+
+extern "C" SEXP geoarrow_c_compute(SEXP op_sexp,
+                                   SEXP array_from_sexp,
+                                   SEXP array_to_sexp,
+                                   SEXP filter_sexp,
                                    SEXP options_sexp) {
     CPP_START
 
@@ -40,10 +49,66 @@ extern "C" SEXP geoarrow_c_compute(SEXP op_sexp, SEXP array_from_sexp, SEXP arra
     SEXP builder_xptr = PROTECT(R_MakeExternalPtr(builder, array_to_sexp, options_xptr));
     R_RegisterCFinalizer(builder_xptr, &delete_array_builder_xptr);
 
-    // Do the compute operation
+    // Do the compute operation on a (possible) subset of the array
     view->read_meta(builder);
     view->set_array(array_data_from);
-    view->read_features(builder);
+
+    if (TYPEOF(filter_sexp) == LGLSXP &&
+        Rf_length(filter_sexp) == 1 &&
+        LOGICAL(filter_sexp)[0] == 1) {
+        view->read_features(builder);
+    } else if (TYPEOF(filter_sexp) == LGLSXP &&
+               Rf_xlength(filter_sexp) == array_data_from->length) {
+        // for now, don't worry about ALTREP
+        geoarrow::Handler::Result result;
+        int* filter = LOGICAL(filter_sexp);
+
+        for (int64_t i = 0; i < array_data_from->length; i++) {
+            if (filter[i] == NA_LOGICAL) {
+                HANDLE_CONTINUE_OR_BREAK(builder->feat_start());
+                HANDLE_CONTINUE_OR_BREAK(builder->null_feat());
+                HANDLE_CONTINUE_OR_BREAK(builder->feat_end());
+            } else if (filter[i]) {
+                HANDLE_CONTINUE_OR_BREAK(view->read_feature(builder, i));
+            }
+        }
+    } else if (TYPEOF(filter_sexp) == INTSXP) {
+        // for now, don't worry about ALTREP
+        geoarrow::Handler::Result result;
+        int* filter = INTEGER(filter_sexp);
+        R_xlen_t n_filter = Rf_xlength(filter_sexp);
+
+        for (R_xlen_t i = 0; i < n_filter; i++) {
+            if (filter[i] == NA_INTEGER ||
+                filter[i] < 1 ||
+                filter[i] > array_data_from->length) {
+                HANDLE_CONTINUE_OR_BREAK(builder->feat_start());
+                HANDLE_CONTINUE_OR_BREAK(builder->null_feat());
+                HANDLE_CONTINUE_OR_BREAK(builder->feat_end());
+            } else {
+                HANDLE_CONTINUE_OR_BREAK(view->read_feature(builder, filter[i] - 1));
+            }
+        }
+    } else if (TYPEOF(filter_sexp) == REALSXP) {
+        // for now, don't worry about ALTREP
+        geoarrow::Handler::Result result;
+        double* filter = REAL(filter_sexp);
+        R_xlen_t n_filter = Rf_xlength(filter_sexp);
+
+        for (R_xlen_t i = 0; i < n_filter; i++) {
+            if (ISNA(filter[i]) || ISNAN(filter[i]) ||
+                filter[i] < 1 ||
+                filter[i] > array_data_from->length) {
+                HANDLE_CONTINUE_OR_BREAK(builder->feat_start());
+                HANDLE_CONTINUE_OR_BREAK(builder->null_feat());
+                HANDLE_CONTINUE_OR_BREAK(builder->feat_end());
+            } else {
+                HANDLE_CONTINUE_OR_BREAK(view->read_feature(builder, filter[i] - 1));
+            }
+        }
+    } else {
+        Rf_error("Filter type not supported");
+    }
 
     // Transfer ownership of the built array_data and schema to array_to
     builder->release(array_data_to, schema_to);

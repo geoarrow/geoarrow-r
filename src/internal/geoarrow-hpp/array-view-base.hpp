@@ -27,6 +27,10 @@ class ArrayView {
         handler->new_dimensions(meta_.dimensions_);
     }
 
+    virtual Handler::Result read_feature(Handler* handler, int64_t i) {
+        throw std::runtime_error("ArrayView::read_feature() not implemented");
+    }
+
     virtual Handler::Result read_features(Handler* handler) {
         throw std::runtime_error("ArrayView::read_features() not implemented");
     }

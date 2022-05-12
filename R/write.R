@@ -90,7 +90,7 @@ as_geoarrow_table <- function(handleable, schema = NULL, strict = FALSE,
   }
 
   # ship to arrow
-  vctr_handleable <- lapply(arrays_handleable, narrow::narrow_vctr)
+  vctr_handleable <- lapply(arrays_handleable, as_geoarrow)
   arrays <- c(unclass(df_attr), vctr_handleable)[colnames(handleable)]
   batch <- arrow::record_batch(!!! arrays)
 

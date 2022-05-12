@@ -1,20 +1,84 @@
 
-as_arrow_array.narrow_vctr_geoarrow <- function(x, ..., type = NULL) {
-  array <- narrow::as_narrow_array(x)
-  if (!is.null(type)) {
-    geoarrow_create_narrow(array, schema = type, strict = TRUE)
+as_arrow_array.geoarrow_vctr <- function(x, ..., type = NULL) {
+  if (is.null(type)) {
+    array <- narrow::as_narrow_array(x)
+    return(narrow::from_narrow_array(array, arrow::Array))
   }
 
+  schema <- attr(x, "schema", exact = TRUE)
+  schema_to <- narrow::as_narrow_schema(type)
+
+  schemas_identical <- identical(
+    narrow::narrow_schema_info(schema, recursive = TRUE),
+    narrow::narrow_schema_info(schema_to, recursive = TRUE)
+  )
+
+  if (schemas_identical) {
+    array <- narrow::as_narrow_array(x)
+    return(narrow::from_narrow_array(array, arrow::Array))
+  }
+
+  array <- geoarrow_create_narrow(x, schema = schema_to, strict = TRUE)
   narrow::from_narrow_array(array, arrow::Array)
 }
 
-infer_type.narrow_vctr_geoarrow <- function(x, ...) {
+as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
+  schema <- attr(x, "schema", exact = TRUE)
+  schema_to <- if(!is.null(type)) narrow::as_narrow_schema(type)
+
+  schemas_identical <- !is.null(type) && identical(
+    narrow::narrow_schema_info(schema, recursive = TRUE),
+    narrow::narrow_schema_info(schema_to, recursive = TRUE)
+  )
+
+  if (is.null(type) || schemas_identical) {
+    arrays <- lapply(attr(x, "array_data", exact = TRUE), function(datum) {
+      narrow::from_narrow_array(
+        narrow::narrow_array(schema, datum),
+        arrow::Array
+      )
+    })
+
+    return(arrow::chunked_array(!!! arrays, type = arrow::infer_type(x)))
+  }
+
+  array <- geoarrow_create_narrow(x, schema = schema_to, strict = TRUE)
+  arrow::as_chunked_array(narrow::from_narrow_array(array, arrow::Array))
+}
+
+infer_type.geoarrow_vctr <- function(x, ...) {
   ptr <- narrow::narrow_allocate_schema()
+
   narrow::narrow_pointer_export(
-    narrow::as_narrow_array(x)$schema,
+    attr(x, "schema", exact = TRUE),
     ptr
   )
+
   asNamespace("arrow")$DataType$import_from_c(ptr)
+}
+
+#' @export
+as_geoarrow.Array <- function(x, ..., ptype = NULL) {
+  as_geoarrow(narrow::as_narrow_array(x), ptype = ptype)
+}
+
+#' @export
+as_geoarrow.ChunkedArray <- function(x, ..., ptype = NULL) {
+  if (is.null(ptype)) {
+    schema <- narrow::as_narrow_schema(x$type)
+    cls <- gsub("\\.", "_", schema$metadata[["ARROW:extension:name"]])
+    stopifnot(grepl("^geoarrow_", cls))
+
+    arrays <- lapply(x$chunks, narrow::as_narrow_array)
+
+    new_geoarrow_vctr(
+      schema,
+      lapply(arrays, "[[", "array_data"),
+      cls
+    )
+  } else {
+    NextMethod()
+  }
 }
 
 # deal with classes from dependencies to eliminate the need for a
@@ -73,17 +137,19 @@ register_arrow_extension_type <- function() {
       },
 
       as_vector = function(array) {
-        wk_handle_wrapper(narrow::as_narrow_array_stream(array), NULL)
+        as_geoarrow(array)
       },
 
       ToString = function() {
-        label <- gsub("^geoarrow\\.", "", self$extension_name())
+        label <- self$extension_name()
 
         crs <- self$crs
         if (is.null(crs) || identical(crs, "")) {
-          crs <- "<unspecified>"
+          crs <- "<crs: unspecified>"
         } else if (nchar(crs) > 30) {
-          crs <- paste0(substr(crs, 1, 27), "...")
+          crs <- paste0("<CRS: ", substr(crs, 1, 27), "...")
+        } else {
+          crs <- paste0("<CRS: ", crs, ">")
         }
 
         edges <- self$edges

@@ -5,6 +5,7 @@
 \alias{geoarrow_collect_sf}
 \alias{read_geoparquet}
 \alias{geoarrow_collect}
+\alias{geoarrow_collect.data.frame}
 \alias{geoarrow_collect.Table}
 \alias{geoarrow_collect.RecordBatch}
 \alias{geoarrow_collect.RecordBatchReader}
@@ -25,6 +26,8 @@ read_geoparquet(
 )
 
 geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
+
+\method{geoarrow_collect}{data.frame}(x, ..., handler = NULL, metadata = NULL)
 
 \method{geoarrow_collect}{Table}(x, ..., handler = NULL, metadata = NULL)
 

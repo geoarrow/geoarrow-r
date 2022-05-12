@@ -56,6 +56,20 @@ geoarrow_collect <- function(x, ..., handler = NULL, metadata = NULL) {
 
 #' @rdname read_geoparquet
 #' @export
+geoarrow_collect.data.frame <- function(x, ..., handler = NULL, metadata = NULL) {
+  stopifnot(is.null(metadata))
+
+  if (is.null(handler)) {
+    return(x)
+  }
+
+  col_handleable <- vapply(x, is_handleable_column, logical(1))
+  x[col_handleable] <- lapply(x[col_handleable], wk_handle_wrapper, handler)
+  x
+}
+
+#' @rdname read_geoparquet
+#' @export
 geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
   metadata_specified <- !is.null(metadata) || !is.null(x$metadata$geo)
   metadata <- geoarrow_object_metadata(x, metadata)
