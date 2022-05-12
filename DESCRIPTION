@@ -22,7 +22,7 @@ LinkingTo:
 Remotes:
     paleolimbot/narrow
 Suggests:
-    arrow,
+    arrow (>= 8.0.0),
     covr,
     testthat (>= 3.0.0),
     jsonlite,
