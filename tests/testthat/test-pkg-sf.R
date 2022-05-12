@@ -1,4 +1,17 @@
 
+test_that("st_* methods work for geoarrow_vctr", {
+  skip_if_not_installed("sf")
+
+  vctr <- geoarrow(wk::wkt("POINT (0 1)"))
+  expect_identical(sf::st_as_sfc(vctr), sf::st_as_sfc("POINT (0 1)"))
+  expect_identical(sf::st_geometry(vctr), sf::st_as_sfc("POINT (0 1)"))
+  expect_identical(sf::st_crs(vctr), sf::NA_crs_)
+  expect_identical(
+    sf::st_bbox(vctr),
+    sf::st_bbox(sf::st_as_sfc("POINT (0 1)"))
+  )
+})
+
 test_that("as_arrow_table() works for sf objects", {
   skip_if_not(has_arrow_extension_type())
   skip_if_not_installed("sf")

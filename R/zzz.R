@@ -1,17 +1,10 @@
 
 # nocov start
 .onLoad <- function(...) {
-  vctr_classes <- c(
-    "wkb", "wkt",
-    "point", "linestring", "polygon",
-    "multipoint", "multilinestring", "multipolygon"
-  )
-
-  for (ext in c("wkb", "wkt", "point", "linestring", "polygon", "multi")) {
-    cls <- paste0("narrow_vctr_", ext)
-    s3_register("vctrs::vec_proxy", cls, vctr_proxy)
-    s3_register("vctrs::vec_restore", cls, vctr_restore)
-  }
+  s3_register("sf::st_as_sfc", "geoarrow_vctr")
+  s3_register("sf::st_geometry", "geoarrow_vctr")
+  s3_register("sf::st_crs", "geoarrow_vctr")
+  s3_register("sf::st_bbox", "geoarrow_vctr")
 
   if (has_arrow_with_extension_type()) {
     try(register_arrow_extension_type(), silent = TRUE)

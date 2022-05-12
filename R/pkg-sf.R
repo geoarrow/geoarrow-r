@@ -26,3 +26,22 @@ as_arrow_table.sf <- function(x, ..., schema = NULL) {
 
   as_geoarrow_table(x, geoparquet_metadata = TRUE)
 }
+
+st_as_sfc.geoarrow_vctr <- function(x, ...) {
+  sf::st_set_crs(
+    wk::wk_handle(x, wk::sfc_writer()),
+    sf::st_crs(wk::wk_crs(x))
+  )
+}
+
+st_geometry.geoarrow_vctr <- function(x, ...) {
+  st_as_sfc.geoarrow_vctr(x)
+}
+
+st_crs.geoarrow_vctr <- function(x, ...) {
+  sf::st_crs(wk::wk_crs(x))
+}
+
+st_bbox.geoarrow_vctr <- function(x) {
+  sf::st_bbox(wk::wk_bbox(x))
+}
