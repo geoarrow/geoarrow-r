@@ -2,6 +2,9 @@
 #' Create GeoArrow Vectors
 #'
 #' @param x An object that implements [wk::wk_handle()]
+#' @param ... Passed to S3 methods
+#' @param ptype A prototype for the final vctr type, or NULL to guess the most
+#'   appropriate type.
 #'
 #' @return A vector class inheriting from 'geoarrow_vctr'.
 #' @export

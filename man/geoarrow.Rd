@@ -17,6 +17,11 @@ as_geoarrow(x, ..., ptype = NULL)
 }
 \arguments{
 \item{x}{An object that implements \code{\link[wk:wk_handle]{wk::wk_handle()}}}
+
+\item{...}{Passed to S3 methods}
+
+\item{ptype}{A prototype for the final vctr type, or NULL to guess the most
+appropriate type.}
 }
 \value{
 A vector class inheriting from 'geoarrow_vctr'.
