@@ -35,7 +35,7 @@ geoarrow_create_narrow <- function(handleable, ..., schema = geoarrow_schema_def
     schema <- geoarrow_schema_set_geodesic(schema, wk::wk_is_geodesic(handleable))
   }
 
-  if (inherits(handleable, c("narrow_array", "narrow_vctr", "Array"))) {
+  if (inherits(handleable, c("narrow_array", "Array"))) {
     handleable <- narrow::as_narrow_array(handleable)
     result <- geoarrow_compute(
       handleable,

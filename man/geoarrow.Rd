@@ -5,6 +5,7 @@
 \alias{geoarrow_wkb}
 \alias{geoarrow_wkt}
 \alias{as_geoarrow}
+\alias{as_geoarrow.geoarrow_vctr}
 \title{Create GeoArrow Vectors}
 \usage{
 geoarrow(x = wk::wkb(crs = NULL))
@@ -14,6 +15,8 @@ geoarrow_wkb(x = wk::wkb(crs = NULL))
 geoarrow_wkt(x = wk::wkb(crs = NULL))
 
 as_geoarrow(x, ..., ptype = NULL)
+
+\method{as_geoarrow}{geoarrow_vctr}(x, ..., ptype = NULL)
 }
 \arguments{
 \item{x}{An object that implements \code{\link[wk:wk_handle]{wk::wk_handle()}}}
@@ -27,5 +30,10 @@ appropriate type.}
 A vector class inheriting from 'geoarrow_vctr'.
 }
 \description{
-Create GeoArrow Vectors
+The 'geoarrow_vctr' family of vector classes are a zero-copy wrapper around
+an Arrow C Data interface representation of a \link[arrow:ChunkedArray]{arrow::ChunkedArray}. This
+class provides most of the features that you might want when loading a file
+(e.g., subset, print, format, inspect), and can be converted to some other
+vector class (e.g., using \code{\link[sf:st_as_sf]{sf::st_as_sf()}} or \code{\link[=geoarrow_collect_sf]{geoarrow_collect_sf()}}) with
+more features when appropriate.
 }

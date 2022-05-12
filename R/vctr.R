@@ -1,6 +1,13 @@
 
 #' Create GeoArrow Vectors
 #'
+#' The 'geoarrow_vctr' family of vector classes are a zero-copy wrapper around
+#' an Arrow C Data interface representation of a [arrow::ChunkedArray]. This
+#' class provides most of the features that you might want when loading a file
+#' (e.g., subset, print, format, inspect), and can be converted to some other
+#' vector class (e.g., using [sf::st_as_sf()] or [geoarrow_collect_sf()]) with
+#' more features when appropriate.
+#'
 #' @param x An object that implements [wk::wk_handle()]
 #' @param ... Passed to S3 methods
 #' @param ptype A prototype for the final vctr type, or NULL to guess the most
@@ -48,6 +55,16 @@ as_geoarrow <- function(x, ..., ptype = NULL) {
   UseMethod("as_geoarrow")
 }
 
+#' @rdname geoarrow
+#' @export
+as_geoarrow.geoarrow_vctr <- function(x, ..., ptype = NULL) {
+  if (is.null(ptype)) {
+    x
+  } else {
+    NextMethod()
+  }
+}
+
 #' @export
 as_geoarrow.default <- function(x, ..., ptype = NULL) {
   if (is.null(ptype)) {
@@ -76,6 +93,20 @@ as_geoarrow.narrow_array <- function(x, ..., ptype = NULL) {
 }
 
 geoarrow_vctr <- function(x, schema) {
+  # opportunity to short-circuit if we already have a geoarrow vctr
+  if (inherits(x, "geoarrow_vctr")) {
+    schema_proxy <- narrow::narrow_schema_info(schema, recursive = TRUE)
+    x_schema_proxy <- narrow::narrow_schema_info(
+      attr(x, "schema", exact = TRUE),
+      recursive = TRUE
+    )
+
+    if (identical(schema_proxy, x_schema_proxy)) {
+      return(x)
+    }
+  }
+
+
   narrow_array <- geoarrow_create_narrow(
     x,
     schema = schema,
@@ -116,11 +147,6 @@ vctr_restore <- function(x, to, ...) {
     class(to),
     indices = x
   )
-}
-
-vctr_normalize <- function(x) {
-  array <- narrow::as_narrow_array(x)
-  new_geoarrow_vctr(array$schema, list(array$array_data), class(x))
 }
 
 is_slice <- function(x) {
@@ -370,7 +396,58 @@ is.na.geoarrow_vctr <- function(x) {
 #' @export
 c.geoarrow_vctr <- function(...) {
   dots <- list(...)
-  stop("c() for geoarrow_vctr not supported")
+
+  if (length(dots) == 1L) {
+    return(dots[[1]])
+  }
+
+  ptype_out <- Reduce(geoarrow_ptype2, dots)
+
+  schema_out <- attr(ptype_out, "schema", exact = TRUE)
+  cls <- gsub("\\.", "_", schema_out$metadata[["ARROW:extension:name"]])
+  dots_casted <- lapply(dots, geoarrow_vctr, schema_out)
+  array_data <- do.call(c, lapply(dots_casted, attr, "array_data"))
+  length <- sum(vapply(array_data, "[[", integer(1), "length"))
+
+  new_geoarrow_vctr(
+    schema_out,
+    array_data,
+    cls,
+    seq_len(length)
+  )
+}
+
+geoarrow_ptype2 <- function(x, y) {
+  # eventually we can do more complex things here, but for now we just
+  # convert to WKB unless the schemas are identical because this involves
+  # the fewest assumptions
+  schema_x <- attr(x, "schema", exact = TRUE)
+  schema_y <- attr(y, "schema", exact = TRUE)
+
+  schemas_identical <- !is.null(schema_x) &&
+    !is.null(schema_y) &&
+    identical(
+      narrow::narrow_schema_info(schema_x, recursive = TRUE),
+      narrow::narrow_schema_info(schema_y, recursive = TRUE)
+    )
+
+  if (schemas_identical) {
+    new_geoarrow_vctr(schema_x, list(), class(x), integer())
+  } else {
+    # will error for incompatible crses, edges
+    crs_out <- wk::wk_crs_output(x, y)
+    geodesic_out <- wk::wk_is_geodesic_output(x, y)
+
+    new_geoarrow_vctr(
+      geoarrow_schema_wkb(
+        crs = wk::wk_crs(x),
+        edges = if (wk::wk_is_geodesic(x)) "spherical"
+      ),
+      list(),
+      "geoarrow_wkb",
+      integer()
+    )
+  }
 }
 
 #' @export

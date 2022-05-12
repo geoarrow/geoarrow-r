@@ -271,6 +271,38 @@ test_that("as_narrow_array_stream() works for geoarrow_vctr with >1 (scrambled) 
   expect_null(narrow::narrow_array_stream_get_next(stream))
 })
 
+test_that("c() works for geoarrow_vctr", {
+  vctr1 <- geoarrow(wk::xy(1:3, 1:3, crs = "something"))
+  vctr2 <- geoarrow_wkb(wk::xy(7:9, 7:9, crs = "something"))
+
+  expect_identical(c(vctr1), vctr1)
+
+  same_type <- c(vctr1, vctr1)
+  expect_s3_class(same_type, "geoarrow_point")
+  expect_identical(
+    wk::as_xy(same_type),
+    wk::xy(c(1:3, 1:3), c(1:3, 1:3), crs = "something")
+  )
+  # make sure we didn't copy any data
+  same_type_out_data <- attr(same_type, "array_data")
+  expect_length(same_type_out_data, 2)
+  expect_identical(
+    same_type_out_data,
+    rep(attr(vctr1, "array_data"), 2)
+  )
+
+  diff_type <- c(vctr1, vctr2)
+  expect_s3_class(diff_type, "geoarrow_wkb")
+  expect_identical(
+    wk::as_xy(diff_type),
+    wk::xy(c(1:3, 7:9), c(1:3, 7:9), crs = "something")
+  )
+
+  expect_error(c(vctr1, wk::xy(crs = "something else")), "are not equal")
+  expect_error(c(vctr1, wk::wkb(geodesic = TRUE)), "differing values for geodesic")
+})
+
+
 test_that("as_narrow_array() works for geoarrow_vctr", {
   vctr <- geoarrow(wk::xy(1:4, 5:8))
   array_data <- attr(vctr, "array_data")[[1]]
