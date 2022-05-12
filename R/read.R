@@ -102,12 +102,16 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
         )
       }
 
-      result <- wk_handle_wrapper(
-        narrow::as_narrow_array_stream(array_or_chunked_array),
-        handler,
-        geoarrow_schema = geoarrow_schema,
-        geoarrow_n_features = array_or_chunked_array$length()
-      )
+      if (is.null(handler)) {
+        result <- as_geoarrow(array_or_chunked_array)
+      } else {
+        result <- wk_handle_wrapper(
+          narrow::as_narrow_array_stream(array_or_chunked_array),
+          handler,
+          geoarrow_schema = geoarrow_schema,
+          geoarrow_n_features = array_or_chunked_array$length()
+        )
+      }
 
       if (!is.null(result)) {
         wk::wk_crs(result) <- recursive_extract_narrow_schema(geoarrow_schema, "crs")

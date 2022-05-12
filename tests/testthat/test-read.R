@@ -104,6 +104,31 @@ test_that("arrow::read|write_feather() just works with handleables", {
   unlink(temp)
 })
 
+test_that("geoarrow_collect() defaults to geoarrow_vctr representation", {
+  skip_if_not(has_arrow_with_extension_type())
+
+  table <- geoarrow_collect(
+    arrow::arrow_table(x = 1:5, geom = wk::xy(1:5, 6:10))
+  )
+
+  expect_s3_class(table$geom, "geoarrow_point")
+})
+
+test_that("geoarrow_collect() works with data.frame", {
+  expect_identical(
+    geoarrow_collect(data.frame(a = 1, b = 2)),
+    data.frame(a = 1, b = 2)
+  )
+
+  expect_identical(
+    geoarrow_collect(
+      data.frame(a = 1, b = wk::wkt("POINT (0 1)")),
+      handler = wk::xy_writer()
+    ),
+    data.frame(a = 1, b = wk::xy(0, 1))
+  )
+})
+
 test_that("arrow::read|write_ipc_stream() just works with handleables", {
   skip_if_not(has_arrow_with_extension_type())
 
