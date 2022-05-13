@@ -292,7 +292,7 @@ as_narrow_array.geoarrow_vctr <- function(x, ...) {
   } else {
     # concatenation
     wk::wk_handle(
-      narrow::as_narrow_array_stream(x),
+      x,
       geoarrow_compute_handler("cast", list(schema = schema, strict = TRUE))
     )
   }
