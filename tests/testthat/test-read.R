@@ -76,6 +76,42 @@ test_that("geoarrow_collect works without metadata or extension types", {
   unlink(temp)
 })
 
+test_that("geoarrow_collect works without extension types with metadata", {
+  skip_if_not(has_arrow_with_extension_type())
+
+  table <- as_geoarrow_table(
+    data.frame(
+      id = letters,
+      geom = wk::xy(1:26, 27:52, crs = "EPSG:4326"),
+      stringsAsFactors = FALSE
+    ),
+    geoparquet_metadata = TRUE
+  )
+
+  table$geom <- table$geom$chunk(0)$storage()
+
+  temp <- tempfile()
+  arrow::write_parquet(table, temp)
+
+  table2 <- arrow::read_parquet(temp, as_data_frame = FALSE)
+  expect_true(inherits(table2, "Table"))
+  expect_false(is.null(table2$metadata$geo))
+
+  expect_identical(
+    as.data.frame(geoarrow_collect(table2, handler = wk::xy_writer)),
+    data.frame(id = letters, geom = wk::xy(1:26, 27:52, crs = "EPSG:4326"))
+  )
+
+  collect_default <- geoarrow_collect(table2)
+  expect_s3_class(collect_default$geom, "geoarrow_point")
+  expect_identical(wk::wk_crs(collect_default$geom), "EPSG:4326")
+  expect_identical(
+    wk::as_xy(collect_default$geom),
+    wk::xy(1:26, 27:52, crs = "EPSG:4326")
+  )
+
+  unlink(temp)
+})
 
 test_that("geoarrow_collect() works with zero columns", {
   skip_if_not(has_arrow_with_extension_type())

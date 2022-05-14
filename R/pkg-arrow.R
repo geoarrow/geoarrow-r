@@ -58,14 +58,19 @@ infer_type.geoarrow_vctr <- function(x, ...) {
 }
 
 #' @export
-as_geoarrow.Array <- function(x, ..., ptype = NULL) {
-  as_geoarrow(narrow::as_narrow_array(x), ptype = ptype)
+as_geoarrow.Array <- function(x, ..., ptype = NULL, schema_override = NULL) {
+  array <- narrow::as_narrow_array(x)
+  if (!is.null(schema_override)) {
+    array$schema <- schema_override
+  }
+
+  as_geoarrow(array, ptype = ptype)
 }
 
 #' @export
-as_geoarrow.ChunkedArray <- function(x, ..., ptype = NULL) {
+as_geoarrow.ChunkedArray <- function(x, ..., ptype = NULL, schema_override = NULL) {
   if (is.null(ptype)) {
-    schema <- narrow::as_narrow_schema(x$type)
+    schema <- schema_override %||% narrow::as_narrow_schema(x$type)
     cls <- gsub("\\.", "_", schema$metadata[["ARROW:extension:name"]])
     stopifnot(grepl("^geoarrow_", cls))
 

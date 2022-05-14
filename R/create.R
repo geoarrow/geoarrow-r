@@ -68,24 +68,38 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point())
 
   has_mising_info <- is.na(vector_meta$geometry_type) ||
     (vector_meta$geometry_type == 0L) ||
-    is.na(vector_meta$size) ||
     is.na(vector_meta$has_z) ||
     is.na(vector_meta$has_m)
 
-  # fall back on wk_meta() (doesn't iterate along coordinates)
+  # fall back on the geoparquet type collector
   if (has_mising_info) {
-    meta <- wk::wk_meta(handleable)
-    vector_meta$size <- nrow(meta)
-    vector_meta$has_z <- any(meta$has_z, na.rm = TRUE)
-    vector_meta$has_m <- any(meta$has_m, na.rm = TRUE)
+    types_array <- wk::wk_handle(
+      handleable,
+      geoarrow_compute_handler("geoparquet_types", list(include_empty = FALSE))
+    )
+    # A vector like c("Point", "Point Z", "MultiPoint")
+    unique_types <- sort(unique(narrow::from_narrow_array(types_array)))
+    unique_geom_types <- sort(unique(gsub("\\s+.*?$", "", unique_types)))
 
-    all_types <- sort(unique(meta$geometry_type))
-    all_type <- all_types[!is.na(all_types)]
-    if (length(all_types) == 1L) {
-      vector_meta$geometry_type <- all_types
+    if (length(unique_geom_types) == 1) {
+      vector_meta$geometry_type <-
+        wk::wk_geometry_type(tolower(unique_geom_types))
+    } else if (identical(unique_geom_types, c("MultiPoint", "Point"))) {
+      vector_meta$geometry_type <-
+        wk::wk_geometry_type("multipoint")
+    } else if (identical(unique_geom_types, c("LineString", "MultiLineString"))) {
+      vector_meta$geometry_type <-
+        wk::wk_geometry_type("multilinestring")
+    } else if (identical(unique_geom_types, c("MultiPolygon", "Polygon"))) {
+      vector_meta$geometry_type <-
+        wk::wk_geometry_type("multipolygon")
     } else {
-      vector_meta$geometry_type <- wk::wk_geometry_type("geometrycollection")
+      vector_meta$geometry_type <-
+        wk::wk_geometry_type("geometrycollection")
     }
+
+    vector_meta$has_z <- any(grepl("\\s+ZM?$", unique_types))
+    vector_meta$has_m <- any(grepl("\\s+Z?M$", unique_types))
   }
 
   point_metadata <- geoarrow_metadata(point)

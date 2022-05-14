@@ -288,6 +288,58 @@ test_that("geoarrow_schema_default() works with all geometry types", {
   )
 })
 
+test_that("geoarrow_schema_default() promotes to multi when simple + multi are included", {
+  schema_multipoint <- geoarrow_schema_default(
+    wk::wkt(c("POINT (0 1)", "MULTIPOINT (1 1, 2 2)"))
+  )
+  expect_identical(
+    schema_multipoint$metadata[["ARROW:extension:name"]],
+    "geoarrow.multipoint"
+  )
+
+  schema_multilinestring <- geoarrow_schema_default(
+    wk::wkt(c("LINESTRING (0 0, 1 1 )", "MULTILINESTRING ((1 1, 2 2))"))
+  )
+  expect_identical(
+    schema_multilinestring$metadata[["ARROW:extension:name"]],
+    "geoarrow.multilinestring"
+  )
+
+  schema_multipolygon <- geoarrow_schema_default(
+    wk::wkt(c("POLYGON ((0 0, 0 1, 1 0, 0 0))", "MULTIPOLYGON (((0 0, 1 1, 0 1, 0 0)))"))
+  )
+  expect_identical(
+    schema_multipolygon$metadata[["ARROW:extension:name"]],
+    "geoarrow.multipolygon"
+  )
+})
+
+test_that("geoarrow_schema_default() ignores empties", {
+  schema_multipoint <- geoarrow_schema_default(
+    wk::wkt(c("GEOMETRYCOLLECTION EMPTY", "MULTIPOINT (1 1, 2 2)"))
+  )
+  expect_identical(
+    schema_multipoint$metadata[["ARROW:extension:name"]],
+    "geoarrow.multipoint"
+  )
+
+  schema_multilinestring <- geoarrow_schema_default(
+    wk::wkt(c("GEOMETRYCOLLECTION EMPTY", "MULTILINESTRING ((1 1, 2 2))"))
+  )
+  expect_identical(
+    schema_multilinestring$metadata[["ARROW:extension:name"]],
+    "geoarrow.multilinestring"
+  )
+
+  schema_multipolygon <- geoarrow_schema_default(
+    wk::wkt(c("GEOMETRYCOLLECTION EMPTY", "MULTIPOLYGON (((0 0, 1 1, 0 1, 0 0)))"))
+  )
+  expect_identical(
+    schema_multipolygon$metadata[["ARROW:extension:name"]],
+    "geoarrow.multipolygon"
+  )
+})
+
 test_that("geoarrow_schema_default() falls back to WKB for mixed type vectors", {
   schema_collection <- geoarrow_schema_default(wk::wkt("GEOMETRYCOLLECTION (POINT (1 2))"))
   expect_identical(
@@ -295,7 +347,7 @@ test_that("geoarrow_schema_default() falls back to WKB for mixed type vectors", 
     "geoarrow.wkb"
   )
 
-  schema_mixed <- geoarrow_schema_default(wk::wkt(c("POINT (1 2)", "MULTIPOINT (1 2, 3 4)")))
+  schema_mixed <- geoarrow_schema_default(wk::wkt(c("LINESTRING (1 2)", "MULTIPOINT (1 2, 3 4)")))
   expect_identical(
     schema_mixed$metadata[["ARROW:extension:name"]],
     "geoarrow.wkb"

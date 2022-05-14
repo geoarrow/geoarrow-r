@@ -103,7 +103,10 @@ geoarrow_collect.Table <- function(x, ..., handler = NULL, metadata = NULL) {
       }
 
       if (is.null(handler)) {
-        result <- as_geoarrow(array_or_chunked_array)
+        result <- as_geoarrow(
+          array_or_chunked_array,
+          schema_override = geoarrow_schema
+        )
       } else {
         result <- wk_handle_wrapper(
           narrow::as_narrow_array_stream(array_or_chunked_array),
@@ -200,6 +203,10 @@ wk_handle_wrapper <- function(handleable, handler, ...) {
 }
 
 geoarrow_object_metadata <- function(x, metadata = NULL) {
+  if (is.null(metadata)) {
+    metadata <- x$metadata$geo
+  }
+
   if (is.list(metadata) || is.null(metadata)) {
     as.list(metadata)
   } else {
