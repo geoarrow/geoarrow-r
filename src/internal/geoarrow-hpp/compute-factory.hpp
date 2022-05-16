@@ -15,6 +15,10 @@
 
 namespace geoarrow {
 
+ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& options);
+
+#if defined(ARROW_HPP_IMPL)
+
 ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& options) {
     if (op == "void") {
         return new NullBuilder();
@@ -49,5 +53,7 @@ ComputeBuilder* create_builder(const std::string& op, const ComputeOptions& opti
         throw util::IOException("Unknown operation: '%s'", op.c_str());
     }
 }
+
+#endif
 
 }

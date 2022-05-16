@@ -7,6 +7,10 @@
 
 namespace geoarrow {
 
+ArrayView* create_view(struct ArrowSchema* schema);
+
+#if defined(ARROW_HPP_IMPL)
+
 namespace {
 
 ArrayView* create_view_collection(struct ArrowSchema* schema, Meta& multi_meta) {
@@ -89,5 +93,7 @@ ArrayView* create_view(struct ArrowSchema* schema) {
         throw Meta::ValidationError("Unsupported extension type");
     }
 }
+
+#endif
 
 }
