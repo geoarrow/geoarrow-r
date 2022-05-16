@@ -183,7 +183,7 @@ For example, the following subclass of `Handler` calculates the bounding box of 
 ```{cpp11}
 #include <cpp11.hpp>
 #include "narrow.h"
-#include "../../src/internal/geoarrow-hpp/factory.hpp"
+#include "../../src/internal/geoarrow-cpp/factory.hpp"
 
 using namespace cpp11;
 using namespace geoarrow;
@@ -236,7 +236,7 @@ The geoarrow package uses the `Meta` class to validate and parse both schema and
 ```{cpp11}
 #include <cpp11.hpp>
 #include "narrow.h"
-#include "../../src/internal/geoarrow-hpp/meta.hpp"
+#include "../../src/internal/geoarrow-cpp/meta.hpp"
 
 using namespace cpp11;
 using namespace geoarrow;
