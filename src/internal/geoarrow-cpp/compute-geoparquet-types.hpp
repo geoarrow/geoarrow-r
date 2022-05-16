@@ -5,8 +5,8 @@
 
 #include "handler.hpp"
 #include "compute-builder.hpp"
-#include "../arrow-hpp/builder.hpp"
-#include "../arrow-hpp/builder-string.hpp"
+#include "internal/arrow-hpp/builder.hpp"
+#include "internal/arrow-hpp/builder-string.hpp"
 
 namespace geoarrow {
 

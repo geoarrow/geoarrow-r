@@ -15,5 +15,4 @@
 // For implementations of release callbacks
 #define ARROW_HPP_IMPL
 
-#include "internal/geoarrow-hpp/factory.hpp"
-#include "internal/geoarrow-hpp/compute-factory.hpp"
+#include "geoarrow.h"

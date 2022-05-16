@@ -5,20 +5,20 @@
 #include "schema.hpp"
 #include "compute-builder.hpp"
 #include "compute-cast-point.hpp"
-#include "../arrow-hpp/builder.hpp"
-#include "../arrow-hpp/builder-list.hpp"
+#include "internal/arrow-hpp/builder.hpp"
+#include "internal/arrow-hpp/builder-list.hpp"
 
 namespace geoarrow {
 
-class PolygonArrayBuilder: public ComputeBuilder {
+class LinestringArrayBuilder: public ComputeBuilder {
 public:
-    PolygonArrayBuilder(const ComputeOptions& options = ComputeOptions()): ComputeBuilder(options) {
-        builder_.child().set_name("rings");
-        builder_.child().child().set_name("vertices");
+    LinestringArrayBuilder(const ComputeOptions& options = ComputeOptions()):
+      ComputeBuilder(options) {
+        builder_.child().set_name("vertices");
     }
 
     void new_dimensions(util::Dimensions dimensions) {
-        builder_.child().child().new_dimensions(dimensions);
+        builder_.child().new_dimensions(dimensions);
     }
 
     Result null_feat() {
@@ -32,33 +32,20 @@ public:
             size_++;
             builder_.finish_element();
             return Result::ABORT_FEATURE;
-        } else if (geometry_type == util::GeometryType::POLYGON) {
+        } else if (geometry_type == util::GeometryType::LINESTRING) {
             if (size > 0) {
                 builder_.child().reserve(size);
             }
             return Result::CONTINUE;
-        } else if (size == 1 && geometry_type == util::GeometryType::MULTIPOLYGON) {
+        } else if (size == 1 && geometry_type == util::GeometryType::MULTILINESTRING) {
             return Result::CONTINUE;
         } else {
-            throw util::IOException("Can't write non-polygon (%d[%d]) as POLYGON", geometry_type, size);
+            throw util::IOException("Can't write non-linestring (%d[%d]) as LINESTRING", geometry_type, size);
         }
-    }
-
-    Result ring_start(int32_t size) {
-        if (size > 0) {
-            builder_.child().reserve(size);
-        }
-
-        return Result::CONTINUE;
     }
 
     Result coords(const double* coord, int64_t n, int32_t coord_size) {
-        return builder_.child().child().coords(coord, n, coord_size);
-    }
-
-    Result ring_end() {
-        builder_.child().finish_element();
-        return Result::CONTINUE;
+        return builder_.child().coords(coord, n, coord_size);
     }
 
     Result feat_end() {
@@ -75,7 +62,7 @@ public:
     void release(struct ArrowArray* array_data, struct ArrowSchema* schema) {
         shrink();
         builder_.set_name(name());
-        builder_.set_metadata("ARROW:extension:name", "geoarrow.polygon");
+        builder_.set_metadata("ARROW:extension:name", "geoarrow.linestring");
         builder_.set_metadata("ARROW:extension:metadata", Metadata().build());
         builder_.release(array_data, schema);
 
@@ -84,7 +71,7 @@ public:
     }
 
 private:
-    arrow::hpp::builder::ListArrayBuilder<arrow::hpp::builder::ListArrayBuilder<PointArrayBuilder>> builder_;
+    arrow::hpp::builder::ListArrayBuilder<PointArrayBuilder> builder_;
 };
 
 }

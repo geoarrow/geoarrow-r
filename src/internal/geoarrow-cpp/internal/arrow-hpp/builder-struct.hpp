@@ -57,7 +57,7 @@ public:
     finalizer.release(array_data, schema);
   }
 
-private:
+protected:
   std::vector<std::unique_ptr<ArrayBuilder>> children_;
 };
 

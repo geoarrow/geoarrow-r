@@ -8,8 +8,8 @@
 #include "compute-cast-point.hpp"
 #include "compute-cast-linestring.hpp"
 #include "compute-cast-polygon.hpp"
-#include "../arrow-hpp/builder.hpp"
-#include "../arrow-hpp/builder-list.hpp"
+#include "internal/arrow-hpp/builder.hpp"
+#include "internal/arrow-hpp/builder-list.hpp"
 
 namespace geoarrow {
 

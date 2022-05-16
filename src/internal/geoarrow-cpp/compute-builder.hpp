@@ -9,7 +9,7 @@
 
 #include "handler.hpp"
 #include "common.hpp"
-#include "../arrow-hpp/builder.hpp"
+#include "internal/arrow-hpp/builder.hpp"
 
 namespace geoarrow {
 

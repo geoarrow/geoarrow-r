@@ -183,7 +183,8 @@ For example, the following subclass of `Handler` calculates the bounding box of 
 ```{cpp11}
 #include <cpp11.hpp>
 #include "narrow.h"
-#include "../../src/internal/geoarrow-hpp/factory.hpp"
+#define ARROW_HPP_IMPL
+#include "../../src/internal/geoarrow-cpp/factory.hpp"
 
 using namespace cpp11;
 using namespace geoarrow;
@@ -195,7 +196,7 @@ public:
       ymin(R_PosInf), ymax(R_NegInf) {}
 
 
-  Handler::Result coord(const double* coord) {
+  Result coords(const double* coord, int64_t n, int32_t coord_size) {
     xmin = std::min<double>(coord[0], xmin);
     xmax = std::max<double>(coord[0], xmax);
     ymin = std::min<double>(coord[1], ymin);
@@ -236,7 +237,7 @@ The geoarrow package uses the `Meta` class to validate and parse both schema and
 ```{cpp11}
 #include <cpp11.hpp>
 #include "narrow.h"
-#include "../../src/internal/geoarrow-hpp/meta.hpp"
+#include "../../src/internal/geoarrow-cpp/meta.hpp"
 
 using namespace cpp11;
 using namespace geoarrow;

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../arrow-hpp/common.hpp"
+#include "internal/arrow-hpp/common.hpp"
 
 namespace geoarrow {
 
