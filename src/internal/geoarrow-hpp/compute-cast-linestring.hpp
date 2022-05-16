@@ -5,8 +5,8 @@
 #include "schema.hpp"
 #include "compute-builder.hpp"
 #include "compute-cast-point.hpp"
-#include "../arrow-hpp/builder.hpp"
-#include "../arrow-hpp/builder-list.hpp"
+#include "internal/arrow-hpp/builder.hpp"
+#include "internal/arrow-hpp/builder-list.hpp"
 
 namespace geoarrow {
 

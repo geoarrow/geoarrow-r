@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../arrow-hpp/schema.hpp"
+#include "internal/arrow-hpp/schema.hpp"
 
 namespace geoarrow {
 
