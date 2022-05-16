@@ -133,11 +133,11 @@
 <span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 4</span></span>
 <span class="co">#&gt;   name          population fclass                      geometry</span>
 <span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;POINT [°]&gt;</span></span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Frederiksberg     <span style="text-decoration: underline;">102</span>029 suburb           (12.53262 55.67802)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">2</span> København         <span style="text-decoration: underline;">613</span>288 national_capital (12.57007 55.68672)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Aarhus            <span style="text-decoration: underline;">273</span>077 city              (10.2134 56.14963)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Odense            <span style="text-decoration: underline;">178</span>210 city             (10.38521 55.39972)</span>
-<span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Aalborg           <span style="text-decoration: underline;">114</span>194 city             (9.921526 57.04626)</span></code></pre></div>
+<span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Aarhus            <span style="text-decoration: underline;">273</span>077 city              (10.2134 56.14963)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Odense            <span style="text-decoration: underline;">178</span>210 city             (10.38521 55.39972)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Aalborg           <span style="text-decoration: underline;">114</span>194 city             (9.921526 57.04626)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">4</span> København         <span style="text-decoration: underline;">613</span>288 national_capital (12.57007 55.68672)</span>
+<span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Frederiksberg     <span style="text-decoration: underline;">102</span>029 suburb           (12.53262 55.67802)</span></code></pre></div>
 <p>Geometry operators aren’t yet supported within the Arrow compute engine, so any filtering or transformation on geometry columns must be done at the beginning (i.e., when selecting files to pass to <code><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset()</a></code>) or at the end (i.e., after calling <code><a href="../reference/read_geoparquet.html">geoarrow_collect_sf()</a></code>).</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">capital</span> <span class="op">&lt;-</span> <span class="va">places</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> 

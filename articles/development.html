@@ -209,49 +209,50 @@
 <p>For example, the following subclass of <code>Handler</code> calculates the bounding box of any (arrow array of) geometry it is handed.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb12-1"><a href="#cb12-1"></a><span class="pp">#include </span><span class="im">&lt;cpp11.hpp&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2"></a><span class="pp">#include </span><span class="im">"narrow.h"</span></span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow-hpp/factory.hpp"</span></span>
-<span id="cb12-4"><a href="#cb12-4"></a></span>
-<span id="cb12-5"><a href="#cb12-5"></a><span class="kw">using</span> <span class="kw">namespace</span> cpp11;</span>
-<span id="cb12-6"><a href="#cb12-6"></a><span class="kw">using</span> <span class="kw">namespace</span> geoarrow;</span>
-<span id="cb12-7"><a href="#cb12-7"></a></span>
-<span id="cb12-8"><a href="#cb12-8"></a><span class="kw">class</span> BboxHandler: <span class="kw">public</span> Handler {</span>
-<span id="cb12-9"><a href="#cb12-9"></a><span class="kw">public</span>:</span>
-<span id="cb12-10"><a href="#cb12-10"></a>  BboxHandler()</span>
-<span id="cb12-11"><a href="#cb12-11"></a>    : xmin(R_PosInf), xmax(R_NegInf),</span>
-<span id="cb12-12"><a href="#cb12-12"></a>      ymin(R_PosInf), ymax(R_NegInf) {}</span>
-<span id="cb12-13"><a href="#cb12-13"></a></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="pp">#define ARROW_HPP_IMPL</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow-cpp/factory.hpp"</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="kw">using</span> <span class="kw">namespace</span> cpp11;</span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="kw">using</span> <span class="kw">namespace</span> geoarrow;</span>
+<span id="cb12-8"><a href="#cb12-8"></a></span>
+<span id="cb12-9"><a href="#cb12-9"></a><span class="kw">class</span> BboxHandler: <span class="kw">public</span> Handler {</span>
+<span id="cb12-10"><a href="#cb12-10"></a><span class="kw">public</span>:</span>
+<span id="cb12-11"><a href="#cb12-11"></a>  BboxHandler()</span>
+<span id="cb12-12"><a href="#cb12-12"></a>    : xmin(R_PosInf), xmax(R_NegInf),</span>
+<span id="cb12-13"><a href="#cb12-13"></a>      ymin(R_PosInf), ymax(R_NegInf) {}</span>
 <span id="cb12-14"><a href="#cb12-14"></a></span>
-<span id="cb12-15"><a href="#cb12-15"></a>  Handler::Result coord(<span class="at">const</span> <span class="dt">double</span>* coord) {</span>
-<span id="cb12-16"><a href="#cb12-16"></a>    xmin = <span class="bu">std::</span>min&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">0</span>], xmin);</span>
-<span id="cb12-17"><a href="#cb12-17"></a>    xmax = <span class="bu">std::</span>max&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">0</span>], xmax);</span>
-<span id="cb12-18"><a href="#cb12-18"></a>    ymin = <span class="bu">std::</span>min&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">1</span>], ymin);</span>
-<span id="cb12-19"><a href="#cb12-19"></a>    ymax = <span class="bu">std::</span>max&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">1</span>], ymax);</span>
-<span id="cb12-20"><a href="#cb12-20"></a>    <span class="cf">return</span> Result::CONTINUE;</span>
-<span id="cb12-21"><a href="#cb12-21"></a>  }</span>
-<span id="cb12-22"><a href="#cb12-22"></a></span>
-<span id="cb12-23"><a href="#cb12-23"></a>  <span class="dt">double</span> xmin;</span>
-<span id="cb12-24"><a href="#cb12-24"></a>  <span class="dt">double</span> xmax;</span>
-<span id="cb12-25"><a href="#cb12-25"></a>  <span class="dt">double</span> ymin;</span>
-<span id="cb12-26"><a href="#cb12-26"></a>  <span class="dt">double</span> ymax;</span>
-<span id="cb12-27"><a href="#cb12-27"></a>};</span>
-<span id="cb12-28"><a href="#cb12-28"></a></span>
-<span id="cb12-29"><a href="#cb12-29"></a>[[<span class="at">cpp11</span>::<span class="at">register</span>]]</span>
-<span id="cb12-30"><a href="#cb12-30"></a>doubles geoarrow_bbox(sexp schema_xptr, sexp array_data_xptr) {</span>
-<span id="cb12-31"><a href="#cb12-31"></a>  <span class="kw">struct</span> ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, <span class="st">"schema"</span>);</span>
-<span id="cb12-32"><a href="#cb12-32"></a>  <span class="kw">struct</span> ArrowArray* array_data = safe[array_data_from_xptr](array_data_xptr, <span class="st">"array_data"</span>);</span>
-<span id="cb12-33"><a href="#cb12-33"></a></span>
-<span id="cb12-34"><a href="#cb12-34"></a>  <span class="bu">std::</span>unique_ptr&lt;ArrayView&gt; view(create_view(schema));</span>
-<span id="cb12-35"><a href="#cb12-35"></a>  view-&gt;set_array(array_data);</span>
-<span id="cb12-36"><a href="#cb12-36"></a></span>
-<span id="cb12-37"><a href="#cb12-37"></a>  BboxHandler handler;</span>
-<span id="cb12-38"><a href="#cb12-38"></a>  view-&gt;read_meta(&amp;handler);</span>
-<span id="cb12-39"><a href="#cb12-39"></a>  view-&gt;read_features(&amp;handler);</span>
-<span id="cb12-40"><a href="#cb12-40"></a>  writable::doubles out = {handler.xmin, handler.xmax, handler.ymin, handler.ymax};</span>
-<span id="cb12-41"><a href="#cb12-41"></a>  <span class="cf">return</span> out;</span>
-<span id="cb12-42"><a href="#cb12-42"></a>}</span></code></pre></div>
+<span id="cb12-15"><a href="#cb12-15"></a></span>
+<span id="cb12-16"><a href="#cb12-16"></a>  Result coords(<span class="at">const</span> <span class="dt">double</span>* coord, <span class="dt">int64_t</span> n, <span class="dt">int32_t</span> coord_size) {</span>
+<span id="cb12-17"><a href="#cb12-17"></a>    xmin = <span class="bu">std::</span>min&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">0</span>], xmin);</span>
+<span id="cb12-18"><a href="#cb12-18"></a>    xmax = <span class="bu">std::</span>max&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">0</span>], xmax);</span>
+<span id="cb12-19"><a href="#cb12-19"></a>    ymin = <span class="bu">std::</span>min&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">1</span>], ymin);</span>
+<span id="cb12-20"><a href="#cb12-20"></a>    ymax = <span class="bu">std::</span>max&lt;<span class="dt">double</span>&gt;(coord[<span class="dv">1</span>], ymax);</span>
+<span id="cb12-21"><a href="#cb12-21"></a>    <span class="cf">return</span> Result::CONTINUE;</span>
+<span id="cb12-22"><a href="#cb12-22"></a>  }</span>
+<span id="cb12-23"><a href="#cb12-23"></a></span>
+<span id="cb12-24"><a href="#cb12-24"></a>  <span class="dt">double</span> xmin;</span>
+<span id="cb12-25"><a href="#cb12-25"></a>  <span class="dt">double</span> xmax;</span>
+<span id="cb12-26"><a href="#cb12-26"></a>  <span class="dt">double</span> ymin;</span>
+<span id="cb12-27"><a href="#cb12-27"></a>  <span class="dt">double</span> ymax;</span>
+<span id="cb12-28"><a href="#cb12-28"></a>};</span>
+<span id="cb12-29"><a href="#cb12-29"></a></span>
+<span id="cb12-30"><a href="#cb12-30"></a>[[<span class="at">cpp11</span>::<span class="at">register</span>]]</span>
+<span id="cb12-31"><a href="#cb12-31"></a>doubles geoarrow_bbox(sexp schema_xptr, sexp array_data_xptr) {</span>
+<span id="cb12-32"><a href="#cb12-32"></a>  <span class="kw">struct</span> ArrowSchema* schema = safe[schema_from_xptr](schema_xptr, <span class="st">"schema"</span>);</span>
+<span id="cb12-33"><a href="#cb12-33"></a>  <span class="kw">struct</span> ArrowArray* array_data = safe[array_data_from_xptr](array_data_xptr, <span class="st">"array_data"</span>);</span>
+<span id="cb12-34"><a href="#cb12-34"></a></span>
+<span id="cb12-35"><a href="#cb12-35"></a>  <span class="bu">std::</span>unique_ptr&lt;ArrayView&gt; view(create_view(schema));</span>
+<span id="cb12-36"><a href="#cb12-36"></a>  view-&gt;set_array(array_data);</span>
+<span id="cb12-37"><a href="#cb12-37"></a></span>
+<span id="cb12-38"><a href="#cb12-38"></a>  BboxHandler handler;</span>
+<span id="cb12-39"><a href="#cb12-39"></a>  view-&gt;read_meta(&amp;handler);</span>
+<span id="cb12-40"><a href="#cb12-40"></a>  view-&gt;read_features(&amp;handler);</span>
+<span id="cb12-41"><a href="#cb12-41"></a>  writable::doubles out = {handler.xmin, handler.xmax, handler.ymin, handler.ymax};</span>
+<span id="cb12-42"><a href="#cb12-42"></a>  <span class="cf">return</span> out;</span>
+<span id="cb12-43"><a href="#cb12-43"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu">geoarrow_bbox</span><span class="op">(</span><span class="va">polygons</span><span class="op">$</span><span class="va">schema</span>, <span class="va">polygons</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span>
-<span class="co">#&gt; [1]  Inf -Inf  Inf -Inf</span></code></pre></div>
+<span class="co">#&gt; [1] 20 35 10 30</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="metadata">Metadata<a class="anchor" aria-label="anchor" href="#metadata"></a>
@@ -259,7 +260,7 @@
 <p>The geoarrow package uses the <code>Meta</code> class to validate and parse both schema and array objects. It is a wrapper around a <code>struct ArrowSchema</code> that walks its input and extracts pieces in a reasonable format to build on. In most cases you shouldn’t need to extract metadata in compiled code; however, the <code>Meta</code> class is the easiest way to do so if you are in this position.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1"></a><span class="pp">#include </span><span class="im">&lt;cpp11.hpp&gt;</span></span>
 <span id="cb14-2"><a href="#cb14-2"></a><span class="pp">#include </span><span class="im">"narrow.h"</span></span>
-<span id="cb14-3"><a href="#cb14-3"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow-hpp/meta.hpp"</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="pp">#include </span><span class="im">"../../src/internal/geoarrow-cpp/meta.hpp"</span></span>
 <span id="cb14-4"><a href="#cb14-4"></a></span>
 <span id="cb14-5"><a href="#cb14-5"></a><span class="kw">using</span> <span class="kw">namespace</span> cpp11;</span>
 <span id="cb14-6"><a href="#cb14-6"></a><span class="kw">using</span> <span class="kw">namespace</span> geoarrow;</span>
