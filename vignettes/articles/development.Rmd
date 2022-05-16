@@ -183,6 +183,7 @@ For example, the following subclass of `Handler` calculates the bounding box of 
 ```{cpp11}
 #include <cpp11.hpp>
 #include "narrow.h"
+#define ARROW_HPP_IMPL
 #include "../../src/internal/geoarrow-cpp/factory.hpp"
 
 using namespace cpp11;
@@ -195,7 +196,7 @@ public:
       ymin(R_PosInf), ymax(R_NegInf) {}
 
 
-  Handler::Result coord(const double* coord) {
+  Result coords(const double* coord, int64_t n, int32_t coord_size) {
     xmin = std::min<double>(coord[0], xmin);
     xmax = std::max<double>(coord[0], xmax);
     ymin = std::min<double>(coord[1], ymin);
