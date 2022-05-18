@@ -381,7 +381,7 @@ test_that("geoarrow_schema_default() detects dimensions from vector_meta", {
   expect_identical(schema_point_xyzm$children[[1]]$name, "xyzm")
 })
 
-test_that("geoarrow_schema_default() detects dimensions from meta", {
+test_that("geoarrow_schema_default() detects dimensions without vector_meta", {
   schema_point <- geoarrow_schema_default(wk::wkt("POINT (1 1)"))
   expect_identical(schema_point$children[[1]]$name, "xy")
 
@@ -393,4 +393,95 @@ test_that("geoarrow_schema_default() detects dimensions from meta", {
 
   schema_point_xyzm <- geoarrow_schema_default(wk::wkt("POINT ZM (1 1 1 1)"))
   expect_identical(schema_point_xyzm$children[[1]]$name, "xyzm")
+})
+
+test_that("geoarrow_schema_default() detects and sets CRS", {
+  schema_point <- geoarrow_schema_default(
+    wk::wkt("POINT (1 1)", crs = "EPSG:1234")
+  )
+  expect_identical(geoarrow_metadata(schema_point)$crs, "EPSG:1234")
+
+  schema_linestring <- geoarrow_schema_default(
+    wk::wkt("LINESTRING (1 1, 2 2)", crs = "EPSG:1234")
+  )
+  expect_identical(geoarrow_metadata(schema_linestring$children[[1]])$crs, "EPSG:1234")
+
+  schema_polygon <- geoarrow_schema_default(
+    wk::wkt("POLYGON ((0 0, 0 1, 1 0, 0 0))", crs = "EPSG:1234")
+  )
+  expect_identical(
+    geoarrow_metadata(schema_polygon$children[[1]]$children[[1]])$crs,
+    "EPSG:1234"
+  )
+
+  schema_multipoint <- geoarrow_schema_default(
+    wk::wkt("MULTIPOINT ((1 1))", crs = "EPSG:1234")
+  )
+  expect_identical(
+    geoarrow_metadata(schema_multipoint$children[[1]])$crs,
+    "EPSG:1234"
+  )
+
+  schema_multilinestring <- geoarrow_schema_default(
+    wk::wkt("MULTILINESTRING ((1 1, 2 2))", crs = "EPSG:1234")
+  )
+  expect_identical(
+    geoarrow_metadata(schema_multilinestring$children[[1]]$children[[1]])$crs,
+    "EPSG:1234"
+  )
+
+  schema_multipolygon <- geoarrow_schema_default(
+    wk::wkt("MULTIPOLYGON (((0 0, 0 1, 1 0, 0 0)))", crs = "EPSG:1234")
+  )
+  expect_identical(
+    geoarrow_metadata(schema_multipolygon$children[[1]]$children[[1]]$children[[1]])$crs,
+    "EPSG:1234"
+  )
+
+  schema_mixed <- geoarrow_schema_default(
+    wk::wkt(c("POINT (0 1)", "LINESTRING (0 0, 1 1)"), crs = "EPSG:1234")
+  )
+  expect_identical(
+    geoarrow_metadata(schema_mixed)$crs,
+    "EPSG:1234"
+  )
+})
+
+test_that("geoarrow_schema_default() detects and sets edges", {
+  schema_linestring <- geoarrow_schema_default(
+    wk::wkt("LINESTRING (1 1, 2 2)", geodesic = TRUE)
+  )
+  expect_identical(geoarrow_metadata(schema_linestring)$edges, "spherical")
+
+  schema_polygon <- geoarrow_schema_default(
+    wk::wkt("POLYGON ((0 0, 0 1, 1 0, 0 0))", geodesic = TRUE)
+  )
+  expect_identical(
+    geoarrow_metadata(schema_polygon)$edges,
+    "spherical"
+  )
+
+  schema_multilinestring <- geoarrow_schema_default(
+    wk::wkt("MULTILINESTRING ((1 1, 2 2))", geodesic = TRUE)
+  )
+  expect_identical(
+    geoarrow_metadata(schema_multilinestring$children[[1]])$edges,
+    "spherical"
+  )
+
+  schema_multipolygon <- geoarrow_schema_default(
+    wk::wkt("MULTIPOLYGON (((0 0, 0 1, 1 0, 0 0)))", geodesic = TRUE)
+  )
+  expect_identical(
+    geoarrow_metadata(schema_multipolygon$children[[1]])$edges,
+    "spherical"
+  )
+
+  schema_mixed <- geoarrow_schema_default(
+    wk::wkt(c("POINT (0 1)", "LINESTRING (0 0, 1 1)"), geodesic = TRUE)
+  )
+  expect_identical(
+    geoarrow_metadata(schema_mixed)$edges,
+    "spherical"
+  )
 })

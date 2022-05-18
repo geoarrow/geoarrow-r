@@ -111,6 +111,8 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point())
     }
   }
 
+  edges <- if (wk::wk_is_geodesic(handleable)) "spherical"
+
   if (vector_meta$has_z && vector_meta$has_m) {
     dims_in_coords <- "xyzm"
   } else if (vector_meta$has_z) {
@@ -126,20 +128,20 @@ geoarrow_schema_default <- function(handleable, point = geoarrow_schema_point())
   point$metadata[["ARROW:extension:metadata"]] <-
     do.call(geoarrow_metadata_serialize, point_metadata)
 
-  geoarrow_schema_default_base(vector_meta$geometry_type, all_types, point)
+  geoarrow_schema_default_base(vector_meta$geometry_type, point, edges)
 }
 
-geoarrow_schema_default_base <- function(geometry_type, all_geometry_types, point) {
+geoarrow_schema_default_base <- function(geometry_type, point, edges) {
   switch(
     geometry_type,
     point,
-    geoarrow_schema_linestring(point = point),
-    geoarrow_schema_polygon(),
+    geoarrow_schema_linestring(point = point, edges = edges),
+    geoarrow_schema_polygon(point = point, edges = edges),
     geoarrow_schema_collection(point),
-    geoarrow_schema_multilinestring(point = point),
-    geoarrow_schema_multipolygon(point = point),
+    geoarrow_schema_multilinestring(point = point, edges = edges),
+    geoarrow_schema_multipolygon(point = point, edges = edges),
     # fall back to WKB for collections or mixed types
-    geoarrow_schema_wkb(),
+    geoarrow_schema_wkb(crs = geoarrow_metadata(point)$crs, edges = edges),
     stop(sprintf("Unsupported geometry type ID '%d'", geometry_type), call. = FALSE) # nocov
   )
 }
