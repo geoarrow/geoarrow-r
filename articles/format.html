@@ -164,7 +164,7 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># interleaved xy values in one buffer</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb57e14cf0&gt;</span></code></pre></div>
+<span class="co">#&gt; &lt;pointer: 0x564ef9bc3ac0&gt;</span></code></pre></div>
 <p>Other storage types of points that may be supported in a future reference implementation are:</p>
 <ul>
 <li>Struct-encoded points (i.e., x, y, and/or z and/or m stored in their own arrays)</li>
@@ -226,11 +226,11 @@
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># offsets for each linestring into the vertices array</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb51ecf530&gt;</span>
+<span class="co">#&gt; &lt;pointer: 0x564ef95dcf30&gt;</span>
 
 <span class="co"># coordinates</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb57d55070&gt;</span></code></pre></div>
+<span class="co">#&gt; &lt;pointer: 0x564ef925b2c0&gt;</span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -294,15 +294,15 @@
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># offsets for each polygon into the ring array</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb54efd1f0&gt;</span>
+<span class="co">#&gt; &lt;pointer: 0x564ef92754f0&gt;</span>
 
 <span class="co"># offsets for each ring into the vertices array</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb576962c0&gt;</span>
+<span class="co">#&gt; &lt;pointer: 0x564ef9433740&gt;</span>
 
 <span class="co"># coordinates</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb57e57f50&gt;</span></code></pre></div>
+<span class="co">#&gt; &lt;pointer: 0x564ef8816880&gt;</span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -368,11 +368,11 @@
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># offsets for each multipoint into the points array</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb5491d8b0&gt;</span>
+<span class="co">#&gt; &lt;pointer: 0x564ef9275510&gt;</span>
 
 <span class="co"># coordinates</span>
 <span class="va">carray</span><span class="op">$</span><span class="va">array_data</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">buffers</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; &lt;pointer: 0x55cb57d11140&gt;</span></code></pre></div>
+<span class="co">#&gt; &lt;pointer: 0x564ef68f5ab0&gt;</span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
