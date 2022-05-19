@@ -64,7 +64,12 @@ geoarrow_collect.data.frame <- function(x, ..., handler = NULL, metadata = NULL)
   }
 
   col_handleable <- vapply(x, is_handleable_column, logical(1))
-  x[col_handleable] <- lapply(x[col_handleable], wk_handle_wrapper, handler)
+  x[col_handleable] <- Map(
+    wk::wk_set_crs,
+    lapply(x[col_handleable], wk_handle_wrapper, handler),
+    lapply(x[col_handleable], wk::wk_crs)
+  )
+
   x
 }
 

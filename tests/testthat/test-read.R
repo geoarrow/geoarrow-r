@@ -163,6 +163,14 @@ test_that("geoarrow_collect() works with data.frame", {
     ),
     data.frame(a = 1, b = wk::xy(0, 1))
   )
+
+  expect_identical(
+    geoarrow_collect(
+      data.frame(a = 1, b = wk::wkt("POINT (0 1)", crs = "EPSG:32620")),
+      handler = wk::xy_writer()
+    ),
+    data.frame(a = 1, b = wk::xy(0, 1, crs = "EPSG:32620"))
+  )
 })
 
 test_that("arrow::read|write_ipc_stream() just works with handleables", {
