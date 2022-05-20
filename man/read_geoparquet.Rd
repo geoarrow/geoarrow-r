@@ -45,35 +45,13 @@ geoarrow_collect(x, ..., handler = NULL, metadata = NULL)
 \code{\link[arrow:read_ipc_stream]{arrow::read_ipc_stream()}}.}
 
 \item{...}{
-  Arguments passed on to \code{\link[arrow:write_parquet]{arrow::write_parquet}}
+  Arguments passed on to \code{\link[arrow:read_parquet]{arrow::read_parquet}}
   \describe{
-    \item{\code{sink}}{A string file path, URI, or \link[arrow]{OutputStream}, or path in a file
-system (\code{SubTreeFileSystem})}
-    \item{\code{chunk_size}}{how many rows of data to write to disk at once. This
-directly corresponds to how many rows will be in each row group in parquet.
-If \code{NULL}, a best guess will be made for optimal size (based on the number of
-columns and number of rows), though if the data has fewer than 250 million
-cells (rows x cols), then the total number of rows is used.}
-    \item{\code{version}}{parquet version, "1.0" or "2.0". Default "1.0". Numeric values
-are coerced to character.}
-    \item{\code{compression}}{compression algorithm. Default "snappy". See details.}
-    \item{\code{compression_level}}{compression level. Meaning depends on compression algorithm}
-    \item{\code{use_dictionary}}{Specify if we should use dictionary encoding. Default \code{TRUE}}
-    \item{\code{write_statistics}}{Specify if we should write statistics. Default \code{TRUE}}
-    \item{\code{data_page_size}}{Set a target threshold for the approximate encoded
-size of data pages within a column chunk (in bytes). Default 1 MiB.}
-    \item{\code{use_deprecated_int96_timestamps}}{Write timestamps to INT96 Parquet format. Default \code{FALSE}.}
-    \item{\code{coerce_timestamps}}{Cast timestamps a particular resolution. Can be
-\code{NULL}, "ms" or "us". Default \code{NULL} (no casting)}
-    \item{\code{allow_truncated_timestamps}}{Allow loss of data when coercing timestamps to a
-particular resolution. E.g. if microsecond or nanosecond data is lost when coercing
-to "ms", do not raise an exception}
-    \item{\code{properties}}{A \code{ParquetWriterProperties} object, used instead of the options
-enumerated in this function's signature. Providing \code{properties} as an argument
-is deprecated; if you need to assemble \code{ParquetWriterProperties} outside
-of \code{write_parquet()}, use \code{ParquetFileWriter} instead.}
-    \item{\code{arrow_properties}}{A \code{ParquetArrowWriterProperties} object. Like
-\code{properties}, this argument is deprecated.}
+    \item{\code{col_select}}{A character vector of column names to keep, as in the
+"select" argument to \code{data.table::fread()}, or a
+\link[tidyselect:vars_select]{tidy selection specification}
+of columns, as used in \code{dplyr::select()}.}
+    \item{\code{props}}{\link[arrow]{ParquetArrowReaderProperties}}
   }}
 
 \item{x}{An object to collect into a data.frame, converting geometry

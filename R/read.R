@@ -14,7 +14,7 @@
 #'   in the file.
 #' @param trans A function to be applied to each chunk after it has been
 #'   collected into a data frame.
-#' @inheritDotParams arrow::write_parquet
+#' @inheritDotParams arrow::read_parquet
 #'
 #' @return The result of [arrow::read_parquet()], with geometry
 #'   columns processed according to `handler`.

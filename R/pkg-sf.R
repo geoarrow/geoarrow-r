@@ -27,6 +27,65 @@ as_arrow_table.sf <- function(x, ..., schema = NULL) {
   as_geoarrow_table(x, geoparquet_metadata = TRUE)
 }
 
+st_as_sf.ArrowTabular <- function(x, ...) {
+  geoarrow_collect_sf(x, ...)
+}
+
+st_geometry.ArrowTabular <- function(x, ...) {
+  schema <- x$.data$schema %||% x$schema
+  for (i in seq_len(schema$num_fields)) {
+    if (inherits(schema$field(i - 1)$type, "GeoArrowType")) {
+      name <- schema$field(i - 1)$name
+      return(geoarrow_collect_sf(dplyr::select(x, !! name))[[name]])
+    }
+  }
+
+  stop("No geometry column present")
+}
+
+st_crs.ArrowTabular <- function(x, ...) {
+  schema <- x$.data$schema %||% x$schema
+  for (i in seq_len(schema$num_fields)) {
+    if (inherits(schema$field(i - 1)$type, "GeoArrowType")) {
+      return(sf::st_crs(schema$field(i - 1)$type$crs))
+    }
+  }
+
+  stop("No geometry column present")
+}
+
+st_bbox.ArrowTabular <- function(x) {
+  schema <- x$.data$schema %||% x$schema
+  for (i in seq_len(schema$num_fields)) {
+    if (inherits(schema$field(i - 1)$type, "GeoArrowType")) {
+      name <- schema$field(i - 1)$name
+      x_geom <- dplyr::select(x, !! name)
+      rbr <- arrow::as_record_batch_reader(x_geom)
+      geom_stream <- narrow::narrow_array_stream_function(
+        rbr$schema[[1]]$type,
+        function() {
+          batch <- rbr$read_next_batch()
+          if (is.null(batch)) {
+            NULL
+          } else {
+            batch[[1]]
+          }
+        }
+      )
+
+      bbox <- wk::wk_handle(geom_stream, wk::wk_bbox_handler())
+      wk::wk_crs(bbox) <- st_crs.ArrowTabular(x)
+      return(sf::st_bbox(bbox))
+    }
+  }
+
+  stop("No geometry column present")
+}
+
+st_as_sf.geoarrow_vctr <- function(x, ...) {
+  sf::st_as_sf(new_data_frame(list(geometry = sf::st_as_sfc(x, ...))))
+}
+
 st_as_sfc.geoarrow_vctr <- function(x, ...) {
   sf::st_set_crs(
     wk::wk_handle(x, wk::sfc_writer()),
