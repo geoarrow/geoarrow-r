@@ -19,6 +19,14 @@
       s3_register("arrow::as_arrow_array", cls, as_arrow_array_handleable)
       s3_register("arrow::infer_type", cls, infer_type_handleable)
     }
+
+    table_like_things <- c("arrow_dplyr_query", "RecordBatch", "Table", "Dataset")
+    for (cls in table_like_things) {
+      s3_register("sf::st_as_sf", cls, st_as_sf.ArrowTabular)
+      s3_register("sf::st_geometry", cls, st_geometry.ArrowTabular)
+      s3_register("sf::st_bbox", cls, st_bbox.ArrowTabular)
+      s3_register("sf::st_crs", cls, st_crs.ArrowTabular)
+    }
   }
 }
 
