@@ -8,8 +8,8 @@
 <meta name="description" content="geoarrow">
 <title>C and C++ development guide • geoarrow</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="C and C++ development guide">
 <meta property="og:description" content="geoarrow">
@@ -63,7 +63,7 @@
 
 
 <script src="development_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
-  <main id="main"><div class="page-header">
+  <main id="main" class="col-md-9"><div class="page-header">
       <img src="" class="logo" alt=""><h1>C and C++ development guide</h1>
             
       
@@ -76,68 +76,68 @@
 <p>The geoarrow package exposes a <a href="geoarrow.html">set of high-level helpers to integrate geospatial data with Arrow Datasets</a>; however, the <a href="format.html">format used</a> can be easily represented using the <a href="https://arrow.apache.org/docs/format/CDataInterface.html" class="external-link">Apache Arrow C Data interface</a>, exposing vectors of geometries as ABI-stable C structures that can be used without any header other than the two <code>struct</code> definitions in <a href="https://github.com/apache/arrow/blob/master/cpp/src/arrow/c/abi.h" class="external-link">arrow/c/abi.h</a>.</p>
 <p>We’ll use the <a href="https://paleolimbot.github.io/narrow/" class="external-link">narrow</a> and geoarrow packages to demonstrate the structure of geoarrow arrays and how they can be iterated over in C and C++.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paleolimbot/narrow" class="external-link">narrow</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://paleolimbot.github.io/geoarrow/">geoarrow</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paleolimbot/narrow" class="external-link">narrow</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://paleolimbot.github.io/geoarrow/">geoarrow</a></span><span class="op">)</span></span></code></pre></div>
 <p>We’ll also need some test arrays with each of the six types supported in the Arrow-native format.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">points</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (30 10)"</span>, <span class="st">"POINT (40 30)"</span><span class="op">)</span><span class="op">)</span>
-<span class="op">)</span>
-
-<span class="va">linestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-      <span class="st">"LINESTRING (30 10, 10 30, 40 40)"</span>,
-      <span class="st">"LINESTRING (0 0, 10 5)"</span>
-    <span class="op">)</span>
-  <span class="op">)</span>
-<span class="op">)</span>
-
-<span class="va">polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-      <span class="st">"POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,
-      <span class="st">"POLYGON (
-        (35 10, 45 45, 15 40, 10 20, 35 10),
-        (20 30, 35 35, 30 20, 20 30))"</span>
-    <span class="op">)</span>
-  <span class="op">)</span>
-<span class="op">)</span>
-
-<span class="va">multipoints</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MULTIPOINT (0 1, 2 3)"</span>, <span class="st">"MULTIPOINT (0 0, 3 8)"</span><span class="op">)</span><span class="op">)</span>
-<span class="op">)</span>
-
-<span class="va">multilinestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-      <span class="st">"MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,
-      <span class="st">"MULTILINESTRING (
-        (35 10, 45 45, 15 40, 10 20, 35 10),
-        (20 30, 35 35, 30 20, 20 30))"</span>
-    <span class="op">)</span>
-  <span class="op">)</span>
-<span class="op">)</span>
-
-<span class="va">multipolygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>
-      <span class="st">"MULTIPOLYGON (
-        ((30 20, 45 40, 10 40, 30 20)),
-        ((15 5, 40 10, 10 20, 5 10, 15 5)))"</span>,
-      <span class="st">"MULTIPOLYGON (
-        ((40 40, 20 45, 45 30, 40 40)),
-        ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),
-          (30 20, 20 15, 20 25, 30 20)))"</span>
-    <span class="op">)</span>
-  <span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">points</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (30 10)"</span>, <span class="st">"POINT (40 30)"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">linestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>      <span class="st">"LINESTRING (30 10, 10 30, 40 40)"</span>,</span>
+<span>      <span class="st">"LINESTRING (0 0, 10 5)"</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">polygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>      <span class="st">"POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,</span>
+<span>      <span class="st">"POLYGON (</span></span>
+<span><span class="st">        (35 10, 45 45, 15 40, 10 20, 35 10),</span></span>
+<span><span class="st">        (20 30, 35 35, 30 20, 20 30))"</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">multipoints</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MULTIPOINT (0 1, 2 3)"</span>, <span class="st">"MULTIPOINT (0 0, 3 8)"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">multilinestrings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>      <span class="st">"MULTILINESTRING ((30 10, 40 40, 20 40, 10 20, 30 10))"</span>,</span>
+<span>      <span class="st">"MULTILINESTRING (</span></span>
+<span><span class="st">        (35 10, 45 45, 15 40, 10 20, 35 10),</span></span>
+<span><span class="st">        (20 30, 35 35, 30 20, 20 30))"</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">multipolygons</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>      <span class="st">"MULTIPOLYGON (</span></span>
+<span><span class="st">        ((30 20, 45 40, 10 40, 30 20)),</span></span>
+<span><span class="st">        ((15 5, 40 10, 10 20, 5 10, 15 5)))"</span>,</span>
+<span>      <span class="st">"MULTIPOLYGON (</span></span>
+<span><span class="st">        ((40 40, 20 45, 45 30, 40 40)),</span></span>
+<span><span class="st">        ((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),</span></span>
+<span><span class="st">          (30 20, 20 15, 20 25, 30 20)))"</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="development_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 <p>The other piece of setup you may need to follow along is a way to pass the example arrays into C and/or C++ code. If you are writing an R package, you can include the narrow package in your <code>LinkingTo:</code> field in your DESCRIPTION; if you are writing an RMarkdown document (like this one), you can set your PKG_CPPFLAGS environment variable to include the “include” directory in the narrow package directory:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>
-  PKG_CPPFLAGS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"-I"</span>, <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"include"</span>, package <span class="op">=</span> <span class="st">"narrow"</span><span class="op">)</span><span class="op">)</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span></span>
+<span>  PKG_CPPFLAGS <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"-I"</span>, <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"include"</span>, package <span class="op">=</span> <span class="st">"narrow"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>This will let you <code>#include "narrow.h"</code>, which includes a copy of the Arrow C Data structure definitions and functions to extract them safely from R objects.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb4-1"><a href="#cb4-1"></a><span class="pp">#include </span><span class="im">"narrow.h"</span></span></code></pre></div>
 <div class="section level2">
@@ -145,53 +145,53 @@
 </h2>
 <p>The easiest way to inspect geoarrow array data is from R using the <a href="https://paleolimbot.github.io/wk/" class="external-link">wk</a> package. The general structure of an array is available from <code><a href="https://paleolimbot.github.io/wk/reference/wk_meta.html" class="external-link">wk::wk_vector_meta()</a></code>, which is fast (it doesn’t iterate over all the points).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_meta.html" class="external-link">wk_vector_meta</a></span><span class="op">(</span><span class="va">points</span><span class="op">)</span>
-<span class="co">#&gt;   geometry_type size has_z has_m</span>
-<span class="co">#&gt; 1             1    2 FALSE FALSE</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_meta.html" class="external-link">wk_vector_meta</a></span><span class="op">(</span><span class="va">points</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   geometry_type size has_z has_m</span></span>
+<span><span class="co">#&gt; 1             1    2 FALSE FALSE</span></span></code></pre></div>
 <p>If you need the geodesic flag or the CRS, you can use <code>wk::wk_is_geoesic()</code> or <code><a href="https://paleolimbot.github.io/wk/reference/wk_crs.html" class="external-link">wk::wk_crs()</a></code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_is_geodesic.html" class="external-link">wk_is_geodesic</a></span><span class="op">(</span><span class="va">points</span><span class="op">)</span>
-<span class="co">#&gt; [1] FALSE</span>
-<span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_crs.html" class="external-link">wk_crs</a></span><span class="op">(</span><span class="va">points</span><span class="op">)</span>
-<span class="co">#&gt; NULL</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_is_geodesic.html" class="external-link">wk_is_geodesic</a></span><span class="op">(</span><span class="va">points</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span>
+<span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_crs.html" class="external-link">wk_crs</a></span><span class="op">(</span><span class="va">points</span><span class="op">)</span></span>
+<span><span class="co">#&gt; NULL</span></span></code></pre></div>
 <p>You can access coordinate values as flat arrays using <code>wk_coords()</code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_vertices.html" class="external-link">wk_coords</a></span><span class="op">(</span><span class="va">linestrings</span><span class="op">)</span>
-<span class="co">#&gt;   feature_id part_id ring_id  x  y</span>
-<span class="co">#&gt; 1          1       1       0 30 10</span>
-<span class="co">#&gt; 2          1       1       0 10 30</span>
-<span class="co">#&gt; 3          1       1       0 40 40</span>
-<span class="co">#&gt; 4          2       2       0  0  0</span>
-<span class="co">#&gt; 5          2       2       0 10  5</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_vertices.html" class="external-link">wk_coords</a></span><span class="op">(</span><span class="va">linestrings</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   feature_id part_id ring_id  x  y</span></span>
+<span><span class="co">#&gt; 1          1       1       0 30 10</span></span>
+<span><span class="co">#&gt; 2          1       1       0 10 30</span></span>
+<span><span class="co">#&gt; 3          1       1       0 40 40</span></span>
+<span><span class="co">#&gt; 4          2       2       0  0  0</span></span>
+<span><span class="co">#&gt; 5          2       2       0 10  5</span></span></code></pre></div>
 <p>The geoarrow package implements <code><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk::wk_handle()</a></code>, so you can use any handler or filter defined in any package. For example, you can apply an affine transform and create a <code><a href="https://paleolimbot.github.io/wk/reference/wkb.html" class="external-link">wk::wkb()</a></code> vector in one step (with zero intermediary copies):</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk_handle</a></span><span class="op">(</span>
-  <span class="va">linestrings</span>,
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_transform.html" class="external-link">wk_transform_filter</a></span><span class="op">(</span>
-    trans <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_trans_affine.html" class="external-link">wk_affine_rotate</a></span><span class="op">(</span><span class="fl">90</span><span class="op">)</span>,
-    handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">wkb_writer</a></span><span class="op">(</span><span class="op">)</span>
-  <span class="op">)</span>
-<span class="op">)</span>
-<span class="co">#&gt; &lt;wk_wkb[2]&gt;</span>
-<span class="co">#&gt; [1] &lt;LINESTRING (-10 30, -30 10, -40 40)&gt; &lt;LINESTRING (0 0, -5 10)&gt;</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk_handle</a></span><span class="op">(</span></span>
+<span>  <span class="va">linestrings</span>,</span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_transform.html" class="external-link">wk_transform_filter</a></span><span class="op">(</span></span>
+<span>    trans <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_trans_affine.html" class="external-link">wk_affine_rotate</a></span><span class="op">(</span><span class="fl">90</span><span class="op">)</span>,</span>
+<span>    handler <span class="op">=</span> <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">wkb_writer</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;wk_wkb[2]&gt;</span></span>
+<span><span class="co">#&gt; [1] &lt;LINESTRING (-10 30, -30 10, -40 40)&gt; &lt;LINESTRING (0 0, -5 10)&gt;</span></span></code></pre></div>
 <p>You can use the <code><a href="https://paleolimbot.github.io/wk/reference/wk_writer.html" class="external-link">wk::sfc_writer()</a></code> handler to generate sf objects. Note that when using the <code><a href="https://paleolimbot.github.io/wk/reference/wk_handle.html" class="external-link">wk::wk_handle()</a></code> interface, you will have to propagate the CRS and/or geodesic flags yourself. For a guide on how to write filters and handlers in C and C++, see the <a href="https://paleolimbot.github.io/wk/articles/programming.html" class="external-link">programming vignette</a> from the wk package.</p>
 <p>If you need geoarrow/arrow-specific metadata information, you can inspect the schemas directly using the list-like interface of schem aobjects. The most important thing you will have to check is the extension name, which will tell you which bit of compiled code you will need to safely access the array data.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">metadata</span><span class="op">[[</span><span class="st">"ARROW:extension:name"</span><span class="op">]</span><span class="op">]</span>
-<span class="co">#&gt; [1] "geoarrow.point"</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">metadata</span><span class="op">[[</span><span class="st">"ARROW:extension:name"</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] "geoarrow.point"</span></span></code></pre></div>
 <p>For points, you will also have to check dimensions and the storage type, since depending on the dimensions and/or encoding the underlying arrays could have buffer numbers and/or types.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span>
-<span class="co">#&gt; [1] "+w:2"</span>
-<span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span>
-<span class="co">#&gt; [1] "g"</span>
-<span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">name</span>
-<span class="co">#&gt; [1] "xy"</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span></span>
+<span><span class="co">#&gt; [1] "+w:2"</span></span>
+<span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span></span>
+<span><span class="co">#&gt; [1] "g"</span></span>
+<span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">name</span></span>
+<span><span class="co">#&gt; [1] "xy"</span></span></code></pre></div>
 <p>The above output indicates that the point array is a fixed-size list (size 2) whose child is a float64. The dimension output indicates that the dimension type is xy.</p>
 <p>You may also need to access the extension metadata which contains information like the CRS. This metadata is serialized in the raw schema, so you’ll need <code><a href="../reference/geoarrow_metadata.html">geoarrow_metadata()</a></code> to extract it.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; named list()</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/geoarrow_metadata.html">geoarrow_metadata</a></span><span class="op">(</span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span></span>
+<span><span class="co">#&gt; named list()</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="reading-geoarrow-arrays-using-geoarrow-hpp">Reading geoarrow arrays using geoarrow.hpp<a class="anchor" aria-label="anchor" href="#reading-geoarrow-arrays-using-geoarrow-hpp"></a>
@@ -251,8 +251,8 @@
 <span id="cb12-42"><a href="#cb12-42"></a>  <span class="cf">return</span> out;</span>
 <span id="cb12-43"><a href="#cb12-43"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">geoarrow_bbox</span><span class="op">(</span><span class="va">polygons</span><span class="op">$</span><span class="va">schema</span>, <span class="va">polygons</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span>
-<span class="co">#&gt; [1] 20 35 10 30</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">geoarrow_bbox</span><span class="op">(</span><span class="va">polygons</span><span class="op">$</span><span class="va">schema</span>, <span class="va">polygons</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 20 35 10 30</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="metadata">Metadata<a class="anchor" aria-label="anchor" href="#metadata"></a>
@@ -328,31 +328,31 @@
 <span id="cb14-68"><a href="#cb14-68"></a>  }</span>
 <span id="cb14-69"><a href="#cb14-69"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">geoarrow_metadata_dump</span><span class="op">(</span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; Extension: 'geoarrow.point'</span>
-<span class="co">#&gt; Storage type: fixed size list</span>
-<span class="co">#&gt; Dimensions: 'xy'</span>
-<span class="fu">geoarrow_metadata_dump</span><span class="op">(</span><span class="va">linestrings</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; Extension: 'geoarrow.linestring'</span>
-<span class="co">#&gt; Storage type: list</span>
-<span class="co">#&gt; Dimensions: 'xy'</span>
-<span class="fu">geoarrow_metadata_dump</span><span class="op">(</span>
-  <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-    <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"EPSG:1234"</span>, geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
-    <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span><span class="op">)</span>
-  <span class="op">)</span><span class="op">$</span><span class="va">schema</span>
-<span class="op">)</span>
-<span class="co">#&gt; Extension: other</span>
-<span class="co">#&gt; Storage type: other</span>
-<span class="co">#&gt; Dimensions: 'xy'</span>
-<span class="co">#&gt; CRS: 'EPSG:1234'</span>
-<span class="co">#&gt; Spherical edges!</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">geoarrow_metadata_dump</span><span class="op">(</span><span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Extension: 'geoarrow.point'</span></span>
+<span><span class="co">#&gt; Storage type: fixed size list</span></span>
+<span><span class="co">#&gt; Dimensions: 'xy'</span></span>
+<span><span class="fu">geoarrow_metadata_dump</span><span class="op">(</span><span class="va">linestrings</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Extension: 'geoarrow.linestring'</span></span>
+<span><span class="co">#&gt; Storage type: list</span></span>
+<span><span class="co">#&gt; Dimensions: 'xy'</span></span>
+<span><span class="fu">geoarrow_metadata_dump</span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>    <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"EPSG:1234"</span>, geodesic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_linestring</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="op">)</span><span class="op">$</span><span class="va">schema</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Extension: other</span></span>
+<span><span class="co">#&gt; Storage type: other</span></span>
+<span><span class="co">#&gt; Dimensions: 'xy'</span></span>
+<span><span class="co">#&gt; CRS: 'EPSG:1234'</span></span>
+<span><span class="co">#&gt; Spherical edges!</span></span></code></pre></div>
 <p>This also will give a reasonable error for invalid objects:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">points_invalid</span> <span class="op">&lt;-</span> <span class="va">points</span>
-<span class="va">points_invalid</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">name</span> <span class="op">&lt;-</span> <span class="st">"xyzm"</span>
-<span class="fu">geoarrow_metadata_dump</span><span class="op">(</span><span class="va">points_invalid</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; Error: Expected geoarrow.point with dimensions 'xyzm' to have width 4 but found width 2</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">points_invalid</span> <span class="op">&lt;-</span> <span class="va">points</span></span>
+<span><span class="va">points_invalid</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">name</span> <span class="op">&lt;-</span> <span class="st">"xyzm"</span></span>
+<span><span class="fu">geoarrow_metadata_dump</span><span class="op">(</span><span class="va">points_invalid</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error: Expected geoarrow.point with dimensions 'xyzm' to have width 4 but found width 2</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -383,20 +383,20 @@
 <span id="cb17-18"><a href="#cb17-18"></a>}</span></code></pre></div>
 <p>Depending on whether or not you have access to a higher-level runtime, you probably want to validate a few things about the schema before accessing elements of the array.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">point_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
-  <span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span>
-
-<span class="fu">point_print</span><span class="op">(</span><span class="va">points</span><span class="op">)</span>
-<span class="co">#&gt; point[0] (30 10)</span>
-<span class="co">#&gt; point[1] (40 30)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">point_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu">point_print</span><span class="op">(</span><span class="va">points</span><span class="op">)</span></span>
+<span><span class="co">#&gt; point[0] (30 10)</span></span>
+<span><span class="co">#&gt; point[1] (40 30)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="linestrings">Linestrings<a class="anchor" aria-label="anchor" href="#linestrings"></a>
@@ -428,24 +428,24 @@
 <span id="cb19-24"><a href="#cb19-24"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb19-25"><a href="#cb19-25"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">linestring_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
-  <span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_linestring_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span>
-
-<span class="fu">linestring_print</span><span class="op">(</span><span class="va">linestrings</span><span class="op">)</span>
-<span class="co">#&gt; linestring[0]-&gt;point[0] (30 10)</span>
-<span class="co">#&gt; linestring[0]-&gt;point[1] (10 30)</span>
-<span class="co">#&gt; linestring[0]-&gt;point[2] (40 40)</span>
-<span class="co">#&gt; linestring[1]-&gt;point[0] (0 0)</span>
-<span class="co">#&gt; linestring[1]-&gt;point[1] (10 5)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">linestring_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_linestring_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu">linestring_print</span><span class="op">(</span><span class="va">linestrings</span><span class="op">)</span></span>
+<span><span class="co">#&gt; linestring[0]-&gt;point[0] (30 10)</span></span>
+<span><span class="co">#&gt; linestring[0]-&gt;point[1] (10 30)</span></span>
+<span><span class="co">#&gt; linestring[0]-&gt;point[2] (40 40)</span></span>
+<span><span class="co">#&gt; linestring[1]-&gt;point[0] (0 0)</span></span>
+<span><span class="co">#&gt; linestring[1]-&gt;point[1] (10 5)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="polygons">Polygons<a class="anchor" aria-label="anchor" href="#polygons"></a>
@@ -487,66 +487,66 @@
 <span id="cb21-34"><a href="#cb21-34"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb21-35"><a href="#cb21-35"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">polygon_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
-  <span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_polygon_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span>
-
-<span class="fu">polygon_print</span><span class="op">(</span><span class="va">polygons</span><span class="op">)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[0] (30 10)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[1] (40 40)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[2] (20 40)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[3] (10 20)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[4] (30 10)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[0] (35 10)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[1] (45 45)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[2] (15 40)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[3] (10 20)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[4] (35 10)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[0] (20 30)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[1] (35 35)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[2] (30 20)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[3] (20 30)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">polygon_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_polygon_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu">polygon_print</span><span class="op">(</span><span class="va">polygons</span><span class="op">)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[0] (30 10)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[1] (40 40)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[2] (20 40)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[3] (10 20)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[4] (30 10)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[0] (35 10)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[1] (45 45)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[2] (15 40)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[3] (10 20)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[4] (35 10)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[0] (20 30)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[1] (35 35)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[2] (30 20)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[3] (20 30)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="multipoints">Multipoints<a class="anchor" aria-label="anchor" href="#multipoints"></a>
 </h3>
 <p>Iterating over multipoints requires the same code and assertions as for linestrings:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">linestring_print</span><span class="op">(</span><span class="va">multipoints</span><span class="op">)</span>
-<span class="co">#&gt; linestring[0]-&gt;point[0] (0 1)</span>
-<span class="co">#&gt; linestring[0]-&gt;point[1] (2 3)</span>
-<span class="co">#&gt; linestring[1]-&gt;point[0] (0 0)</span>
-<span class="co">#&gt; linestring[1]-&gt;point[1] (3 8)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">linestring_print</span><span class="op">(</span><span class="va">multipoints</span><span class="op">)</span></span>
+<span><span class="co">#&gt; linestring[0]-&gt;point[0] (0 1)</span></span>
+<span><span class="co">#&gt; linestring[0]-&gt;point[1] (2 3)</span></span>
+<span><span class="co">#&gt; linestring[1]-&gt;point[0] (0 0)</span></span>
+<span><span class="co">#&gt; linestring[1]-&gt;point[1] (3 8)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="multilinestrings">Multilinestrings<a class="anchor" aria-label="anchor" href="#multilinestrings"></a>
 </h3>
 <p>Iterating over multilinestrings requires the same code and assertions as for polygons:</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">polygon_print</span><span class="op">(</span><span class="va">multilinestrings</span><span class="op">)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[0] (30 10)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[1] (40 40)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[2] (20 40)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[3] (10 20)</span>
-<span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[4] (30 10)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[0] (35 10)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[1] (45 45)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[2] (15 40)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[3] (10 20)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[4] (35 10)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[0] (20 30)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[1] (35 35)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[2] (30 20)</span>
-<span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[3] (20 30)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">polygon_print</span><span class="op">(</span><span class="va">multilinestrings</span><span class="op">)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[0] (30 10)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[1] (40 40)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[2] (20 40)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[3] (10 20)</span></span>
+<span><span class="co">#&gt; polygon[0]-&gt;ring[0]-&gt;point[4] (30 10)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[0] (35 10)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[1] (45 45)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[2] (15 40)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[3] (10 20)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[0]-&gt;point[4] (35 10)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[0] (20 30)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[1] (35 35)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[2] (30 20)</span></span>
+<span><span class="co">#&gt; polygon[1]-&gt;ring[1]-&gt;point[3] (20 30)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="multipolygons">Multipolygons<a class="anchor" aria-label="anchor" href="#multipolygons"></a>
@@ -596,43 +596,43 @@
 <span id="cb25-42"><a href="#cb25-42"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb25-43"><a href="#cb25-43"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">multipolygon_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span>
-    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,
-    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span>
-  <span class="op">)</span>
-
-  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_multipolygon_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span>
-<span class="op">}</span>
-
-<span class="fu">multipolygon_print</span><span class="op">(</span><span class="va">multipolygons</span><span class="op">)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[0] (30 20)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[1] (45 40)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[2] (10 40)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[3] (30 20)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[0] (15 5)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[1] (40 10)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[2] (10 20)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[3] (5 10)</span>
-<span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[4] (15 5)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[0] (30 20)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[1] (45 40)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[2] (10 40)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[3] (30 20)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[0] (15 5)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[1] (40 10)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[2] (10 20)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[3] (5 10)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[4] (15 5)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[0] (40 40)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[1] (20 45)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[2] (45 30)</span>
-<span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[3] (40 40)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">multipolygon_print</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://paleolimbot.github.io/narrow/reference/narrow_array.html" class="external-link">as_narrow_array</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span></span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+l"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"+w:2"</span>,</span>
+<span>    <span class="va">x</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">format</span> <span class="op">==</span> <span class="st">"g"</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_multipolygon_print"</span>, <span class="va">x</span><span class="op">$</span><span class="va">array_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu">multipolygon_print</span><span class="op">(</span><span class="va">multipolygons</span><span class="op">)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[0] (30 20)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[1] (45 40)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[2] (10 40)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[0]-&gt;ring[0]-&gt;point[3] (30 20)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[0] (15 5)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[1] (40 10)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[2] (10 20)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[3] (5 10)</span></span>
+<span><span class="co">#&gt; multipolygon[0]-&gt;polygon[1]-&gt;ring[0]-&gt;point[4] (15 5)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[0] (30 20)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[1] (45 40)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[2] (10 40)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[0]-&gt;ring[0]-&gt;point[3] (30 20)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[0] (15 5)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[1] (40 10)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[2] (10 20)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[3] (5 10)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[0]-&gt;point[4] (15 5)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[0] (40 40)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[1] (20 45)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[2] (45 30)</span></span>
+<span><span class="co">#&gt; multipolygon[1]-&gt;polygon[1]-&gt;ring[1]-&gt;point[3] (40 40)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="metadata-1">Metadata<a class="anchor" aria-label="anchor" href="#metadata-1"></a>
@@ -647,10 +647,10 @@
 <span id="cb27-6"><a href="#cb27-6"></a>  <span class="cf">return</span> Rf_mkString(schema-&gt;children[<span class="dv">0</span>]-&gt;name);</span>
 <span id="cb27-7"><a href="#cb27-7"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_dimensions"</span>, <span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span>
-<span class="co">#&gt; [1] "xy"</span>
-<span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_dimensions"</span>, <span class="va">linestrings</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
-<span class="co">#&gt; [1] "xy"</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_dimensions"</span>, <span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "xy"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_point_dimensions"</span>, <span class="va">linestrings</span><span class="op">$</span><span class="va">schema</span><span class="op">$</span><span class="va">children</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "xy"</span></span></code></pre></div>
 <p>If you need extension metadata from C you will have to iterate over the metadata field AND the extension metadata field. These are both encoded in the same way (by design). This gets verbose quickly, but if you really need to do it you can do so in about 50 lines. The important thing to note is that none of the names or values are null-terminated in the metadata fields.</p>
 <div class="sourceCode" id="cb29"><pre class="sourceCode c"><code class="sourceCode c"><span id="cb29-1"><a href="#cb29-1"></a><span class="pp">#include </span><span class="im">&lt;R.h&gt;</span></span>
 <span id="cb29-2"><a href="#cb29-2"></a><span class="pp">#include </span><span class="im">"narrow.h"</span></span>
@@ -715,16 +715,16 @@
 <span id="cb29-61"><a href="#cb29-61"></a>  <span class="cf">return</span> R_NilValue;</span>
 <span id="cb29-62"><a href="#cb29-62"></a>}</span></code></pre></div>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_dump_metadata"</span>, <span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt; ARROW:extension:name: 'geoarrow.point'</span>
-
-<span class="va">with_crs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span>
-  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"EPSG:1234"</span><span class="op">)</span>,
-  schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span><span class="op">)</span>
-<span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_dump_metadata"</span>, <span class="va">with_crs</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt; ARROW:extension:name: 'geoarrow.point'</span>
-<span class="co">#&gt; ARROW:extension:metadata/crs: 'EPSG:1234'</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_dump_metadata"</span>, <span class="va">points</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ARROW:extension:name: 'geoarrow.point'</span></span>
+<span></span>
+<span><span class="va">with_crs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/geoarrow_create_narrow.html">geoarrow_create_narrow</a></span><span class="op">(</span></span>
+<span>  <span class="fu">wk</span><span class="fu">::</span><span class="fu"><a href="https://paleolimbot.github.io/wk/reference/wkt.html" class="external-link">wkt</a></span><span class="op">(</span>crs <span class="op">=</span> <span class="st">"EPSG:1234"</span><span class="op">)</span>,</span>
+<span>  schema <span class="op">=</span> <span class="fu"><a href="../reference/geoarrow_schema_point.html">geoarrow_schema_point</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html" class="external-link">.Call</a></span><span class="op">(</span><span class="st">"c_dump_metadata"</span>, <span class="va">with_crs</span><span class="op">$</span><span class="va">schema</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ARROW:extension:name: 'geoarrow.point'</span></span>
+<span><span class="co">#&gt; ARROW:extension:metadata/crs: 'EPSG:1234'</span></span></code></pre></div>
 <p>If you’re in R or another higher-level runtime, the preferred approach is to extract the information you need before calling low-level compiled code (or to use the geoarrow.hpp helper).</p>
 </div>
 </div>
@@ -741,7 +741,7 @@
 
 <div class="pkgdown-footer-right">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
     </footer>
