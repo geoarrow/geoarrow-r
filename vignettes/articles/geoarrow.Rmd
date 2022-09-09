@@ -41,7 +41,7 @@ places %>%
 
 ## Querying a data set
 
-Just like a local data frame, you can use dplyr verbs like `fiilter()`, `mutate()` and `summarise()` to subset and manipulate the data before it is pulled into the R session. For example, to find all the places in Denmark with a population greater than 100,000 people, we can do this:
+Just like a local data frame, you can use dplyr verbs like `filter()`, `mutate()` and `summarise()` to subset and manipulate the data before it is pulled into the R session. For example, to find all the places in Denmark with a population greater than 100,000 people, we can do this:
 
 ```{r}
 places %>% 
