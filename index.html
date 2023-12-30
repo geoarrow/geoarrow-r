@@ -63,8 +63,28 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
-Provides extension types and conversions to between R-native
-  object types and 'Arrow' columnar types.
+<div class="section level1">
+<div class="page-header"><h1 id="geoarrow">geoarrow<a class="anchor" aria-label="anchor" href="#geoarrow"></a>
+</h1></div>
+<!-- badges: start -->
+
+<p>The goal of geoarrow is to leverage the features of the <a href="https://arrow.apache.org/docs/r/" class="external-link">arrow</a> package and larger <a href="https://arrow.apache.org/" class="external-link">Apache Arrow</a> ecosystem for geospatial data. The geoarrow package provides an R implementation of the <a href="https://github.com/opengeospatial/geoparquet" class="external-link">GeoParquet</a> file format of and the draft <a href="https://geoarrow.org" class="external-link">geoarrow data specification</a>, defining extension array types for vector geospatial data.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>You can install the development version of geoarrow from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"geoarrow/geoarrow-r"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h2>
+<p>This is a basic example which shows you how to solve a common problem:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/geoarrow/geoarrow-r" class="external-link">geoarrow</a></span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -99,7 +119,12 @@ Provides extension types and conversions to between R-native
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://app.codecov.io/gh/geoarrow/geoarrow-r?branch=main" class="external-link"><img src="https://codecov.io/gh/geoarrow/geoarrow-r/branch/main/graph/badge.svg" alt="Codecov test coverage"></a></li>
+</ul>
+</div>
 
   </div>
 </div>
