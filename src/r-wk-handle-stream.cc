@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "geoarrow.h"
-#include "nanoarrow.h"
 #include "wk-v1.h"
 
 // Helper to translate between the GeoArrowVisitor and the wk_handler_t.
@@ -272,7 +271,7 @@ static void finalize_array_reader_xptr(SEXP xptr) {
     GeoArrowArrayReaderReset(ptr);
   }
 
-  ArrowFree(ptr);
+  free(ptr);
 }
 
 SEXP geoarrow_handle_stream(SEXP data, wk_handler_t* handler) {
@@ -313,7 +312,7 @@ SEXP geoarrow_handle_stream(SEXP data, wk_handler_t* handler) {
 
   // Initialize the reader + make sure it is always cleaned up
   struct GeoArrowArrayReader* reader = reinterpret_cast<struct GeoArrowArrayReader*>(
-      ArrowMalloc(sizeof(GeoArrowArrayReader)));
+      malloc(sizeof(GeoArrowArrayReader)));
   if (reader == NULL) {
     Rf_error("Failed to malloc sizeof(GeoArrowArrayReader)");
   }

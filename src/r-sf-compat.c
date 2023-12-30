@@ -3,7 +3,6 @@
 #include <Rinternals.h>
 
 #include "geoarrow.h"
-#include "nanoarrow.h"
 
 static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
                                      int level, int32_t* current_offsets) {
@@ -16,7 +15,7 @@ static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
 
       int32_t n = Rf_length(item);
       current_offsets[level] += n;
-      NANOARROW_RETURN_NOT_OK(
+      GEOARROW_RETURN_NOT_OK(
           GeoArrowBuilderOffsetAppend(builder, level, current_offsets + level, 1));
       for (int32_t i = 0; i < n; i++) {
         builder_append_sfg(VECTOR_ELT(item, i), builder, level + 1, current_offsets);
@@ -28,7 +27,7 @@ static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
     case REALSXP: {
       int32_t n = Rf_nrows(item);
       current_offsets[level] += n;
-      NANOARROW_RETURN_NOT_OK(
+      GEOARROW_RETURN_NOT_OK(
           GeoArrowBuilderOffsetAppend(builder, level, current_offsets + level, 1));
 
       if (n == 0) {
@@ -48,7 +47,7 @@ static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
           break;
         }
 
-        NANOARROW_RETURN_NOT_OK(
+        GEOARROW_RETURN_NOT_OK(
             GeoArrowBuilderAppendBuffer(builder, first_coord_buffer + i, view));
         view.data += view.size_bytes;
       }
@@ -58,7 +57,7 @@ static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
         double nan_dbl = NAN;
         view.data = (uint8_t*)&nan_dbl;
         view.size_bytes = sizeof(double);
-        NANOARROW_RETURN_NOT_OK(GeoArrowBuilderReserveBuffer(
+        GEOARROW_RETURN_NOT_OK(GeoArrowBuilderReserveBuffer(
             builder, first_coord_buffer + i, n * sizeof(double)));
         for (int j = 0; j < n; j++) {
           GeoArrowBuilderAppendBufferUnsafe(builder, first_coord_buffer + i, view);
@@ -78,7 +77,7 @@ static inline int builder_append_sfc_point(SEXP sfc, struct GeoArrowBuilder* bui
   R_xlen_t n = Rf_xlength(sfc);
 
   for (int i = 0; i < builder->view.coords.n_values; i++) {
-    NANOARROW_RETURN_NOT_OK(GeoArrowBuilderCoordsReserve(builder, n));
+    GEOARROW_RETURN_NOT_OK(GeoArrowBuilderCoordsReserve(builder, n));
   }
 
   SEXP item_sexp;
@@ -118,11 +117,11 @@ static int builder_append_sfc(SEXP sfc, struct GeoArrowBuilder* builder) {
   // Append initial 0 to the offset buffers and reserve memory for their minimum
   // likely size (might be inaccurate for sfcs with a lot of empties).
   int32_t zero = 0;
-  NANOARROW_RETURN_NOT_OK(GeoArrowBuilderOffsetReserve(builder, 0, n + 1));
+  GEOARROW_RETURN_NOT_OK(GeoArrowBuilderOffsetReserve(builder, 0, n + 1));
   GeoArrowBuilderOffsetAppendUnsafe(builder, 0, &zero, 1);
 
   for (int i = 1; i < builder->view.n_offsets; i++) {
-    NANOARROW_RETURN_NOT_OK(GeoArrowBuilderOffsetReserve(builder, i, (n + 1) * 1.5));
+    GEOARROW_RETURN_NOT_OK(GeoArrowBuilderOffsetReserve(builder, i, (n + 1) * 1.5));
     GeoArrowBuilderOffsetAppendUnsafe(builder, i, &zero, 1);
   }
 
@@ -132,7 +131,7 @@ static int builder_append_sfc(SEXP sfc, struct GeoArrowBuilder* builder) {
   // Append elements
   for (R_xlen_t i = 0; i < n; i++) {
     SEXP item = VECTOR_ELT(sfc, i);
-    NANOARROW_RETURN_NOT_OK(builder_append_sfg(item, builder, 0, current_offsets));
+    GEOARROW_RETURN_NOT_OK(builder_append_sfg(item, builder, 0, current_offsets));
   }
 
   builder->view.length = n;

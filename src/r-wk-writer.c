@@ -4,7 +4,6 @@
 #include <Rinternals.h>
 
 #include "geoarrow.h"
-#include "nanoarrow.h"
 #include "wk-v1.h"
 
 #define RETURN_ABORT_NOT_OK(expr) \
@@ -120,7 +119,7 @@ int builder_error(const char* message, void* handler_data) {
 void builder_finalize(void* handler_data) {
   builder_handler_t* data = (builder_handler_t*)handler_data;
   if (data != NULL) {
-    ArrowFree(data);
+    free(data);
   }
 }
 
@@ -140,7 +139,7 @@ SEXP geoarrow_c_writer_new(SEXP schema_xptr, SEXP array_out_xptr) {
   handler->error = &builder_error;
   handler->finalizer = &builder_finalize;
 
-  builder_handler_t* data = (builder_handler_t*)ArrowMalloc(sizeof(builder_handler_t));
+  builder_handler_t* data = (builder_handler_t*)malloc(sizeof(builder_handler_t));
   if (data == NULL) {
     wk_handler_destroy(handler);               // # nocov
     Rf_error("Failed to alloc handler data");  // # nocov
@@ -150,14 +149,14 @@ SEXP geoarrow_c_writer_new(SEXP schema_xptr, SEXP array_out_xptr) {
   struct ArrowSchema* schema = (struct ArrowSchema*)R_ExternalPtrAddr(schema_xptr);
   int result = GeoArrowArrayWriterInitFromSchema(&data->writer, schema);
   if (result != GEOARROW_OK) {
-    ArrowFree(data);
+    free(data);
     Rf_error("GeoArrowArrayWriterInitFromSchema() fail");
   }
 
   result = GeoArrowArrayWriterInitVisitor(&data->writer, &data->v);
   if (result != GEOARROW_OK) {
     GeoArrowArrayWriterReset(&data->writer);
-    ArrowFree(data);
+    free(data);
     Rf_error("GeoArrowArrayWriterInitVisitor() failed");
   }
 

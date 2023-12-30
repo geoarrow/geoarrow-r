@@ -3,8 +3,6 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include "nanoarrow.h"
-
 #include "geoarrow.h"
 
 static void finalize_kernel_xptr(SEXP xptr) {
@@ -13,7 +11,7 @@ static void finalize_kernel_xptr(SEXP xptr) {
     kernel->release(kernel);
   }
 
-  ArrowFree(kernel);
+  free(kernel);
 }
 
 SEXP geoarrow_c_kernel(SEXP kernel_name_sexp, SEXP arg_types_sexp, SEXP options_sexp,
@@ -41,7 +39,7 @@ SEXP geoarrow_c_kernel(SEXP kernel_name_sexp, SEXP arg_types_sexp, SEXP options_
   }
 
   struct GeoArrowKernel* kernel =
-      (struct GeoArrowKernel*)ArrowMalloc(sizeof(struct GeoArrowKernel));
+      (struct GeoArrowKernel*)malloc(sizeof(struct GeoArrowKernel));
   if (kernel == NULL) {
     Rf_error("Failed to allocate struct GeoArrowKernel");
   }

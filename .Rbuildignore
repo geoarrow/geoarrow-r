@@ -3,3 +3,4 @@
 ^\.vscode$
 ^bootstrap\.R$
 ^LICENSE\.md$
+^vendor-geoarrow\.sh$

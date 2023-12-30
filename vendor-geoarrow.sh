@@ -13,7 +13,9 @@ CMAKE_DIR=$(find . -name "geoarrow-c-*")
 
 mkdir geoarrow-cmake
 pushd geoarrow-cmake
-cmake "../${CMAKE_DIR}" -DGEOARROW_BUNDLE=ON -DGEOARROW_USE_RYU=ON -DGEOARROW_USE_FAST_FLOAT=ON
+cmake "../${CMAKE_DIR}" \
+  -DGEOARROW_BUNDLE=ON -DGEOARROW_USE_RYU=ON -DGEOARROW_USE_FAST_FLOAT=ON \
+  -DGEOARROW_NAMESPACE=RPkgGeoArrow
 cmake --build .
 cmake --install . --prefix=../src
 popd
