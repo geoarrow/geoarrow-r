@@ -1,0 +1,5 @@
+src/geoarrow.c linguist-vendored
+src/geoarrow.h linguist-vendored
+src/fast_float.h linguist-vendored
+src/d2s.c linguist-vendored
+src/ryu/* linguist-vendored
