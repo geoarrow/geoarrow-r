@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/paleolimbot/geoarrow/workflows/R-CMD-check/badge.svg)](https://github.com/paleolimbot/geoarrow/actions)
 [![Codecov test coverage](https://codecov.io/gh/paleolimbot/geoarrow/branch/master/graph/badge.svg)](https://codecov.io/gh/paleolimbot/geoarrow?branch=master)
+[![R-CMD-check](https://github.com/geoarrow/geoarrow-r/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/geoarrow/geoarrow-r/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of geoarrow is to leverage the features of the [arrow](https://arrow.apache.org/docs/r/) package and larger [Apache Arrow](https://arrow.apache.org/) ecosystem for geospatial data. The geoarrow package provides an R implementation of the [GeoParquet](https://github.com/opengeospatial/geoparquet) file format of and the draft [geoarrow data specification](https://github.com/geopandas/geo-arrow-spec), defining extension array types for vector geospatial data.
