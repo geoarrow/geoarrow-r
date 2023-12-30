@@ -74,7 +74,13 @@ SEXP geoarrow_c_kernel_push(SEXP kernel_xptr, SEXP args_sexp, SEXP array_out_xpt
 
   // All kernels currently have just one argument
   struct ArrowArray* args[1];
+  memset(args, 0, sizeof(args));
+
   int n_args = Rf_length(args_sexp);
+  if (n_args != 1) {
+    Rf_error("Kernels must be passed one argument");
+  }
+
   for (int i = 0; i < n_args; i++) {
     args[i] = (struct ArrowArray*)R_ExternalPtrAddr(VECTOR_ELT(args_sexp, i));
   }
