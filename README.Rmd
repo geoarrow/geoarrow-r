@@ -1,0 +1,39 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# geoarrow
+
+<!-- badges: start -->
+[![Codecov test coverage](https://codecov.io/gh/geoarrow/geoarrow-r/branch/main/graph/badge.svg)](https://app.codecov.io/gh/geoarrow/geoarrow-r?branch=main)
+<!-- badges: end -->
+
+The goal of geoarrow is to leverage the features of the [arrow](https://arrow.apache.org/docs/r/) package and larger [Apache Arrow](https://arrow.apache.org/) ecosystem for geospatial data. The geoarrow package provides an R implementation of the [GeoParquet](https://github.com/opengeospatial/geoparquet) file format of and the draft [geoarrow data specification](https://geoarrow.org), defining extension array types for vector geospatial data.
+
+## Installation
+
+You can install the development version of geoarrow from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("geoarrow/geoarrow-r")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(geoarrow)
+```

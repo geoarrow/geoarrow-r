@@ -6,3 +6,6 @@
 ^vendor-geoarrow\.sh$
 ^\.clang-format$
 ^\.github$
+^codecov\.yml$
+^README\.Rmd$
+^\.covrignore$
