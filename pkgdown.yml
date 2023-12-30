@@ -1,12 +1,6 @@
-pandoc: 2.7.3
-pkgdown: 2.0.6
+pandoc: 2.19.2
+pkgdown: 2.0.7
 pkgdown_sha: ~
-articles:
-  development: development.html
-  format: format.html
-  geoarrow: geoarrow.html
-last_built: 2022-09-09T12:33Z
-urls:
-  reference: https://paleolimbot.github.io/geoarrow/reference
-  article: https://paleolimbot.github.io/geoarrow/articles
+articles: {}
+last_built: 2023-12-30T18:31Z
 

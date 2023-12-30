@@ -1,63 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/404.html</loc>
+    <loc>/404.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/LICENSE-text.html</loc>
+    <loc>/LICENSE-text.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/LICENSE.html</loc>
+    <loc>/LICENSE.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/articles/development.html</loc>
+    <loc>/authors.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/articles/format.html</loc>
+    <loc>/index.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/articles/geoarrow.html</loc>
+    <loc>/reference/as_geoarrow_array.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/articles/index.html</loc>
+    <loc>/reference/as_geoarrow_vctr.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/authors.html</loc>
+    <loc>/reference/geoarrow-package.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/index.html</loc>
+    <loc>/reference/geoarrow_handle.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/as_geoarrow_table.html</loc>
+    <loc>/reference/geoarrow_schema_parse.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/geoarrow-package.html</loc>
+    <loc>/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/geoarrow.html</loc>
+    <loc>/reference/infer_geoarrow_schema.html</loc>
   </url>
   <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/geoarrow_create_narrow.html</loc>
-  </url>
-  <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/geoarrow_example.html</loc>
-  </url>
-  <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/geoarrow_metadata.html</loc>
-  </url>
-  <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/geoarrow_schema_point.html</loc>
-  </url>
-  <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/read_geoparquet.html</loc>
-  </url>
-  <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/wk_handle.narrow_array.html</loc>
-  </url>
-  <url>
-    <loc>https://paleolimbot.github.io/geoarrow/reference/write_geoparquet.html</loc>
+    <loc>/reference/na_extension_wkb.html</loc>
   </url>
 </urlset>
