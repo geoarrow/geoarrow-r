@@ -20,6 +20,10 @@ cmake --build .
 cmake --install . --prefix=../src
 popd
 
+# Mangle -Wunused pragmas since they are there for a good reason
+sed -i.bak -e "s|#pragma|/*ignore*/#pragma|" src/geoarrow.c
+rm src/geoarrow.c.bak
+
 rm geoarrow.zip
 rm -rf geoarrow-c-*
 rm -rf geoarrow-cmake

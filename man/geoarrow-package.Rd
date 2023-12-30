@@ -11,7 +11,8 @@ Provides extension types and conversions to between R-native object types and 'A
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/geoarrow/geoarrow-c}
+  \item \url{https://github.com/geoarrow/geoarrow-r}
+  \item Report bugs at \url{https://github.com/geoarrow/geoarrow-r/issues}
 }
 
 }

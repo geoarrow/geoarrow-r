@@ -4,3 +4,5 @@
 ^bootstrap\.R$
 ^LICENSE\.md$
 ^vendor-geoarrow\.sh$
+^\.clang-format$
+^\.github$

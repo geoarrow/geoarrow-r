@@ -1,6 +1,6 @@
 #include "geoarrow.h"
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"
+/*ignore*/#pragma GCC diagnostic push
+/*ignore*/#pragma GCC diagnostic ignored "-Wunused-function"
 // Licensed to the Apache Software Foundation (ASF) under one
 // or more contributor license agreements.  See the NOTICE file
 // distributed with this work for additional information
@@ -3494,7 +3494,7 @@ static inline void ArrowArrayViewGetDecimalUnsafe(const struct ArrowArrayView* a
 #endif
 
 #endif
-#pragma GCC diagnostic push
+/*ignore*/#pragma GCC diagnostic push
 #include <errno.h>
 #include <string.h>
 
