@@ -1,13 +1,4 @@
 ^geoarrow\.Rproj$
 ^\.Rproj\.user$
-^LICENSE\.md$
-^README\.Rmd$
-^\.github$
-^codecov\.yml$
 ^\.vscode$
-^\.covrignore$
-^data-raw$
-^_pkgdown\.yml$
-^docs$
-^pkgdown$
-^vignettes/articles$
+^LICENSE\.md$
