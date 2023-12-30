@@ -1,6 +1,6 @@
 Package: geoarrow
 Title: Extension types for geospatial data for use with 'Arrow'
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R:
     person(given = "Dewey",
            family = "Dunnington",
@@ -33,6 +33,6 @@ Suggests:
     R6
 Config/testthat/edition: 3
 URL: https://paleolimbot.github.io/geoarrow/
-Depends: 
+Depends:
     R (>= 2.10)
 LazyData: true
