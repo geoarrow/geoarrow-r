@@ -13,7 +13,11 @@
 class WKGeoArrowHandler {
  public:
   WKGeoArrowHandler(wk_handler_t* handler, R_xlen_t size)
-      : handler_(handler), feat_id_(-1), ring_id_(-1), coord_id_(-1) {
+      : handler_(handler),
+        abort_feature_called_(false),
+        feat_id_(-1),
+        ring_id_(-1),
+        coord_id_(-1) {
     WK_VECTOR_META_RESET(vector_meta_, WK_GEOMETRY);
     WK_META_RESET(meta_, WK_GEOMETRY);
 
@@ -38,6 +42,20 @@ class WKGeoArrowHandler {
     v->geom_end = &geom_end_visitor;
     v->feat_end = &feat_end_visitor;
     v->private_data = this;
+  }
+
+  GeoArrowErrorCode wrap_result(int result, GeoArrowError* error) {
+    if (result == WK_ABORT_FEATURE) {
+      abort_feature_called_ = true;
+      return GEOARROW_OK;
+    }
+
+    if (result != WK_CONTINUE) {
+      GeoArrowErrorSet(error, "result !+ WK_CONTINUE (%d)", result);
+      return EINVAL;
+    } else {
+      return GEOARROW_OK;
+    }
   }
 
   void set_vector_geometry_type(GeoArrowGeometryType geometry_type) {
@@ -97,16 +115,27 @@ class WKGeoArrowHandler {
   }
 
   int feat_start() {
+    abort_feature_called_ = false;
     feat_id_++;
     part_id_stack_.clear();
     meta_stack_.clear();
     return handler_->feature_start(&vector_meta_, feat_id_, handler_->handler_data);
   }
 
-  int null_feat() { return handler_->null_feature(handler_->handler_data); }
+  int null_feat() {
+    if (abort_feature_called_) {
+      return WK_CONTINUE;
+    }
+
+    return handler_->null_feature(handler_->handler_data);
+  }
 
   int geom_start(GeoArrowGeometryType geometry_type, GeoArrowDimensions dimensions,
                  uint32_t size) {
+    if (abort_feature_called_) {
+      return WK_CONTINUE;
+    }
+
     ring_id_ = -1;
     coord_id_ = -1;
 
@@ -125,6 +154,10 @@ class WKGeoArrowHandler {
   }
 
   int ring_start(uint32_t size) {
+    if (abort_feature_called_) {
+      return WK_CONTINUE;
+    }
+
     ring_id_++;
     coord_id_ = -1;
     ring_size_ = size;
@@ -132,6 +165,10 @@ class WKGeoArrowHandler {
   }
 
   int coords(const struct GeoArrowCoordView* coords) {
+    if (abort_feature_called_) {
+      return WK_CONTINUE;
+    }
+
     int result;
     double coord[4];
     for (int64_t i = 0; i < coords->n_coords; i++) {
@@ -150,10 +187,18 @@ class WKGeoArrowHandler {
   }
 
   int ring_end() {
+    if (abort_feature_called_) {
+      return WK_CONTINUE;
+    }
+
     return handler_->ring_end(meta(), ring_size_, ring_id_, handler_->handler_data);
   }
 
   int geom_end() {
+    if (abort_feature_called_) {
+      return WK_CONTINUE;
+    }
+
     if (part_id_stack_.size() > 0) part_id_stack_.pop_back();
     int result = handler_->geometry_end(meta(), part_id(), handler_->handler_data);
     if (meta_stack_.size() > 0) meta_stack_.pop_back();
@@ -161,6 +206,10 @@ class WKGeoArrowHandler {
   }
 
   int feat_end() {
+    if (abort_feature_called_) {
+      return WK_CONTINUE;
+    }
+
     return handler_->feature_end(&vector_meta_, feat_id_, handler_->handler_data);
   }
 
@@ -168,6 +217,7 @@ class WKGeoArrowHandler {
 
  private:
   wk_handler_t* handler_;
+  bool abort_feature_called_;
 
   std::vector<wk_meta_t> meta_stack_;
   std::vector<int32_t> part_id_stack_;
@@ -194,30 +244,16 @@ class WKGeoArrowHandler {
     return meta_stack_.data() + meta_stack_.size() - 1;
   }
 
-  static int wrap_result(int result, GeoArrowError* error) {
-    if (result == WK_ABORT_FEATURE) {
-      GeoArrowErrorSet(error, "WK_ABORT_FEATURE not supported");
-      return EINVAL;
-    }
-
-    if (result != WK_CONTINUE) {
-      GeoArrowErrorSet(error, "result !+ WK_CONTINUE (%d)", result);
-      return EINVAL;
-    } else {
-      return GEOARROW_OK;
-    }
-  }
-
   static int feat_start_visitor(struct GeoArrowVisitor* v) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->feat_start();
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 
   static int null_feat_visitor(struct GeoArrowVisitor* v) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->null_feat();
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 
   static int geom_start_visitor(struct GeoArrowVisitor* v,
@@ -225,38 +261,38 @@ class WKGeoArrowHandler {
                                 enum GeoArrowDimensions dimensions) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->geom_start(geometry_type, dimensions, WK_SIZE_UNKNOWN);
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 
   static int ring_start_visitor(struct GeoArrowVisitor* v) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->ring_start(WK_SIZE_UNKNOWN);
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 
   static int coords_visitor(struct GeoArrowVisitor* v,
                             const struct GeoArrowCoordView* coords) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->coords(coords);
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 
   static int ring_end_visitor(struct GeoArrowVisitor* v) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->ring_end();
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 
   static int geom_end_visitor(struct GeoArrowVisitor* v) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->geom_end();
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 
   static int feat_end_visitor(struct GeoArrowVisitor* v) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
     int result = private_data->feat_end();
-    return wrap_result(result, v->error);
+    return private_data->wrap_result(result, v->error);
   }
 };
 
@@ -311,8 +347,8 @@ SEXP geoarrow_handle_stream(SEXP data, wk_handler_t* handler) {
   }
 
   // Initialize the reader + make sure it is always cleaned up
-  struct GeoArrowArrayReader* reader = reinterpret_cast<struct GeoArrowArrayReader*>(
-      malloc(sizeof(GeoArrowArrayReader)));
+  struct GeoArrowArrayReader* reader =
+      reinterpret_cast<struct GeoArrowArrayReader*>(malloc(sizeof(GeoArrowArrayReader)));
   if (reader == NULL) {
     Rf_error("Failed to malloc sizeof(GeoArrowArrayReader)");
   }
