@@ -119,6 +119,10 @@ int builder_error(const char* message, void* handler_data) {
 void builder_finalize(void* handler_data) {
   builder_handler_t* data = (builder_handler_t*)handler_data;
   if (data != NULL) {
+    if (data->writer.private_data != NULL) {
+      GeoArrowArrayWriterReset(&data->writer);
+    }
+
     free(data);
   }
 }
