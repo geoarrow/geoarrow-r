@@ -3,3 +3,4 @@ src/geoarrow.h
 src/fast_float.h
 src/d2s.c
 src/ryu
+src/double_parse_fast_float.cc

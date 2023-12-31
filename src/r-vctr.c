@@ -17,7 +17,7 @@ SEXP geoarrow_c_vctr_chunk_offsets(SEXP array_list) {
     array = (struct ArrowArray*)R_ExternalPtrAddr(VECTOR_ELT(array_list, i));
     cumulative_offset += array->length;
     if (cumulative_offset > INT_MAX) {
-      Rf_error("Can't build geoarrow_vctr with length > INT_MAX");
+      Rf_error("Can't build geoarrow_vctr with length > INT_MAX");  // # nocov
     }
 
     offsets[i + 1] = cumulative_offset;

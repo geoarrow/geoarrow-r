@@ -1,5 +1,5 @@
 
-test_that("as_geoarrow_array() for wkt() generates the correct buffers", {
+test_that("as_geoarrow_array.wkt() generates the correct buffers", {
   array <- as_geoarrow_array(wk::wkt(c("POINT (0 1)", NA)))
   schema <- infer_nanoarrow_schema(array)
 
@@ -22,6 +22,14 @@ test_that("as_geoarrow_array() for wkt() generates the correct buffers", {
   )
 })
 
+test_that("as_geoarrow_array.wkt() falls back to default method for non-geoarrow.wkt", {
+  array <- as_geoarrow_array(wk::wkt(c("POINT (0 1)", NA)), schema = na_extension_wkb())
+  schema <- infer_nanoarrow_schema(array)
+
+  expect_identical(schema$format, "z")
+  expect_identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkb")
+})
+
 test_that("as_geoarrow_array() for wkt() respects schema", {
   skip_if_not_installed("arrow")
 
@@ -33,7 +41,7 @@ test_that("as_geoarrow_array() for wkt() respects schema", {
   expect_identical(schema$format, "U")
 })
 
-test_that("as_geoarrow_array() for wkb() generates the correct buffers", {
+test_that("as_geoarrow_array.wkb() generates the correct buffers for geoarrow.wkb", {
   array <- as_geoarrow_array(wk::as_wkb(c("POINT (0 1)", NA)))
   schema <- infer_nanoarrow_schema(array)
 
@@ -51,6 +59,14 @@ test_that("as_geoarrow_array() for wkb() generates the correct buffers", {
   )
 })
 
+test_that("as_geoarrow_array.wkb() falls back to default method for non-geoarrow.wkb", {
+  array <- as_geoarrow_array(wk::as_wkb(c("POINT (0 1)", NA)), schema = na_extension_wkt())
+  schema <- infer_nanoarrow_schema(array)
+
+  expect_identical(schema$format, "u")
+  expect_identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkt")
+})
+
 test_that("as_geoarrow_array() for wkb() respects schema", {
   skip_if_not_installed("arrow")
 
@@ -62,7 +78,7 @@ test_that("as_geoarrow_array() for wkb() respects schema", {
   expect_identical(schema$format, "Z")
 })
 
-test_that("as_geoarrow_array() for xy() generates the correct buffers", {
+test_that("as_geoarrow_array.wk_xy() generates the correct buffers", {
   array <- as_geoarrow_array(wk::xy(1:5, 6:10))
   schema <- infer_nanoarrow_schema(array)
 
@@ -78,6 +94,14 @@ test_that("as_geoarrow_array() for xy() generates the correct buffers", {
     as.raw(array$children[[2]]$buffers[[2]]),
     as.raw(nanoarrow::as_nanoarrow_buffer(as.double(6:10)))
   )
+})
+
+test_that("as_geoarrow_arrayx.xy() falls back to default method for non-geoarrow.point", {
+  array <- as_geoarrow_array(wk::xy(1:5, 6:10), schema = na_extension_wkt())
+  schema <- infer_nanoarrow_schema(array)
+
+  expect_identical(schema$format, "u")
+  expect_identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkt")
 })
 
 test_that("as_geoarrow_array() for wk generates the correct metadata", {

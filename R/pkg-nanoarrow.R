@@ -1,4 +1,6 @@
 
+# Runs before coverage starts on load
+# nocov start
 register_geoarrow_extension <- function() {
   for (ext_name in geoarrow_extension_name_all()) {
     nanoarrow::register_nanoarrow_extension(
@@ -7,6 +9,7 @@ register_geoarrow_extension <- function() {
     )
   }
 }
+# nocov end
 
 #' @importFrom nanoarrow infer_nanoarrow_ptype_extension
 #' @export
