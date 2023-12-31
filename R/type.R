@@ -67,12 +67,6 @@ na_extension_geoarrow <- function(geometry_type, dimensions = "XY",
   na_extension_geoarrow_internal(type_id, crs = crs, edges = edges)
 }
 
-geoarrow_extension_name_all <- function() {
-  c("geoarrow.wkt", "geoarrow.wkb", "geoarrow.point", "geoarrow.linestring",
-    "geoarrow.polygon", "geoarrow.multipoint", "geoarrow.mutlilinestring",
-    "geoarrow.multipolygon")
-}
-
 #' Inspect a GeoArrow schema
 #'
 #' @param schema A [nanoarrow_schema][nanoarrow::as_nanoarrow_schema]
