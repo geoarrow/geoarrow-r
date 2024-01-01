@@ -192,21 +192,35 @@ class WKGeoArrowHandler {
     return handler_->ring_start(meta(), ring_size_, ring_id_, handler_->handler_data);
   }
 
+  static bool coord_all_na(const struct GeoArrowCoordView* coords, int64_t i) {
+    for (int j = 0; j < coords->n_values; j++) {
+      if (!ISNAN(GEOARROW_COORD_VIEW_VALUE(coords, i, j))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   int coords(const struct GeoArrowCoordView* coords) {
     if (abort_feature_called_) {
       return WK_CONTINUE;
     }
 
-    if (handler_geom_start_not_yet_called() && coords->n_coords > 0) {
-      int result = call_geom_start_non_empty();
-      if (result != WK_CONTINUE) {
-        return result;
-      }
-    }
-
     int result;
     double coord[4];
     for (int64_t i = 0; i < coords->n_coords; i++) {
+      if (coord_all_na(coords, i)) {
+        continue;
+      }
+
+      if (handler_geom_start_not_yet_called()) {
+        int result = call_geom_start_non_empty();
+        if (result != WK_CONTINUE) {
+          return result;
+        }
+      }
+
       coord_id_++;
       for (int j = 0; j < coords->n_values; j++) {
         coord[j] = GEOARROW_COORD_VIEW_VALUE(coords, i, j);
