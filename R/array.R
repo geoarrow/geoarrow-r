@@ -93,9 +93,7 @@ as_geoarrow_array_stream.nanoarrow_array_stream <- function(x, ..., schema = NUL
 geoarrow_array_from_buffers <- function(schema, buffers) {
   schema <- nanoarrow::as_nanoarrow_schema(schema)
   extension_name <- schema$metadata[["ARROW:extension:name"]]
-  if (is.null(extension_name)) {
-    stop("Expected extension name")
-  }
+  stopifnot(!is.null(extension_name))
 
   switch(
     extension_name,
@@ -222,14 +220,8 @@ nested_array_from_buffers <- function(schema, buffers, level, validity = NULL) {
   validity <- as_validity_buffer(validity)
 
   array <- nanoarrow::nanoarrow_array_init(schema)
-
-  if (identical(schema$format, "+l")) {
-    offsets <- as_offset_buffer(buffers[[1]])
-    offset_element_size <- 4L
-  } else {
-    offsets <- as_large_offset_buffer(buffers[[1]])
-    offset_element_size <- 8L
-  }
+  offsets <- as_offset_buffer(buffers[[1]])
+  offset_element_size <- 4L
 
   if (offsets$size_bytes == 0) {
     return(array)
@@ -295,17 +287,17 @@ as_large_offset_buffer <- function(x) {
 
 as_validity_buffer <- function(x) {
   if (is.null(x)) {
-    return(list(null_count = 0, buffer = NULL))
+    return(list(null_count = 0L, buffer = NULL))
   }
 
   if (inherits(x, "nanoarrow_buffer")) {
-    return(list(null_count = -1, buffer = x))
+    return(list(null_count = -1L, buffer = x))
   }
 
   if (is.logical(x)) {
     null_count <- sum(!x)
   } else {
-    null_count <- sum(x == 0)
+    null_count <- sum(x == 0L)
   }
 
   array <- nanoarrow::as_nanoarrow_array(x, schema = nanoarrow::na_bool())
@@ -313,7 +305,7 @@ as_validity_buffer <- function(x) {
     stop("NA values are not allowed in validity buffer")
   }
 
-  list(null_count == null_count, buffer = x$buffers[[2]])
+  list(null_count = null_count, buffer = array$buffers[[2]])
 }
 
 # This really needs a helper in nanoarrow, but for now, we need a way to drop

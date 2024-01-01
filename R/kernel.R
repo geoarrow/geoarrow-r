@@ -74,9 +74,7 @@ geoarrow_kernel <- function(kernel_name, input_types, options = NULL) {
 }
 
 geoarrow_kernel_push <- function(kernel, args) {
-  if (!inherits(kernel, "geoarrow_kernel")) {
-    stop("kernel must inherit from 'geoarrow_kernel'")
-  }
+  stopifnot(inherits(kernel, "geoarrow_kernel"))
 
   if (isTRUE(attr(kernel, "is_agg"))) {
     array_out <- NULL
@@ -91,9 +89,7 @@ geoarrow_kernel_push <- function(kernel, args) {
 
   args <- lapply(args, nanoarrow::as_nanoarrow_array)
   expected_arg_count <- length(attr(kernel, "input_types"))
-  if (length(args) != expected_arg_count) {
-    stop(sprintf("Expected %d arguments but got %d", expected_arg_count, length(args)))
-  }
+  stopifnot(length(args) == expected_arg_count)
 
   .Call(geoarrow_c_kernel_push, kernel, args, array_out)
   array_out

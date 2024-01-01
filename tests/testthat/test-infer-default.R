@@ -113,7 +113,7 @@ test_that("infer_geoarrow_schema() works for non-native arrays", {
 test_that("infer_geoarrow_schema() works for native streams", {
   array <- as_geoarrow_array(wk::xy(1:5, 6:10))
   stream <- nanoarrow::basic_array_stream(list(array))
-  schema <- infer_geoarrow_schema(array)
+  schema <- infer_geoarrow_schema(stream)
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XY)

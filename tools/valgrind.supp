@@ -1,0 +1,20 @@
+{
+    <XMLParseBuffer>:XMLParseBuffer possible leak from the sf package
+    Memcheck:Leak
+    ...
+    fun:XML_ParseBuffer
+}
+
+{
+    <XMLParseBuffer>:udunits possible leak from the sf package
+    Memcheck:Leak
+    ...
+    fun:ut_map_name_to_unit
+}
+
+{
+    <XMLParseBuffer>:udunits possible leak from the sf package
+    Memcheck:Leak
+    ...
+    fun:ut_map_symbol_to_unit
+}

@@ -28,6 +28,13 @@ test_that("nanoarrow_schema can be created for native types", {
   expect_identical(schema_point$metadata[["ARROW:extension:metadata"]], "{}")
 })
 
+test_that("nanoarrow_schema create errors for invalid combinations of parameters", {
+  expect_error(
+    na_extension_geoarrow("GEOMETRY"),
+    "type_id not valid"
+  )
+})
+
 test_that("nanoarrow_schema can be created with metadata", {
   schema <- na_extension_wkb(crs = "{}", edges = "SPHERICAL")
   expect_identical(
@@ -70,6 +77,22 @@ test_that("geoarrow_schema_parse() can parse a schema", {
   expect_identical(parsed$crs_type, enum$CrsType$NONE)
   expect_identical(parsed$crs, "")
   expect_identical(parsed$edge_type, enum$EdgeType$PLANAR)
+})
+
+test_that("geoarrow_schema_parse() errors for invalid type input", {
+  expect_error(
+    geoarrow_schema_parse(nanoarrow::na_bool()),
+    "Expected extension type"
+  )
+})
+
+test_that("geoarrow_schema_parse() errors for invalid metadata input", {
+  schema <- na_extension_wkt()
+  schema$metadata[["ARROW:extension:metadata"]] <- "this is invalid JSON"
+  expect_error(
+    geoarrow_schema_parse(schema),
+    "Expected valid GeoArrow JSON metadata"
+  )
 })
 
 test_that("geoarrow_schema_parse() can parse a storage schema", {

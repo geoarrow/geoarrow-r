@@ -89,3 +89,47 @@ test_that("geoarrow_writer() works for XYZM", {
     c("POINT ZM (0 1 2 3)", "POINT ZM (1 2 3 4)", "POINT ZM (2 3 4 5)")
   )
 })
+
+test_that("handle_geoarrow() can roundtrip wk examples as WKT", {
+  for (ex_name in setdiff(names(wk::wk_example_wkt), "nc")) {
+    example <- wk::wk_example_wkt[[ex_name]]
+    chars <- nchar(as.character(example))
+    chars[is.na(example)] <- 0L
+    array <- geoarrow_array_from_buffers(
+      na_extension_wkt(),
+      list(
+        !is.na(example),
+        c(0L, cumsum(chars)),
+        as.character(example)
+      )
+    )
+
+    # Check the array was constructed properly
+    expect_identical(
+      nanoarrow::convert_array(force_array_storage(array)),
+      unclass(example)
+    )
+
+    # Check that the handler can recreate it with the wkt writer
+    expect_identical(
+      geoarrow_handle(array, wk::wkt_writer()),
+      example
+    )
+  }
+})
+
+test_that("geoarrow_writer() can roundtrip wk examples as WKT", {
+  for (ex_name in setdiff(names(wk::wk_example_wkt), "nc")) {
+    example <- wk::wk_example_wkt[[ex_name]]
+
+    # GeoArrow uses flat multipoint
+    if (grepl("multipoint", ex_name)) {
+      example <- wk::wkt(gsub("\\(([0-9 ]+)\\)", "\\1", as.character(example)))
+    }
+
+    array <- wk::wk_handle(example, geoarrow_writer(na_extension_wkt()))
+    storage_convert <- nanoarrow::convert_array(force_array_storage(array))
+    expect_identical(wk::wkt(storage_convert), example)
+  }
+})
+
