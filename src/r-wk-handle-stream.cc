@@ -23,10 +23,6 @@ class WKGeoArrowHandler {
 
     vector_meta_.size = size;
 
-    // This is to keep vectors from being reallocated, since some
-    // wk handlers assume that the meta pointers will stay valid between
-    // the start and end geometry methods (this will get fixed in a
-    // wk release soon)
     part_id_stack_.reserve(32);
     meta_stack_.reserve(32);
   }
@@ -44,6 +40,9 @@ class WKGeoArrowHandler {
     v->private_data = this;
   }
 
+  // GeoArrow visitors don't support early return, so we just ignore subsequent calls to
+  // handler methods until the feature ends. In any case, we return an errno code since
+  // that is what the visitor interface expects.
   GeoArrowErrorCode wrap_result(int result, GeoArrowError* error) {
     if (result == WK_ABORT_FEATURE) {
       abort_feature_called_ = true;
@@ -130,8 +129,7 @@ class WKGeoArrowHandler {
     return handler_->null_feature(handler_->handler_data);
   }
 
-  int geom_start(GeoArrowGeometryType geometry_type, GeoArrowDimensions dimensions,
-                 uint32_t size) {
+  int geom_start(GeoArrowGeometryType geometry_type, GeoArrowDimensions dimensions) {
     if (abort_feature_called_) {
       return WK_CONTINUE;
     }
@@ -144,7 +142,7 @@ class WKGeoArrowHandler {
     }
 
     meta_.geometry_type = geometry_type;
-    meta_.size = size;
+    meta_.size = WK_SIZE_UNKNOWN;
     set_meta_dimensions(dimensions);
     meta_stack_.push_back(meta_);
 
@@ -153,14 +151,14 @@ class WKGeoArrowHandler {
     return result;
   }
 
-  int ring_start(uint32_t size) {
+  int ring_start() {
     if (abort_feature_called_) {
       return WK_CONTINUE;
     }
 
     ring_id_++;
     coord_id_ = -1;
-    ring_size_ = size;
+    ring_size_ = WK_SIZE_UNKNOWN;
     return handler_->ring_start(meta(), ring_size_, ring_id_, handler_->handler_data);
   }
 
@@ -260,13 +258,13 @@ class WKGeoArrowHandler {
                                 enum GeoArrowGeometryType geometry_type,
                                 enum GeoArrowDimensions dimensions) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
-    int result = private_data->geom_start(geometry_type, dimensions, WK_SIZE_UNKNOWN);
+    int result = private_data->geom_start(geometry_type, dimensions);
     return private_data->wrap_result(result, v->error);
   }
 
   static int ring_start_visitor(struct GeoArrowVisitor* v) {
     auto private_data = reinterpret_cast<WKGeoArrowHandler*>(v->private_data);
-    int result = private_data->ring_start(WK_SIZE_UNKNOWN);
+    int result = private_data->ring_start();
     return private_data->wrap_result(result, v->error);
   }
 
