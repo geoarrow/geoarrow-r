@@ -113,6 +113,21 @@ class WKGeoArrowHandler {
     }
   }
 
+  bool handler_geom_start_not_yet_called() {
+    return !meta_stack_.empty() && meta()->size == 0;
+  }
+
+  int call_geom_start_non_empty() {
+    meta()->size = WK_SIZE_UNKNOWN;
+    int result = handler_->geometry_start(meta(), part_id(), handler_->handler_data);
+    part_id_stack_.push_back(-1);
+    return result;
+  }
+
+  int call_geom_start_empty() {
+    return handler_->geometry_start(meta(), part_id(), handler_->handler_data);
+  }
+
   int feat_start() {
     abort_feature_called_ = false;
     feat_id_++;
@@ -134,6 +149,13 @@ class WKGeoArrowHandler {
       return WK_CONTINUE;
     }
 
+    if (handler_geom_start_not_yet_called()) {
+      int result = call_geom_start_non_empty();
+      if (result != WK_CONTINUE) {
+        return result;
+      }
+    }
+
     ring_id_ = -1;
     coord_id_ = -1;
 
@@ -142,18 +164,26 @@ class WKGeoArrowHandler {
     }
 
     meta_.geometry_type = geometry_type;
-    meta_.size = WK_SIZE_UNKNOWN;
+    meta_.size = 0;
     set_meta_dimensions(dimensions);
     meta_stack_.push_back(meta_);
 
-    int result = handler_->geometry_start(meta(), part_id(), handler_->handler_data);
-    part_id_stack_.push_back(-1);
-    return result;
+    // wk writers (mostly) require that EMPTY has an explicit size 0, but we don't
+    // have that information yet. Instead, we defer the call to geometry_start until
+    // we see the next thing (coord or geom or ring)
+    return WK_CONTINUE;
   }
 
   int ring_start() {
     if (abort_feature_called_) {
       return WK_CONTINUE;
+    }
+
+    if (handler_geom_start_not_yet_called()) {
+      int result = call_geom_start_non_empty();
+      if (result != WK_CONTINUE) {
+        return result;
+      }
     }
 
     ring_id_++;
@@ -165,6 +195,13 @@ class WKGeoArrowHandler {
   int coords(const struct GeoArrowCoordView* coords) {
     if (abort_feature_called_) {
       return WK_CONTINUE;
+    }
+
+    if (handler_geom_start_not_yet_called() && coords->n_coords > 0) {
+      int result = call_geom_start_non_empty();
+      if (result != WK_CONTINUE) {
+        return result;
+      }
     }
 
     int result;
@@ -195,6 +232,13 @@ class WKGeoArrowHandler {
   int geom_end() {
     if (abort_feature_called_) {
       return WK_CONTINUE;
+    }
+
+    if (handler_geom_start_not_yet_called()) {
+      int result = call_geom_start_empty();
+      if (result != WK_CONTINUE) {
+        return result;
+      }
     }
 
     if (part_id_stack_.size() > 0) part_id_stack_.pop_back();
@@ -235,7 +279,7 @@ class WKGeoArrowHandler {
     }
   }
 
-  const wk_meta_t* meta() {
+  wk_meta_t* meta() {
     if (meta_stack_.size() == 0) {
       throw std::runtime_error("geom_start()/geom_end() stack imbalance <meta>");
     }
