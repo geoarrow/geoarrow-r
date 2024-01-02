@@ -87,6 +87,15 @@ geoarrow_schema_parse <- function(schema, extension_name = NULL) {
   .Call(geoarrow_c_schema_parse, schema, extension_name)
 }
 
+#' @rdname geoarrow_schema_parse
+#' @export
+is_geoarrow_schema <- function(schema, extension_name = NULL) {
+  tryCatch({
+    geoarrow_schema_parse(schema, extension_name)
+    TRUE
+  }, error = function(...) FALSE)
+}
+
 na_extension_geoarrow_internal <- function(type_id, crs, edges) {
   metadata <- na_extension_metadata_internal(crs, edges)
   schema <- nanoarrow::nanoarrow_allocate_schema()

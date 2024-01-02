@@ -67,8 +67,8 @@ convert_array.sfc <- function(array, to, ..., sfc_promote_multi = FALSE) {
 
 #' @importFrom nanoarrow infer_nanoarrow_schema
 #' @export
-infer_nanoarrow_schema.sfc <- function(x, ...) {
-  infer_geoarrow_schema(x)
+infer_nanoarrow_schema.sfc <- function(x, ..., geoarrow_lazy = FALSE) {
+  infer_geoarrow_schema(x, lazy = geoarrow_lazy)
 }
 
 #' @export
