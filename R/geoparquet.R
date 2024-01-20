@@ -165,7 +165,7 @@ geoparquet_columns_from_schema <- function(schema,
   )
 }
 
-geoparquet_column_spec_from_type <- function(schema, add_geometry_types) {
+geoparquet_column_spec_from_type <- function(schema, add_geometry_types = NULL) {
   spec <- list(
     encoding = "WKB",
     geometry_types = list()
@@ -188,7 +188,7 @@ geoparquet_column_spec_from_type <- function(schema, add_geometry_types) {
       }
     )
 
-    if (parsed$edge_type == "SPHERICAL") {
+    if (parsed$edge_type == enum$EdgeType$SPHERICAL) {
       spec$edges <- "spherical"
     }
 
