@@ -175,8 +175,9 @@ geoparquet_column_spec_from_type <- function(schema, add_geometry_types = NULL) 
     parsed <- geoarrow_schema_parse(schema)
 
     spec$crs <- switch(
-      parsed$crs_type,
+      enum_label(parsed$crs_type, "CrsType"),
       "NONE" = NULL,
+      "UNKNOWN" = ,
       "PROJJSON" = jsonlite::fromJSON(parsed$crs, simplifyVector = FALSE),
       {
         crs_info <- sanitize_crs(parsed$crs)

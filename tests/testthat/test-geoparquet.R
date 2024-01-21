@@ -30,6 +30,11 @@ test_that("geoparquet_column_spec_from_type() works", {
     list(encoding = "WKB", geometry_types = list())
   )
 
+  # geoarrow type with crs
+  spec_crs <- geoparquet_column_spec_from_type(na_extension_wkb(crs = wk::wk_crs_longlat()))
+  expect_identical(spec_crs$encoding, "WKB")
+  expect_identical(spec_crs$crs$id, list(authority = "OGC", code = "CRS84"))
+
   # geoarrow type with add_geometry_types = FALSE
   expect_identical(
     geoparquet_column_spec_from_type(
@@ -65,7 +70,7 @@ test_that("geoparquet_column_spec_from_type() works", {
     list(encoding = "WKB", geometry_types = list("Point Z"))
   )
 
-  # Also check geometry t ypes
+  # Also check geometry types
   expect_identical(
     geoparquet_column_spec_from_type(na_extension_geoarrow("LINESTRING")),
     list(encoding = "WKB", geometry_types = list("LineString"))
@@ -89,6 +94,12 @@ test_that("geoparquet_column_spec_from_type() works", {
   expect_identical(
     geoparquet_column_spec_from_type(na_extension_geoarrow("MULTIPOLYGON")),
     list(encoding = "WKB", geometry_types = list("MultiPolygon"))
+  )
+
+  # Check unknown geometry type
+  expect_identical(
+    geoparquet_column_spec_from_type(na_extension_wkb()),
+    list(encoding = "WKB", geometry_types = list())
   )
 
   # Check edge types
