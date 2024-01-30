@@ -61,6 +61,19 @@ test_that("arrow package objects can be converted to and from sf objects", {
   expect_identical(sf_inferred$extension_name(), "geoarrow.point")
 })
 
+test_that("sf objects work with as_geoarrow_array()", {
+  skip_if_not_installed("sf")
+
+  sfc <- sf::st_sfc(sf::st_point(c(0, 1)))
+  sf <- sf::st_as_sf(data.frame(geometry = sfc))
+
+  array <- as_geoarrow_array(sf)
+  parsed <- geoarrow_schema_parse(infer_nanoarrow_schema(array))
+  expect_identical(parsed$extension_name, "geoarrow.point")
+  expect_identical(nanoarrow::convert_buffer(array$children$x$buffers[[2]]), 0)
+  expect_identical(nanoarrow::convert_buffer(array$children$y$buffers[[2]]), 1)
+})
+
 test_that("convert_array() works for sfc", {
   skip_if_not_installed("sf")
 
