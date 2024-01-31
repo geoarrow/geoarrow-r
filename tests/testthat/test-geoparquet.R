@@ -23,6 +23,37 @@ test_that("write_geoparquet_table() can write a data.frame", {
   expect_identical(wk::as_wkt(wkb), wk::wkt("POINT (0 1)"))
 })
 
+test_that("geoparquet_guess_primary_geometry_column() works", {
+  schema <- nanoarrow::na_struct(list(geometry = nanoarrow::na_string()))
+  expect_identical(
+    geoparquet_guess_primary_geometry_column(schema),
+    "geometry"
+  )
+
+  expect_identical(
+    geoparquet_guess_primary_geometry_column(schema, "something_else"),
+    "something_else"
+  )
+
+  schema <- nanoarrow::na_struct(list(geography = nanoarrow::na_string()))
+  expect_identical(
+    geoparquet_guess_primary_geometry_column(schema),
+    "geography"
+  )
+
+  schema <- nanoarrow::na_struct(list(something_else = na_extension_wkt()))
+  expect_identical(
+    geoparquet_guess_primary_geometry_column(schema),
+    "something_else"
+  )
+
+  schema <- nanoarrow::na_struct(list())
+  expect_error(
+    geoparquet_guess_primary_geometry_column(schema),
+    "requires at least one geometry column"
+  )
+})
+
 test_that("geoparquet_columns_from_schema() always includes geometry_columns", {
   schema <- nanoarrow::na_struct(
     list(

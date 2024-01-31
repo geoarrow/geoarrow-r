@@ -120,7 +120,7 @@ geoparquet_encode_chunked_array <- function(chunked_array_or_vctr,
   list(spec, item_out_chunked_array)
 }
 
-geoparquet_guess_primary_geometry_column <- function(schema, primary_geometry_column) {
+geoparquet_guess_primary_geometry_column <- function(schema, primary_geometry_column = NULL) {
   if (!is.null(primary_geometry_column)) {
     return(primary_geometry_column)
   }
