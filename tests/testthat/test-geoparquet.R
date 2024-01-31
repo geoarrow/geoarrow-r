@@ -23,6 +23,44 @@ test_that("write_geoparquet_table() can write a data.frame", {
   expect_identical(wk::as_wkt(wkb), wk::wkt("POINT (0 1)"))
 })
 
+test_that("geoparquet_columns_from_schema() always includes geometry_columns", {
+  schema <- nanoarrow::na_struct(
+    list(
+      geom = nanoarrow::na_string(),
+      geom2 = na_extension_wkt()
+    )
+  )
+
+  expect_identical(
+    names(geoparquet_columns_from_schema(schema, geometry_columns = NULL)),
+    "geom2"
+  )
+
+  expect_identical(
+    names(geoparquet_columns_from_schema(schema, geometry_columns = "geom")),
+    "geom"
+  )
+})
+
+test_that("geoparquet_columns_from_schema() always includes primary_geometry_column", {
+  schema <- nanoarrow::na_struct(list(geom = nanoarrow::na_string()))
+
+  expect_identical(
+    names(geoparquet_columns_from_schema(schema, primary_geometry_column = NULL)),
+    character()
+  )
+
+  expect_identical(
+    names(geoparquet_columns_from_schema(schema, primary_geometry_column = "geom")),
+    "geom"
+  )
+
+  expect_error(
+    names(geoparquet_columns_from_schema(schema, primary_geometry_column = "not_a_col")),
+    "Specified geometry_columns"
+  )
+})
+
 test_that("geoparquet_column_spec_from_type() works", {
   # non-geoarrow type
   expect_identical(

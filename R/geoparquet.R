@@ -143,19 +143,28 @@ geoparquet_guess_primary_geometry_column <- function(schema, primary_geometry_co
 }
 
 geoparquet_columns_from_schema <- function(schema,
-                                           geometry_columns,
-                                           primary_geometry_column,
-                                           add_geometry_types) {
+                                           geometry_columns = NULL,
+                                           primary_geometry_column = NULL,
+                                           add_geometry_types = NULL) {
   schema_children <- schema$children
 
   if (is.null(geometry_columns)) {
     geometry_columns <- character()
-    if (!is.null(primary_geometry_column)) {
-      geometry_columns <- union(geometry_columns, primary_geometry_column)
-    }
 
     is_geoarrow <- vapply(schema_children, is_geoarrow_schema, logical(1))
     geometry_columns <- union(geometry_columns, names(schema_children)[is_geoarrow])
+  }
+
+  geometry_columns <- union(geometry_columns, primary_geometry_column)
+
+  missing_geometry_columns <- setdiff(geometry_columns, names(schema_children))
+  if (length(missing_geometry_columns) > 0) {
+    stop(
+      sprintf(
+        "Specified geometry_columns %s not found in source",
+        paste0("'", missing_geometry_columns, "'", collapse = ",")
+      )
+    )
   }
 
   lapply(
