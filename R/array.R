@@ -18,7 +18,7 @@ as_geoarrow_array <- function(x, ..., schema = NULL) {
 #' @export
 as_geoarrow_array.default <- function(x, ..., schema = NULL) {
   if (is.null(schema)) {
-    schema <- infer_nanoarrow_schema(x)
+    schema <- infer_geoarrow_schema(x)
   }
 
   wk::wk_handle(x, geoarrow_writer(schema))
