@@ -85,9 +85,9 @@ geoparquet_metadata_from_schema <- function(schema,
 
 geoparquet_encode_chunked_array <- function(chunked_array_or_vctr,
                                             spec,
-                                            add_geometry_types,
-                                            add_bbox,
-                                            check_wkb) {
+                                            add_geometry_types = NULL,
+                                            add_bbox = NULL,
+                                            check_wkb = NULL) {
   # Only WKB is currently supported
   if (spec$encoding == "WKB") {
     item_out_vctr <- as_geoarrow_vctr(chunked_array_or_vctr, schema = na_extension_wkb())

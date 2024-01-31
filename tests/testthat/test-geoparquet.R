@@ -177,3 +177,22 @@ test_that("geoparquet_column_spec_from_type() works", {
     list(encoding = "WKB", geometry_types = list("LineString"), edges = "spherical")
   )
 })
+
+test_that("geoparquet_encode_chunked_array() works", {
+  skip_if_not(has_geoparquet_dependencies())
+
+  chunked <- geoparquet_encode_chunked_array("POINT (0 1)", list(encoding = "WKB"))
+  expect_identical(
+    chunked[[1]],
+    list(encoding = "WKB")
+  )
+  expect_true(chunked[[2]]$type$Equals(arrow::binary()))
+  expect_equal(chunked[[2]]$length(), 1L)
+
+  expect_error(
+    geoparquet_encode_chunked_array("POINT (0 1)", list(encoding = "Not valid")),
+    "Expected column encoding 'WKB'"
+  )
+})
+
+
