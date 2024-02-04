@@ -9,3 +9,5 @@
 ^codecov\.yml$
 ^README\.Rmd$
 ^\.covrignore$
+^compile_commands\.json$
+^\.cache$
