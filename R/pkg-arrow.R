@@ -8,7 +8,8 @@ as_arrow_array.geoarrow_vctr <- function(x, ..., type = NULL) {
   }
 }
 
-as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
+as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL,
+                                           geoarrow_extension_type = TRUE) {
   if (is.null(type)) {
     schema <- NULL
     type <- arrow::as_data_type(attr(x, "schema", exact = TRUE))
@@ -23,6 +24,10 @@ as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
   type <- arrow::as_data_type(type)
 
   schema <- as_nanoarrow_schema(type)
+  if (!geoarrow_extension_type) {
+    schema <- force_schema_storage(schema)
+  }
+
   arrays <- vector("list", length(chunks))
   for (i in seq_along(arrays)) {
     tmp_schema <- nanoarrow::nanoarrow_allocate_schema()

@@ -25,6 +25,7 @@ Depends:
     R (>= 3.6.0)
 Suggests:
     arrow,
+    jsonlite,
     R6,
     sf,
     testthat (>= 3.0.0)

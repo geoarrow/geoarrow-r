@@ -5,6 +5,8 @@
 #' @param promote_multi Use `TRUE` to return a MULTI type when both normal and
 #'   MULTI elements are in the same array.
 #' @param coord_type Specify the coordinate type to use if returning
+#' @param lazy Use TRUE to minimize the chance that inference will loop over
+#'   all features.
 #' @param ... Passed to S3 methods.
 #'
 #' @return A [nanoarrow_schema][as_nanoarrow_schema]
@@ -14,13 +16,15 @@
 #' infer_geoarrow_schema(wk::wkt("POINT (0 1)"))
 #'
 infer_geoarrow_schema <- function(x, ..., promote_multi = TRUE,
-                                  coord_type = NULL) {
+                                  coord_type = NULL,
+                                  lazy = FALSE) {
   UseMethod("infer_geoarrow_schema")
 }
 
 #' @export
 infer_geoarrow_schema.default <- function(x, ..., promote_multi = TRUE,
-                                          coord_type = NULL) {
+                                          coord_type = NULL,
+                                          lazy = FALSE) {
   if (is.null(coord_type)) {
     coord_type <- enum$CoordType$SEPARATE
   }
@@ -29,12 +33,15 @@ infer_geoarrow_schema.default <- function(x, ..., promote_multi = TRUE,
   vector_meta <- wk::wk_vector_meta(x)
   all_types <- vector_meta$geometry_type
 
-  has_mising_info <- is.na(vector_meta$geometry_type) ||
+  has_missing_info <- is.na(vector_meta$geometry_type) ||
     (vector_meta$geometry_type == 0L) ||
     is.na(vector_meta$has_z) ||
     is.na(vector_meta$has_m)
 
-  if (has_mising_info) {
+  if (has_missing_info && lazy) {
+    # If we've been requested not to iterate on features, the best we can do is wkb
+    wk_geoarrow_schema(x, na_extension_wkb)
+  } else if (has_missing_info) {
     # Fall back on calculation from wk_meta(). This would be better with
     # the unique_geometry_types kernel (because it has the option to disregard
     # empties).

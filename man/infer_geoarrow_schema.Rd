@@ -4,7 +4,13 @@
 \alias{infer_geoarrow_schema}
 \title{Infer a GeoArrow-native type from a vector}
 \usage{
-infer_geoarrow_schema(x, ..., promote_multi = TRUE, coord_type = NULL)
+infer_geoarrow_schema(
+  x,
+  ...,
+  promote_multi = TRUE,
+  coord_type = NULL,
+  lazy = FALSE
+)
 }
 \arguments{
 \item{x}{An object from which to infer a schema.}
@@ -15,6 +21,9 @@ infer_geoarrow_schema(x, ..., promote_multi = TRUE, coord_type = NULL)
 MULTI elements are in the same array.}
 
 \item{coord_type}{Specify the coordinate type to use if returning}
+
+\item{lazy}{Use TRUE to minimize the chance that inference will loop over
+all features.}
 }
 \value{
 A \link[=as_nanoarrow_schema]{nanoarrow_schema}

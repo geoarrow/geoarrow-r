@@ -110,6 +110,11 @@ test_that("geoarrow_schema_parse() can parse a storage schema", {
   )
 })
 
+test_that("schema checker works", {
+  expect_true(is_geoarrow_schema(na_extension_wkt()))
+  expect_false(is_geoarrow_schema(nanoarrow::na_decimal128()))
+})
+
 test_that("enum matcher works", {
   expect_identical(
     enum_value(c("GEOMETRY", "MULTIPOINT", "NOT VALID"), "GeometryType"),

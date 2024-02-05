@@ -2,9 +2,12 @@
 % Please edit documentation in R/type.R
 \name{geoarrow_schema_parse}
 \alias{geoarrow_schema_parse}
+\alias{is_geoarrow_schema}
 \title{Inspect a GeoArrow schema}
 \usage{
 geoarrow_schema_parse(schema, extension_name = NULL)
+
+is_geoarrow_schema(schema, extension_name = NULL)
 }
 \arguments{
 \item{schema}{A \link[nanoarrow:as_nanoarrow_schema]{nanoarrow_schema}}
