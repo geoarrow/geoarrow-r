@@ -15,6 +15,7 @@ test_that("st_as_sfc() works for geoarrow_vctr()", {
 test_that("arrow package objects can be converted to and from sf objects", {
   skip_if_not_installed("sf")
   skip_if_not_installed("arrow")
+  skip_if_not(arrow::arrow_info()$capabilities["dataset"])
 
   sfc <- sf::st_sfc(sf::st_point(c(0, 1)))
   sf <- sf::st_as_sf(data.frame(geometry = sfc))

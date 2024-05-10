@@ -8,6 +8,7 @@ as_arrow_array.geoarrow_vctr <- function(x, ..., type = NULL) {
   }
 }
 
+#' @importFrom nanoarrow as_nanoarrow_schema
 as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
   if (is.null(type)) {
     schema <- NULL
@@ -18,7 +19,7 @@ as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
   }
 
   # as_nanoarrow_array_stream() applies the indices if vctr is sliced
-  stream <- as_nanoarrow_array_stream(x, schema = schema)
+  stream <- as_geoarrow_array_stream(x, schema = schema)
   chunks <- nanoarrow::collect_array_stream(stream, validate = FALSE)
   type <- arrow::as_data_type(type)
 

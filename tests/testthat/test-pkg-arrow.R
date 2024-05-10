@@ -80,12 +80,14 @@ test_that("as_arrow_array() works for geoarrow_vctr", {
   expect_s3_class(array, "Array")
   expect_equal(array$length(), 1)
 
-  vctr2 <- new_geoarrow_vctr(
-    list(
-      as_geoarrow_array("POINT (0 1)"),
-      as_geoarrow_array("POINT (1 2)")
-    ),
-    schema = na_extension_wkt()
+  vctr2 <- as_geoarrow_vctr(
+    nanoarrow::basic_array_stream(
+      list(
+        as_geoarrow_array("POINT (0 1)"),
+        as_geoarrow_array("POINT (1 2)")
+      ),
+      schema = na_extension_wkt()
+    )
   )
 
   array <- arrow::as_arrow_array(vctr2)

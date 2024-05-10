@@ -14,9 +14,6 @@ extern SEXP geoarrow_c_make_type(SEXP geometry_type_sexp, SEXP dimensions_sexp,
                                  SEXP coord_type_sexp);
 extern SEXP geoarrow_c_schema_init_extension(SEXP schema_xptr, SEXP type_sexp);
 extern SEXP geoarrow_c_schema_parse(SEXP schema_xptr, SEXP extension_name_sexp);
-extern SEXP geoarrow_c_vctr_chunk_offsets(SEXP array_list);
-extern SEXP geoarrow_c_vctr_chunk_resolve(SEXP indices_sexp, SEXP offsets_sexp);
-extern SEXP geoarrow_c_vctr_as_slice(SEXP indices_sexp);
 extern SEXP geoarrow_c_handle_stream(SEXP data, SEXP handler_xptr);
 extern SEXP geoarrow_c_writer_new(SEXP schema_xptr, SEXP array_out_xptr);
 
@@ -28,9 +25,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"geoarrow_c_make_type", (DL_FUNC)&geoarrow_c_make_type, 3},
     {"geoarrow_c_schema_init_extension", (DL_FUNC)&geoarrow_c_schema_init_extension, 2},
     {"geoarrow_c_schema_parse", (DL_FUNC)&geoarrow_c_schema_parse, 2},
-    {"geoarrow_c_vctr_chunk_offsets", (DL_FUNC)&geoarrow_c_vctr_chunk_offsets, 1},
-    {"geoarrow_c_vctr_chunk_resolve", (DL_FUNC)&geoarrow_c_vctr_chunk_resolve, 2},
-    {"geoarrow_c_vctr_as_slice", (DL_FUNC)&geoarrow_c_vctr_as_slice, 1},
     {"geoarrow_c_handle_stream", (DL_FUNC)&geoarrow_c_handle_stream, 2},
     {"geoarrow_c_writer_new", (DL_FUNC)&geoarrow_c_writer_new, 2},
     {NULL, NULL, 0}};
