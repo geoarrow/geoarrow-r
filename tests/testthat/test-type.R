@@ -51,7 +51,7 @@ test_that("nanoarrow_schema can be created with metadata", {
   schema <- na_extension_wkb(crs = NULL, edges = "PLANAR")
   expect_identical(
     schema$metadata[["ARROW:extension:metadata"]],
-    '{}'
+    "{}"
   )
 
   schema <- na_extension_wkb(crs = "some unknown crs", edges = "PLANAR")

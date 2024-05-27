@@ -132,4 +132,3 @@ test_that("geoarrow_writer() can roundtrip wk examples as WKT", {
     expect_identical(wk::wkt(storage_convert), example)
   }
 })
-

@@ -60,7 +60,10 @@ test_that("as_geoarrow_array.wkb() generates the correct buffers for geoarrow.wk
 })
 
 test_that("as_geoarrow_array.wkb() falls back to default method for non-geoarrow.wkb", {
-  array <- as_geoarrow_array(wk::as_wkb(c("POINT (0 1)", NA)), schema = na_extension_wkt())
+  array <- as_geoarrow_array(
+    wk::as_wkb(c("POINT (0 1)", NA)),
+    schema = na_extension_wkt()
+  )
   schema <- infer_nanoarrow_schema(array)
 
   expect_identical(schema$format, "u")

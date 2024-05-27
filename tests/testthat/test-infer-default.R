@@ -40,7 +40,10 @@ test_that("infer_geoarrow_schema() can promote mixed points to multi", {
 })
 
 test_that("infer_geoarrow_schema() can promote mixed linestrings to multi", {
-  vec <- wk::wkt(c("LINESTRING (0 1, 2 3)", "MULTILINESTRING ((2 3, 4 5))"), crs = "OGC:CRS84")
+  vec <- wk::wkt(
+    c("LINESTRING (0 1, 2 3)", "MULTILINESTRING ((2 3, 4 5))"),
+    crs = "OGC:CRS84"
+  )
 
   schema <- infer_geoarrow_schema(vec)
   parsed <- geoarrow_schema_parse(schema)
