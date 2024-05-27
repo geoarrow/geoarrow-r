@@ -20,7 +20,7 @@ register_geoarrow_extension <- function() {
 #' @importFrom nanoarrow infer_nanoarrow_ptype_extension
 #' @export
 infer_nanoarrow_ptype_extension.geoarrow_extension_spec <- function(extension_spec, x, ...) {
-  new_geoarrow_vctr(list(), x, integer())
+  nanoarrow::nanoarrow_vctr(schema = x, subclass = "geoarrow_vctr")
 }
 
 #' @importFrom nanoarrow convert_array_extension
