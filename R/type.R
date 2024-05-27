@@ -67,6 +67,137 @@ na_extension_geoarrow <- function(geometry_type, dimensions = "XY",
   na_extension_geoarrow_internal(type_id, crs = crs, edges = edges)
 }
 
+#' GeoArrow Types
+#'
+#' These functions provide GeoArrow type definitions as zero-length vectors.
+#'
+#' @inheritParams na_extension_wkb
+#'
+#' @return A [geoarrow_vctr][as_geoarrow_vctr]
+#' @export
+#'
+#' @examples
+#' geoarrow_wkb()
+#' geoarrow_wkt()
+#' geoarrow_point()
+#'
+geoarrow_wkb <- function(crs = NULL, edges = "PLANAR") {
+  nanoarrow::nanoarrow_vctr(
+    na_extension_wkb(
+      crs = crs,
+      edges = edges
+    ),
+    subclass = "geoarrow_vctr"
+  )
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_wkt <- function(crs = NULL, edges = "PLANAR") {
+  nanoarrow::nanoarrow_vctr(
+    na_extension_wkt(
+      crs = crs,
+      edges = edges
+    ),
+    subclass = "geoarrow_vctr"
+  )
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_large_wkb <- function(crs = NULL, edges = "PLANAR") {
+  nanoarrow::nanoarrow_vctr(
+    na_extension_large_wkb(
+      crs = crs,
+      edges = edges
+    ),
+    subclass = "geoarrow_vctr"
+  )
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_large_wkt <- function(crs = NULL, edges = "PLANAR") {
+  nanoarrow::nanoarrow_vctr(
+    na_extension_large_wkt(
+      crs = crs,
+      edges = edges
+    ),
+    subclass = "geoarrow_vctr"
+  )
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_native <- function(geometry_type, dimensions = "XY",
+                            coord_type = "SEPARATE",
+                            crs = NULL, edges = "PLANAR") {
+  nanoarrow::nanoarrow_vctr(
+    na_extension_geoarrow(
+      geometry_type = geometry_type,
+      dimensions = dimensions,
+      coord_type = coord_type,
+      crs = crs,
+      edges = edges
+    ),
+    subclass = "geoarrow_vctr"
+  )
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_point <- function(dimensions = "XY",
+                            coord_type = "SEPARATE",
+                            crs = NULL, edges = "PLANAR") {
+  geoarrow_native("POINT", dimensions = dimensions, coord_type = coord_type,
+                  crs = crs, edges = edges)
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_linestring <- function(dimensions = "XY",
+                           coord_type = "SEPARATE",
+                           crs = NULL, edges = "PLANAR") {
+  geoarrow_native("LINESTRING", dimensions = dimensions, coord_type = coord_type,
+                  crs = crs, edges = edges)
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_polygon <- function(dimensions = "XY",
+                           coord_type = "SEPARATE",
+                           crs = NULL, edges = "PLANAR") {
+  geoarrow_native("POLYGON", dimensions = dimensions, coord_type = coord_type,
+                  crs = crs, edges = edges)
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_multipoint <- function(dimensions = "XY",
+                           coord_type = "SEPARATE",
+                           crs = NULL, edges = "PLANAR") {
+  geoarrow_native("MULTIPOINT", dimensions = dimensions, coord_type = coord_type,
+                  crs = crs, edges = edges)
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_multilinestring <- function(dimensions = "XY",
+                           coord_type = "SEPARATE",
+                           crs = NULL, edges = "PLANAR") {
+  geoarrow_native("MULTILINESTRING", dimensions = dimensions, coord_type = coord_type,
+                  crs = crs, edges = edges)
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_multipolygon <- function(dimensions = "XY",
+                           coord_type = "SEPARATE",
+                           crs = NULL, edges = "PLANAR") {
+  geoarrow_native("MULTIPOLYGON", dimensions = dimensions, coord_type = coord_type,
+                  crs = crs, edges = edges)
+}
+
 #' Inspect a GeoArrow schema
 #'
 #' @param schema A [nanoarrow_schema][nanoarrow::as_nanoarrow_schema]

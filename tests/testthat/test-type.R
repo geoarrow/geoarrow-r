@@ -67,6 +67,87 @@ test_that("nanoarrow_schema can be created with metadata", {
   )
 })
 
+test_that("vctr type constructors create the correct types", {
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_wkb()),
+    geoarrow_schema_parse(na_extension_wkb())
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_large_wkb()),
+    geoarrow_schema_parse(na_extension_large_wkb())
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_wkt()),
+    geoarrow_schema_parse(na_extension_wkt())
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_large_wkt()),
+    geoarrow_schema_parse(na_extension_large_wkt())
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_point()),
+    geoarrow_schema_parse(na_extension_geoarrow("POINT"))
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_linestring()),
+    geoarrow_schema_parse(na_extension_geoarrow("LINESTRING"))
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_polygon()),
+    geoarrow_schema_parse(na_extension_geoarrow("POLYGON"))
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_multipoint()),
+    geoarrow_schema_parse(na_extension_geoarrow("MULTIPOINT"))
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_multilinestring()),
+    geoarrow_schema_parse(na_extension_geoarrow("MULTILINESTRING"))
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_multipolygon()),
+    geoarrow_schema_parse(na_extension_geoarrow("MULTIPOLYGON"))
+  )
+})
+
+test_that("vctr type constructors pass parameters through", {
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_wkb(crs = "OGC:CRS84", edges = "SPHERICAL")),
+    geoarrow_schema_parse(
+      na_extension_wkb(crs = "OGC:CRS84", edges = "SPHERICAL")
+    )
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(
+      geoarrow_point(
+        dimensions = "XYZ",
+        coord_type = "INTERLEAVED",
+        crs = "OGC:CRS84",
+        edges = "SPHERICAL"
+      )
+    ),
+    geoarrow_schema_parse(
+      na_extension_geoarrow(
+        "POINT",
+        dimensions = "XYZ",
+        coord_type = "INTERLEAVED",
+        crs = "OGC:CRS84",
+        edges = "SPHERICAL"
+      )
+    )
+  )
+})
+
 test_that("geoarrow_schema_parse() can parse a schema", {
   parsed <- geoarrow_schema_parse(na_extension_geoarrow("POINT"))
   expect_identical(parsed$id, 1L)
