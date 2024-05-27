@@ -19,6 +19,13 @@ defining extension array types for vector geospatial data.
 
 ## Installation
 
+You can install the released version of geoarrow from
+[CRAN](https://cran.r-project.org/) with:
+
+``` r
+install.packages("nanoarrow")
+```
+
 You can install the development version of geoarrow from
 [GitHub](https://github.com/) with:
 
