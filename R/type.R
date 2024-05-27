@@ -147,8 +147,8 @@ geoarrow_native <- function(geometry_type, dimensions = "XY",
 #' @rdname geoarrow_wkb
 #' @export
 geoarrow_point <- function(dimensions = "XY",
-                            coord_type = "SEPARATE",
-                            crs = NULL, edges = "PLANAR") {
+                           coord_type = "SEPARATE",
+                           crs = NULL, edges = "PLANAR") {
   geoarrow_native("POINT", dimensions = dimensions, coord_type = coord_type,
                   crs = crs, edges = edges)
 }
@@ -156,8 +156,8 @@ geoarrow_point <- function(dimensions = "XY",
 #' @rdname geoarrow_wkb
 #' @export
 geoarrow_linestring <- function(dimensions = "XY",
-                           coord_type = "SEPARATE",
-                           crs = NULL, edges = "PLANAR") {
+                                coord_type = "SEPARATE",
+                                crs = NULL, edges = "PLANAR") {
   geoarrow_native("LINESTRING", dimensions = dimensions, coord_type = coord_type,
                   crs = crs, edges = edges)
 }
@@ -165,8 +165,8 @@ geoarrow_linestring <- function(dimensions = "XY",
 #' @rdname geoarrow_wkb
 #' @export
 geoarrow_polygon <- function(dimensions = "XY",
-                           coord_type = "SEPARATE",
-                           crs = NULL, edges = "PLANAR") {
+                             coord_type = "SEPARATE",
+                             crs = NULL, edges = "PLANAR") {
   geoarrow_native("POLYGON", dimensions = dimensions, coord_type = coord_type,
                   crs = crs, edges = edges)
 }
@@ -174,8 +174,8 @@ geoarrow_polygon <- function(dimensions = "XY",
 #' @rdname geoarrow_wkb
 #' @export
 geoarrow_multipoint <- function(dimensions = "XY",
-                           coord_type = "SEPARATE",
-                           crs = NULL, edges = "PLANAR") {
+                                coord_type = "SEPARATE",
+                                crs = NULL, edges = "PLANAR") {
   geoarrow_native("MULTIPOINT", dimensions = dimensions, coord_type = coord_type,
                   crs = crs, edges = edges)
 }
@@ -183,8 +183,8 @@ geoarrow_multipoint <- function(dimensions = "XY",
 #' @rdname geoarrow_wkb
 #' @export
 geoarrow_multilinestring <- function(dimensions = "XY",
-                           coord_type = "SEPARATE",
-                           crs = NULL, edges = "PLANAR") {
+                                     coord_type = "SEPARATE",
+                                     crs = NULL, edges = "PLANAR") {
   geoarrow_native("MULTILINESTRING", dimensions = dimensions, coord_type = coord_type,
                   crs = crs, edges = edges)
 }
@@ -192,8 +192,8 @@ geoarrow_multilinestring <- function(dimensions = "XY",
 #' @rdname geoarrow_wkb
 #' @export
 geoarrow_multipolygon <- function(dimensions = "XY",
-                           coord_type = "SEPARATE",
-                           crs = NULL, edges = "PLANAR") {
+                                  coord_type = "SEPARATE",
+                                  crs = NULL, edges = "PLANAR") {
   geoarrow_native("MULTIPOLYGON", dimensions = dimensions, coord_type = coord_type,
                   crs = crs, edges = edges)
 }
@@ -240,7 +240,7 @@ na_extension_metadata_internal <- function(crs, edges) {
 
   if (identical(crs$crs_type, enum$CrsType$UNKNOWN)) {
     metadata <- sprintf('"crs":"%s"', gsub('"', '\\\\"', crs$crs))
-  } else if(identical(crs$crs_type, enum$CrsType$PROJJSON)) {
+  } else if (identical(crs$crs_type, enum$CrsType$PROJJSON)) {
     metadata <- sprintf('"crs":%s', crs$crs)
   }
 
@@ -258,7 +258,6 @@ sanitize_crs <- function(crs = NULL) {
 
   crs_projjson <- wk::wk_crs_projjson(crs)
   if (identical(crs_projjson, NA_character_)) {
-    crs_type <- enum$CrsType$UNKNOWN
     return(list(crs_type = enum$CrsType$UNKNOWN, crs = crs))
   }
 

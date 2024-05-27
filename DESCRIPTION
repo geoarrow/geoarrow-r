@@ -1,5 +1,5 @@
 Package: geoarrow
-Title: Extension types for geospatial data for use with 'Arrow'
+Title: Extension types for spatial data for use with 'Arrow'
 Version: 0.1.0.9000
 Authors@R:
     c(
@@ -19,8 +19,8 @@ Authors@R:
       person("Joao Paulo", "Magalhaes", role = "cph")
     )
 Description: Provides extension types and conversions to between R-native
-  object types and 'Arrow' columnar types. This includes integrations among
-  the 'arrow', 'nanoarrow', 'sf', and 'wk' packages such that geospatial
+  object types and 'Arrow' columnar types. This includes integration among
+  the 'arrow', 'nanoarrow', 'sf', and 'wk' packages such that spatial
   metadata is preserved wherever possible. Extension type implementations
   ensure first-class geometry data type support in the 'arrow' and 'nanoarrow'
   packages.

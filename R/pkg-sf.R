@@ -41,7 +41,7 @@ st_as_sf.arrow_dplyr_query <- function(x, ..., promote_multi = FALSE) {
 
 as_arrow_array.sfc <- function(x, ..., type = NULL) {
   if (!is.null(type)) {
-    type <- as_nanoarrow_schema(type)
+    type <- nanoarrow::as_nanoarrow_schema(type)
   }
 
   arrow::as_arrow_array(as_geoarrow_vctr(x, schema = type))
@@ -49,7 +49,7 @@ as_arrow_array.sfc <- function(x, ..., type = NULL) {
 
 as_chunked_array.sfc <- function(x, ..., type = NULL) {
   if (!is.null(type)) {
-    type <- as_nanoarrow_schema(type)
+    type <- nanoarrow::as_nanoarrow_schema(type)
   }
 
   arrow::as_chunked_array(as_geoarrow_vctr(x, schema = type))

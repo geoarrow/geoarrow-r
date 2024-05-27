@@ -14,7 +14,7 @@ as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
     schema <- NULL
     type <- arrow::as_data_type(attr(x, "schema", exact = TRUE))
   } else {
-    schema <- as_nanoarrow_schema(type)
+    schema <- nanoarrow::as_nanoarrow_schema(type)
     type <- arrow::as_data_type(type)
   }
 
@@ -23,7 +23,7 @@ as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
   chunks <- nanoarrow::collect_array_stream(stream, validate = FALSE)
   type <- arrow::as_data_type(type)
 
-  schema <- as_nanoarrow_schema(type)
+  schema <- nanoarrow::as_nanoarrow_schema(type)
   arrays <- vector("list", length(chunks))
   for (i in seq_along(arrays)) {
     tmp_schema <- nanoarrow::nanoarrow_allocate_schema()
@@ -37,14 +37,14 @@ as_chunked_array.geoarrow_vctr <- function(x, ..., type = NULL) {
 }
 
 infer_type.geoarrow_vctr <- function(x, ...) {
-  arrow::as_data_type(as_nanoarrow_schema(x))
+  arrow::as_data_type(nanoarrow::as_nanoarrow_schema(x))
 }
 
 #' @export
 as_geoarrow_array_stream.ChunkedArray <- function(x, ..., schema = NULL) {
   stream <- nanoarrow::basic_array_stream(
-    lapply(x$chunks, as_nanoarrow_array),
-    schema = as_nanoarrow_schema(x$type),
+    lapply(x$chunks, nanoarrow::as_nanoarrow_array),
+    schema = nanoarrow::as_nanoarrow_schema(x$type),
     validate = FALSE
   )
 
@@ -54,8 +54,8 @@ as_geoarrow_array_stream.ChunkedArray <- function(x, ..., schema = NULL) {
 #' @export
 as_geoarrow_array_stream.Array <- function(x, ..., schema = NULL) {
   stream <- nanoarrow::basic_array_stream(
-    list(as_nanoarrow_array(x)),
-    schema = as_nanoarrow_schema(x$type),
+    list(nanoarrow::as_nanoarrow_array(x)),
+    schema = nanoarrow::as_nanoarrow_schema(x$type),
     validate = FALSE
   )
 
@@ -69,7 +69,7 @@ GeometryExtensionType$create <- function(...) {
 
 # this runs in .onLoad(), where we can't get coverage
 # nocov start
-register_arrow_extension_type_or_set_hook <- function(...) {
+register_arrow_ext_or_set_hook <- function(...) {
   # Register a hook for the arrow package being loaded to run the extension type
   # registration
   setHook(packageEvent("arrow", "onLoad"), register_arrow_extension_type)
@@ -90,7 +90,7 @@ register_arrow_extension_type <- function(...) {
     public = list(
 
       deserialize_instance = function() {
-        private$schema <- as_nanoarrow_schema(self)
+        private$schema <- nanoarrow::as_nanoarrow_schema(self)
         private$parsed <- geoarrow_schema_parse(private$schema)
       },
 
@@ -151,7 +151,7 @@ register_arrow_extension_type <- function(...) {
   # when the Type object gets surfaced to R provided that the extension types
   # have been registered.
   GeometryExtensionType$create <- function(schema) {
-    schema <- as_nanoarrow_schema(schema)
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
     parsed <- geoarrow_schema_parse(schema)
 
     arrow::new_extension_type(

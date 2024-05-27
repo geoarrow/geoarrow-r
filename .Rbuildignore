@@ -12,3 +12,4 @@
 ^compile_commands\.json$
 ^\.cache$
 ^cran-comments\.md$
+^\.lintr$
