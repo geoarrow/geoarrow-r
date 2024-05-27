@@ -119,6 +119,35 @@ test_that("vctr type constructors create the correct types", {
   )
 })
 
+test_that("vctr type constructors pass parameters through", {
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_wkb(crs = "OGC:CRS84", edges = "SPHERICAL")),
+    geoarrow_schema_parse(
+      na_extension_wkb(crs = "OGC:CRS84", edges = "SPHERICAL")
+    )
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(
+      geoarrow_point(
+        dimensions = "XYZ",
+        coord_type = "INTERLEAVED",
+        crs = "OGC:CRS84",
+        edges = "SPHERICAL"
+      )
+    ),
+    geoarrow_schema_parse(
+      na_extension_geoarrow(
+        "POINT",
+        dimensions = "XYZ",
+        coord_type = "INTERLEAVED",
+        crs = "OGC:CRS84",
+        edges = "SPHERICAL"
+      )
+    )
+  )
+})
+
 test_that("geoarrow_schema_parse() can parse a schema", {
   parsed <- geoarrow_schema_parse(na_extension_geoarrow("POINT"))
   expect_identical(parsed$id, 1L)
