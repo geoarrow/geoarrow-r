@@ -24,7 +24,7 @@ Description: Provides extension types and conversions to between R-native
   metadata is preserved wherever possible. Extension type implementations
   ensure first-class geometry data type support in the 'arrow' and 'nanoarrow'
   packages.
-License: MIT + file LICENSE
+License: Apache License (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
