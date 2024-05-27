@@ -2,11 +2,22 @@ Package: geoarrow
 Title: Extension types for geospatial data for use with 'Arrow'
 Version: 0.1.0.9000
 Authors@R:
-    person(given = "Dewey",
-           family = "Dunnington",
-           role = c("aut", "cre"),
-           email = "dewey@dunnington.ca",
-           comment = c(ORCID = "0000-0002-9415-4582"))
+    c(
+      person(given = "Dewey",
+             family = "Dunnington",
+             role = c("aut", "cre"),
+             email = "dewey@fishandwhistle.net",
+             comment = c(ORCID = "0000-0002-9415-4582")),
+      person(given = "Anthony",
+             family = "North",
+             email = "anthony.jl.north@gmail.com",
+             role = c("ctb")),
+      person("Apache Software Foundation", email = "dev@arrow.apache.org", role = c("cph")),
+      person("Ulf", "Adams", role = "cph"),
+      person("Daniel", "Lemire", role = "cph"),
+      person("Daniel", "Lemire", role = "cph"),
+      person("Joao Paulo", "Magalhaes", role = "cph")
+    )
 Description: Provides extension types and conversions to between R-native
   object types and 'Arrow' columnar types. This includes integrations among
   the 'arrow', 'nanoarrow', 'sf', and 'wk' packages such that geospatial
