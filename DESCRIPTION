@@ -8,7 +8,11 @@ Authors@R:
            email = "dewey@dunnington.ca",
            comment = c(ORCID = "0000-0002-9415-4582"))
 Description: Provides extension types and conversions to between R-native
-  object types and 'Arrow' columnar types.
+  object types and 'Arrow' columnar types. This includes integrations among
+  the 'arrow', 'nanoarrow', 'sf', and 'wk' packages such that geospatial
+  metadata is preserved wherever possible. Extension type implementations
+  ensure first-class geometry data type support in the 'arrow' and 'nanoarrow'
+  packages.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
