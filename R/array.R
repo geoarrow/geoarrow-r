@@ -26,7 +26,7 @@ as_geoarrow_array.default <- function(x, ..., schema = NULL) {
 
 #' @export
 as_geoarrow_array.nanoarrow_array <- function(x, ..., schema = NULL) {
-  schema_src <- infer_nanoarrow_schema(x)
+  schema_src <- nanoarrow::infer_nanoarrow_schema(x)
   if (is.null(schema)) {
     schema <- infer_geoarrow_schema(x)
   }
@@ -316,9 +316,8 @@ force_schema_storage <- function(schema) {
 }
 
 force_array_storage <- function(array) {
-  schema <- force_schema_storage(infer_nanoarrow_schema(array))
+  schema <- force_schema_storage(nanoarrow::infer_nanoarrow_schema(array))
   array_shallow <- nanoarrow::nanoarrow_allocate_array()
   nanoarrow::nanoarrow_pointer_export(array, array_shallow)
   nanoarrow::nanoarrow_array_set_schema(array_shallow, schema, validate = FALSE)
 }
-

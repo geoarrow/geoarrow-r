@@ -30,7 +30,7 @@ as_geoarrow_array.wk_wkt <- function(x, ..., schema = NULL) {
       return(NextMethod())
     }
   } else {
-    schema <- infer_nanoarrow_schema(x)
+    schema <- nanoarrow::infer_nanoarrow_schema(x)
   }
 
   schema_storage <- nanoarrow::nanoarrow_schema_modify(
@@ -52,7 +52,7 @@ as_geoarrow_array.wk_wkb <- function(x, ..., schema = NULL) {
       return(NextMethod())
     }
   } else {
-    schema <- infer_nanoarrow_schema(x)
+    schema <- nanoarrow::infer_nanoarrow_schema(x)
   }
 
   schema_storage <- nanoarrow::nanoarrow_schema_modify(
@@ -75,7 +75,7 @@ as_geoarrow_array.wk_xy <- function(x, ..., schema = NULL) {
     }
   }
 
-  schema <- infer_nanoarrow_schema(x)
+  schema <- nanoarrow::infer_nanoarrow_schema(x)
   data <- unclass(x)
   geoarrow_array_from_buffers(
     schema,
@@ -114,12 +114,12 @@ infer_nanoarrow_schema.wk_xy <- function(x, ...) {
 
 #' @export
 convert_array.wk_wkt <- function(array, to, ...) {
-  schema <- infer_nanoarrow_schema(array)
+  schema <- nanoarrow::infer_nanoarrow_schema(array)
   geo <- geoarrow_schema_parse(schema)
   vctr <- as_geoarrow_vctr(array)
 
   if (geo$extension_name == "geoarrow.wkt") {
-    out <- wk::new_wk_wkt(convert_array(force_array_storage(array)))
+    out <- wk::new_wk_wkt(nanoarrow::convert_array(force_array_storage(array)))
   } else {
     out <- wk::wk_handle(vctr, wk::wkt_writer())
   }
@@ -132,12 +132,12 @@ convert_array.wk_wkt <- function(array, to, ...) {
 
 #' @export
 convert_array.wk_wkb <- function(array, to, ...) {
-  schema <- infer_nanoarrow_schema(array)
+  schema <- nanoarrow::infer_nanoarrow_schema(array)
   geo <- geoarrow_schema_parse(schema)
   vctr <- as_geoarrow_vctr(array)
 
   if (geo$extension_name == "geoarrow.wkb") {
-    storage <- convert_array(force_array_storage(array))
+    storage <- nanoarrow::convert_array(force_array_storage(array))
     # Comes back as a blob::blob
     attributes(storage) <- NULL
     out <- wk::new_wk_wkb(storage)
@@ -152,12 +152,12 @@ convert_array.wk_wkb <- function(array, to, ...) {
 
 #' @export
 convert_array.wk_xy <- function(array, to, ...) {
-  schema <- infer_nanoarrow_schema(array)
+  schema <- nanoarrow::infer_nanoarrow_schema(array)
   geo <- geoarrow_schema_parse(schema)
   vctr <- as_geoarrow_vctr(array)
 
   if (geo$extension_name == "geoarrow.point") {
-    out <- wk::as_xy(convert_array(force_array_storage(array)))
+    out <- wk::as_xy(nanoarrow::convert_array(force_array_storage(array)))
   } else {
     out <- wk::wk_handle(vctr, wk::xy_writer())
   }

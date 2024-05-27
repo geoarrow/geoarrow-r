@@ -2,7 +2,7 @@
 # nocov start
 .onLoad <- function(...) {
   register_geoarrow_extension()
-  register_arrow_extension_type_or_set_hook()
+  register_arrow_ext_or_set_hook()
 
   s3_register("sf::st_as_sfc", "geoarrow_vctr")
   s3_register("sf::st_as_sfc", "ChunkedArray")
@@ -23,7 +23,7 @@
 # From the `vctrs` package (this function is intended to be copied
 # without attribution or license requirements to avoid a hard dependency on
 # vctrs:
-# https://github.com/r-lib/vctrs/blob/c2a7710fe55e3a2249c4fdfe75bbccbafcf38804/R/register-s3.R#L25-L31
+# nolint https://github.com/r-lib/vctrs/blob/c2a7710fe55e3a2249c4fdfe75bbccbafcf38804/R/register-s3.R#L25-L31
 s3_register <- function(generic, class, method = NULL) {
   stopifnot(is.character(generic), length(generic) == 1)
   stopifnot(is.character(class), length(class) == 1)

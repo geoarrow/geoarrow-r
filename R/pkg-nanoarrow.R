@@ -19,7 +19,8 @@ register_geoarrow_extension <- function() {
 
 #' @importFrom nanoarrow infer_nanoarrow_ptype_extension
 #' @export
-infer_nanoarrow_ptype_extension.geoarrow_extension_spec <- function(extension_spec, x, ...) {
+infer_nanoarrow_ptype_extension.geoarrow_extension_spec <- function(extension_spec,
+                                                                    x, ...) {
   nanoarrow::nanoarrow_vctr(schema = x, subclass = "geoarrow_vctr")
 }
 
@@ -47,5 +48,5 @@ as_nanoarrow_array_extension.geoarrow_extension_spec <- function(
 #' @importFrom nanoarrow convert_array
 #' @export
 convert_array.geoarrow_vctr <- function(array, to, ...) {
-  as_geoarrow_vctr(array, schema = as_nanoarrow_schema(to))
+  as_geoarrow_vctr(array, schema = nanoarrow::as_nanoarrow_schema(to))
 }

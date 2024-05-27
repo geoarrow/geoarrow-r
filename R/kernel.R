@@ -118,7 +118,10 @@ serialize_kernel_options <- function(vals) {
   # When this matters we can wire up nanoarrow's serializer
   tmp <- tempfile()
   con <- file(tmp, open = "w+b")
-  on.exit({close(con); unlink(tmp)})
+  on.exit({
+    close(con)
+    unlink(tmp)
+  })
 
   writeBin(length(vals), con, size = 4L)
   for (i in seq_along(vals)) {

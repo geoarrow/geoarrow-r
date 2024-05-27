@@ -27,7 +27,6 @@ infer_geoarrow_schema.default <- function(x, ..., promote_multi = TRUE,
 
   # try vector_meta (doesn't iterate along features)
   vector_meta <- wk::wk_vector_meta(x)
-  all_types <- vector_meta$geometry_type
 
   has_mising_info <- is.na(vector_meta$geometry_type) ||
     (vector_meta$geometry_type == 0L) ||
@@ -45,7 +44,7 @@ infer_geoarrow_schema.default <- function(x, ..., promote_multi = TRUE,
     vector_meta$has_z <- any(meta$has_z, na.rm = TRUE)
     vector_meta$has_m <- any(meta$has_m, na.rm = TRUE)
 
-    schema_from_geometry_types_and_dims(
+    schema_from_types_and_dims(
       x,
       unique_types,
       has_z = any(meta$has_z, na.rm = TRUE),
@@ -54,7 +53,7 @@ infer_geoarrow_schema.default <- function(x, ..., promote_multi = TRUE,
       coord_type = coord_type
     )
   } else {
-    schema_from_geometry_types_and_dims(
+    schema_from_types_and_dims(
       x,
       vector_meta$geometry_type,
       has_z = vector_meta$has_z,
@@ -99,7 +98,7 @@ infer_geoarrow_schema.nanoarrow_array_stream <- function(x, ..., promote_multi =
   has_z <- any(unique_dims %in% c(2L, 4L))
   has_m <- any(unique_dims %in% c(3L, 4L))
 
-  schema_from_geometry_types_and_dims(
+  schema_from_types_and_dims(
     x,
     unique_types,
     has_z,
@@ -109,8 +108,9 @@ infer_geoarrow_schema.nanoarrow_array_stream <- function(x, ..., promote_multi =
   )
 }
 
-schema_from_geometry_types_and_dims <- function(x, unique_types, has_z, has_m,
-                                                promote_multi, coord_type) {
+# nolint start: cyclocomp_linter.
+schema_from_types_and_dims <- function(x, unique_types, has_z, has_m,
+                                       promote_multi, coord_type) {
   if (is.null(coord_type)) {
     coord_type <- enum$CoordType$SEPARATE
   }
@@ -149,3 +149,4 @@ schema_from_geometry_types_and_dims <- function(x, unique_types, has_z, has_m,
     coord_type = coord_type
   )
 }
+# nolint end
