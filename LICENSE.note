@@ -1,0 +1,6 @@
+The geoarrow package as a whole is distributed under the Apache 2.0 license. The geoarrow package includes other open source software components. The following is a list of these components:
+
+* ryu: Apache 2.0
+* fast_float: Apache 2.0
+* nanoarrow: Apache 2.0
+* geoarrow-c: Apache 2.0

@@ -11,3 +11,4 @@
 ^\.covrignore$
 ^compile_commands\.json$
 ^\.cache$
+^cran-comments\.md$

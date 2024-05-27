@@ -6,7 +6,7 @@
 \alias{geoarrow-package}
 \title{geoarrow: Extension types for geospatial data for use with 'Arrow'}
 \description{
-Provides extension types and conversions to between R-native object types and 'Arrow' columnar types.
+Provides extension types and conversions to between R-native object types and 'Arrow' columnar types. This includes integrations among the 'arrow', 'nanoarrow', 'sf', and 'wk' packages such that geospatial metadata is preserved wherever possible. Extension type implementations ensure first-class geometry data type support in the 'arrow' and 'nanoarrow' packages.
 }
 \seealso{
 Useful links:
@@ -17,7 +17,17 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Dewey Dunnington \email{dewey@dunnington.ca} (\href{https://orcid.org/0000-0002-9415-4582}{ORCID})
+\strong{Maintainer}: Dewey Dunnington \email{dewey@fishandwhistle.net} (\href{https://orcid.org/0000-0002-9415-4582}{ORCID})
+
+Other contributors:
+\itemize{
+  \item Anthony North \email{anthony.jl.north@gmail.com} [contributor]
+  \item Apache Software Foundation \email{dev@arrow.apache.org} [copyright holder]
+  \item Ulf Adams [copyright holder]
+  \item Daniel Lemire [copyright holder]
+  \item Daniel Lemire [copyright holder]
+  \item Joao Paulo Magalhaes [copyright holder]
+}
 
 }
 \keyword{internal}
