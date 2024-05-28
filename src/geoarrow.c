@@ -22,9 +22,9 @@
 #define NANOARROW_BUILD_ID_H_INCLUDED
 
 #define NANOARROW_VERSION_MAJOR 0
-#define NANOARROW_VERSION_MINOR 4
+#define NANOARROW_VERSION_MINOR 5
 #define NANOARROW_VERSION_PATCH 0
-#define NANOARROW_VERSION "0.4.0-SNAPSHOT"
+#define NANOARROW_VERSION "0.5.0"
 
 #define NANOARROW_VERSION_INT                                        \
   (NANOARROW_VERSION_MAJOR * 10000 + NANOARROW_VERSION_MINOR * 100 + \
@@ -59,8 +59,6 @@
 
 #include <stdint.h>
 #include <string.h>
-
-
 
 #if defined(NANOARROW_DEBUG) && !defined(NANOARROW_PRINT_AND_DIE)
 #include <stdio.h>
@@ -352,7 +350,7 @@ static inline void ArrowErrorSetString(struct ArrowError* error, const char* src
 
 #define NANOARROW_DCHECK(EXPR) _NANOARROW_DCHECK_IMPL(EXPR, #EXPR)
 #else
-#define NANOARROW_ASSERT_OK(EXPR) EXPR
+#define NANOARROW_ASSERT_OK(EXPR) (void)(EXPR)
 #define NANOARROW_DCHECK(EXPR)
 #endif
 
@@ -728,6 +726,9 @@ struct ArrowBufferAllocator {
   void* private_data;
 };
 
+typedef void (*ArrowBufferDeallocatorCallback)(struct ArrowBufferAllocator* allocator,
+                                               uint8_t* ptr, int64_t size);
+
 /// \brief An owning mutable view of a buffer
 /// \ingroup nanoarrow-buffer
 struct ArrowBuffer {
@@ -1018,8 +1019,6 @@ static inline void ArrowDecimalSetBytes(struct ArrowDecimal* decimal,
 #include <stdint.h>
 #include <stdlib.h>
 
-
-
 // If using CMake, optionally pass -DNANOARROW_NAMESPACE=MyNamespace which will set this
 // define in nanoarrow_config.h. If not, you can optionally #define NANOARROW_NAMESPACE
 // MyNamespace here.
@@ -1175,10 +1174,8 @@ struct ArrowBufferAllocator ArrowBufferAllocatorDefault(void);
 /// attach a custom deallocator to an ArrowBuffer. This may be used to
 /// avoid copying an existing buffer that was not allocated using the
 /// infrastructure provided here (e.g., by an R or Python object).
-struct ArrowBufferAllocator ArrowBufferDeallocator(
-    void (*custom_free)(struct ArrowBufferAllocator* allocator, uint8_t* ptr,
-                        int64_t size),
-    void* private_data);
+struct ArrowBufferAllocator ArrowBufferDeallocator(ArrowBufferDeallocatorCallback,
+                                                   void* private_data);
 
 /// @}
 
@@ -1287,6 +1284,14 @@ ArrowErrorCode ArrowDecimalSetDigits(struct ArrowDecimal* decimal,
 ArrowErrorCode ArrowDecimalAppendDigitsToBuffer(const struct ArrowDecimal* decimal,
                                                 struct ArrowBuffer* buffer);
 
+/// \brief Resolve a chunk index from increasing int64_t offsets
+///
+/// Given a buffer of increasing int64_t offsets that begin with 0 (e.g., offset buffer
+/// of a large type, run ends of a chunked array implementation), resolve a value v
+/// where lo <= v < hi such that offsets[v] <= index < offsets[v + 1].
+static inline int64_t ArrowResolveChunk64(int64_t index, const int64_t* offsets,
+                                          int64_t lo, int64_t hi);
+
 /// @}
 
 /// \defgroup nanoarrow-schema Creating schemas
@@ -1367,7 +1372,7 @@ ArrowErrorCode ArrowSchemaSetTypeDateTime(struct ArrowSchema* schema, enum Arrow
                                           enum ArrowTimeUnit time_unit,
                                           const char* timezone);
 
-/// \brief Seet the format field of a union schema
+/// \brief Set the format field of a union schema
 ///
 /// Returns EINVAL for a type that is not NANOARROW_TYPE_DENSE_UNION
 /// or NANOARROW_TYPE_SPARSE_UNION. The specified number of children are
@@ -1610,14 +1615,12 @@ static inline void ArrowBufferReset(struct ArrowBuffer* buffer);
 /// address and resets buffer.
 static inline void ArrowBufferMove(struct ArrowBuffer* src, struct ArrowBuffer* dst);
 
-/// \brief Grow or shrink a buffer to a given capacity
+/// \brief Grow or shrink a buffer to a given size
 ///
-/// When shrinking the capacity of the buffer, the buffer is only reallocated
-/// if shrink_to_fit is non-zero. Calling ArrowBufferResize() does not
-/// adjust the buffer's size member except to ensure that the invariant
-/// capacity >= size remains true.
+/// When shrinking the size of the buffer, the buffer is only reallocated
+/// if shrink_to_fit is non-zero.
 static inline ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer,
-                                               int64_t new_capacity_bytes,
+                                               int64_t new_size_bytes,
                                                char shrink_to_fit);
 
 /// \brief Ensure a buffer has at least a given additional capacity
@@ -1747,15 +1750,12 @@ static inline void ArrowBitmapMove(struct ArrowBitmap* src, struct ArrowBitmap* 
 static inline ArrowErrorCode ArrowBitmapReserve(struct ArrowBitmap* bitmap,
                                                 int64_t additional_size_bits);
 
-/// \brief Grow or shrink a bitmap to a given capacity
+/// \brief Grow or shrink a bitmap to a given size
 ///
-/// When shrinking the capacity of the bitmap, the bitmap is only reallocated
-/// if shrink_to_fit is non-zero. Calling ArrowBitmapResize() does not
-/// adjust the buffer's size member except when shrinking new_capacity_bits
-/// to a value less than the current number of bits in the bitmap.
+/// When shrinking the size of the bitmap, the bitmap is only reallocated
+/// if shrink_to_fit is non-zero.
 static inline ArrowErrorCode ArrowBitmapResize(struct ArrowBitmap* bitmap,
-                                               int64_t new_capacity_bits,
-                                               char shrink_to_fit);
+                                               int64_t new_size_bits, char shrink_to_fit);
 
 /// \brief Reserve space for and append zero or more of the same boolean value to a bitmap
 static inline ArrowErrorCode ArrowBitmapAppend(struct ArrowBitmap* bitmap,
@@ -2147,8 +2147,6 @@ ArrowErrorCode ArrowBasicArrayStreamValidate(const struct ArrowArrayStream* arra
 
 // Inline function definitions
 
-
-
 #ifdef __cplusplus
 }
 #endif
@@ -2178,11 +2176,52 @@ ArrowErrorCode ArrowBasicArrayStreamValidate(const struct ArrowArrayStream* arra
 #include <stdint.h>
 #include <string.h>
 
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// Modified from Arrow C++ (1eb46f76) cpp/src/arrow/chunk_resolver.h#L133-L162
+static inline int64_t ArrowResolveChunk64(int64_t index, const int64_t* offsets,
+                                          int64_t lo, int64_t hi) {
+  // Similar to std::upper_bound(), but slightly different as our offsets
+  // array always starts with 0.
+  int64_t n = hi - lo;
+  // First iteration does not need to check for n > 1
+  // (lo < hi is guaranteed by the precondition).
+  NANOARROW_DCHECK(n > 1);
+  do {
+    const int64_t m = n >> 1;
+    const int64_t mid = lo + m;
+    if (index >= offsets[mid]) {
+      lo = mid;
+      n -= m;
+    } else {
+      n = m;
+    }
+  } while (n > 1);
+  return lo;
+}
+
+static inline int64_t ArrowResolveChunk32(int32_t index, const int32_t* offsets,
+                                          int32_t lo, int32_t hi) {
+  // Similar to std::upper_bound(), but slightly different as our offsets
+  // array always starts with 0.
+  int32_t n = hi - lo;
+  // First iteration does not need to check for n > 1
+  // (lo < hi is guaranteed by the precondition).
+  NANOARROW_DCHECK(n > 1);
+  do {
+    const int32_t m = n >> 1;
+    const int32_t mid = lo + m;
+    if (index >= offsets[mid]) {
+      lo = mid;
+      n -= m;
+    } else {
+      n = m;
+    }
+  } while (n > 1);
+  return lo;
+}
 
 static inline int64_t _ArrowGrowByFactor(int64_t current_capacity, int64_t new_capacity) {
   int64_t doubled_capacity = current_capacity * 2;
@@ -2202,6 +2241,8 @@ static inline void ArrowBufferInit(struct ArrowBuffer* buffer) {
 
 static inline ArrowErrorCode ArrowBufferSetAllocator(
     struct ArrowBuffer* buffer, struct ArrowBufferAllocator allocator) {
+  // This is not a perfect test for "has a buffer already been allocated"
+  // but is likely to catch most cases.
   if (buffer->data == NULL) {
     buffer->allocator = allocator;
     return NANOARROW_OK;
@@ -2211,46 +2252,41 @@ static inline ArrowErrorCode ArrowBufferSetAllocator(
 }
 
 static inline void ArrowBufferReset(struct ArrowBuffer* buffer) {
-  if (buffer->data != NULL) {
-    buffer->allocator.free(&buffer->allocator, (uint8_t*)buffer->data,
-                           buffer->capacity_bytes);
-    buffer->data = NULL;
-  }
-
-  buffer->capacity_bytes = 0;
-  buffer->size_bytes = 0;
+  buffer->allocator.free(&buffer->allocator, (uint8_t*)buffer->data,
+                         buffer->capacity_bytes);
+  ArrowBufferInit(buffer);
 }
 
 static inline void ArrowBufferMove(struct ArrowBuffer* src, struct ArrowBuffer* dst) {
   memcpy(dst, src, sizeof(struct ArrowBuffer));
   src->data = NULL;
-  ArrowBufferReset(src);
+  ArrowBufferInit(src);
 }
 
 static inline ArrowErrorCode ArrowBufferResize(struct ArrowBuffer* buffer,
-                                               int64_t new_capacity_bytes,
+                                               int64_t new_size_bytes,
                                                char shrink_to_fit) {
-  if (new_capacity_bytes < 0) {
+  if (new_size_bytes < 0) {
     return EINVAL;
   }
 
-  if (new_capacity_bytes > buffer->capacity_bytes || shrink_to_fit) {
-    buffer->data = buffer->allocator.reallocate(
-        &buffer->allocator, buffer->data, buffer->capacity_bytes, new_capacity_bytes);
-    if (buffer->data == NULL && new_capacity_bytes > 0) {
+  int needs_reallocation = new_size_bytes > buffer->capacity_bytes ||
+                           (shrink_to_fit && new_size_bytes < buffer->capacity_bytes);
+
+  if (needs_reallocation) {
+    buffer->data = buffer->allocator.reallocate(&buffer->allocator, buffer->data,
+                                                buffer->capacity_bytes, new_size_bytes);
+
+    if (buffer->data == NULL && new_size_bytes > 0) {
       buffer->capacity_bytes = 0;
       buffer->size_bytes = 0;
       return ENOMEM;
     }
 
-    buffer->capacity_bytes = new_capacity_bytes;
+    buffer->capacity_bytes = new_size_bytes;
   }
 
-  // Ensures that when shrinking that size <= capacity
-  if (new_capacity_bytes < buffer->size_bytes) {
-    buffer->size_bytes = new_capacity_bytes;
-  }
-
+  buffer->size_bytes = new_size_bytes;
   return NANOARROW_OK;
 }
 
@@ -2261,8 +2297,19 @@ static inline ArrowErrorCode ArrowBufferReserve(struct ArrowBuffer* buffer,
     return NANOARROW_OK;
   }
 
-  return ArrowBufferResize(
-      buffer, _ArrowGrowByFactor(buffer->capacity_bytes, min_capacity_bytes), 0);
+  int64_t new_capacity_bytes =
+      _ArrowGrowByFactor(buffer->capacity_bytes, min_capacity_bytes);
+  buffer->data = buffer->allocator.reallocate(&buffer->allocator, buffer->data,
+                                              buffer->capacity_bytes, new_capacity_bytes);
+
+  if (buffer->data == NULL && new_capacity_bytes > 0) {
+    buffer->capacity_bytes = 0;
+    buffer->size_bytes = 0;
+    return ENOMEM;
+  }
+
+  buffer->capacity_bytes = new_capacity_bytes;
+  return NANOARROW_OK;
 }
 
 static inline void ArrowBufferAppendUnsafe(struct ArrowBuffer* buffer, const void* data,
@@ -2605,32 +2652,38 @@ static inline void ArrowBitmapMove(struct ArrowBitmap* src, struct ArrowBitmap* 
 static inline ArrowErrorCode ArrowBitmapReserve(struct ArrowBitmap* bitmap,
                                                 int64_t additional_size_bits) {
   int64_t min_capacity_bits = bitmap->size_bits + additional_size_bits;
-  if (min_capacity_bits <= (bitmap->buffer.capacity_bytes * 8)) {
+  int64_t min_capacity_bytes = _ArrowBytesForBits(min_capacity_bits);
+  int64_t current_size_bytes = bitmap->buffer.size_bytes;
+  int64_t current_capacity_bytes = bitmap->buffer.capacity_bytes;
+
+  if (min_capacity_bytes <= current_capacity_bytes) {
     return NANOARROW_OK;
   }
 
-  NANOARROW_RETURN_NOT_OK(
-      ArrowBufferReserve(&bitmap->buffer, _ArrowBytesForBits(additional_size_bits)));
+  int64_t additional_capacity_bytes = min_capacity_bytes - current_size_bytes;
+  NANOARROW_RETURN_NOT_OK(ArrowBufferReserve(&bitmap->buffer, additional_capacity_bytes));
 
+  // Zero out the last byte for deterministic output in the common case
+  // of reserving a known remaining size. We should have returned above
+  // if there was not at least one additional byte to allocate; however,
+  // DCHECK() just to be sure.
+  NANOARROW_DCHECK(bitmap->buffer.capacity_bytes > current_capacity_bytes);
   bitmap->buffer.data[bitmap->buffer.capacity_bytes - 1] = 0;
   return NANOARROW_OK;
 }
 
 static inline ArrowErrorCode ArrowBitmapResize(struct ArrowBitmap* bitmap,
-                                               int64_t new_capacity_bits,
+                                               int64_t new_size_bits,
                                                char shrink_to_fit) {
-  if (new_capacity_bits < 0) {
+  if (new_size_bits < 0) {
     return EINVAL;
   }
 
-  int64_t new_capacity_bytes = _ArrowBytesForBits(new_capacity_bits);
+  int64_t new_size_bytes = _ArrowBytesForBits(new_size_bits);
   NANOARROW_RETURN_NOT_OK(
-      ArrowBufferResize(&bitmap->buffer, new_capacity_bytes, shrink_to_fit));
+      ArrowBufferResize(&bitmap->buffer, new_size_bytes, shrink_to_fit));
 
-  if (new_capacity_bits < bitmap->size_bits) {
-    bitmap->size_bits = new_capacity_bits;
-  }
-
+  bitmap->size_bits = new_size_bits;
   return NANOARROW_OK;
 }
 
@@ -2778,9 +2831,6 @@ static inline void ArrowBitmapReset(struct ArrowBitmap* bitmap) {
 #include <limits.h>
 #include <stdint.h>
 #include <string.h>
-
-
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -3758,6 +3808,9 @@ static GeoArrowErrorCode GeoArrowSchemaInitCoordFixedSizeList(struct ArrowSchema
   NANOARROW_RETURN_NOT_OK(ArrowSchemaSetName(schema->children[0], dims));
   NANOARROW_RETURN_NOT_OK(ArrowSchemaSetType(schema->children[0], NANOARROW_TYPE_DOUBLE));
 
+  // Set child field non-nullable
+  schema->children[0]->flags = 0;
+
   return GEOARROW_OK;
 }
 
@@ -3772,15 +3825,17 @@ static GeoArrowErrorCode GeoArrowSchemaInitCoordStruct(struct ArrowSchema* schem
     NANOARROW_RETURN_NOT_OK(
         ArrowSchemaInitFromType(schema->children[i], NANOARROW_TYPE_DOUBLE));
     NANOARROW_RETURN_NOT_OK(ArrowSchemaSetName(schema->children[i], dim_name));
+    // Set child non-nullable
+    schema->children[i]->flags = 0;
   }
 
   return GEOARROW_OK;
 }
 
-static GeoArrowErrorCode GeoArrowSchemaInitListStruct(struct ArrowSchema* schema,
-                                                      enum GeoArrowCoordType coord_type,
-                                                      const char* dims, int n,
-                                                      const char** child_names) {
+static GeoArrowErrorCode GeoArrowSchemaInitListOf(struct ArrowSchema* schema,
+                                                  enum GeoArrowCoordType coord_type,
+                                                  const char* dims, int n,
+                                                  const char** child_names) {
   if (n == 0) {
     switch (coord_type) {
       case GEOARROW_COORD_TYPE_SEPARATE:
@@ -3794,9 +3849,14 @@ static GeoArrowErrorCode GeoArrowSchemaInitListStruct(struct ArrowSchema* schema
     ArrowSchemaInit(schema);
     NANOARROW_RETURN_NOT_OK(ArrowSchemaSetFormat(schema, "+l"));
     NANOARROW_RETURN_NOT_OK(ArrowSchemaAllocateChildren(schema, 1));
-    NANOARROW_RETURN_NOT_OK(GeoArrowSchemaInitListStruct(schema->children[0], coord_type,
-                                                         dims, n - 1, child_names + 1));
-    return ArrowSchemaSetName(schema->children[0], child_names[0]);
+    NANOARROW_RETURN_NOT_OK(GeoArrowSchemaInitListOf(schema->children[0], coord_type,
+                                                     dims, n - 1, child_names + 1));
+    NANOARROW_RETURN_NOT_OK(ArrowSchemaSetName(schema->children[0], child_names[0]));
+
+    // Set child field non-nullable
+    schema->children[0]->flags = 0;
+
+    return NANOARROW_OK;
   }
 }
 
@@ -3855,32 +3915,42 @@ GeoArrowErrorCode GeoArrowSchemaInit(struct ArrowSchema* schema, enum GeoArrowTy
     case GEOARROW_GEOMETRY_TYPE_POINT:
       switch (coord_type) {
         case GEOARROW_COORD_TYPE_SEPARATE:
-          return GeoArrowSchemaInitCoordStruct(schema, dims);
+          NANOARROW_RETURN_NOT_OK(GeoArrowSchemaInitCoordStruct(schema, dims));
+          break;
         case GEOARROW_COORD_TYPE_INTERLEAVED:
-          return GeoArrowSchemaInitCoordFixedSizeList(schema, dims);
+          NANOARROW_RETURN_NOT_OK(GeoArrowSchemaInitCoordFixedSizeList(schema, dims));
+          break;
         default:
           return EINVAL;
       }
+      break;
 
     case GEOARROW_GEOMETRY_TYPE_LINESTRING:
-      return GeoArrowSchemaInitListStruct(schema, coord_type, dims, 1,
-                                          CHILD_NAMES_LINESTRING);
+      NANOARROW_RETURN_NOT_OK(
+          GeoArrowSchemaInitListOf(schema, coord_type, dims, 1, CHILD_NAMES_LINESTRING));
+      break;
     case GEOARROW_GEOMETRY_TYPE_MULTIPOINT:
-      return GeoArrowSchemaInitListStruct(schema, coord_type, dims, 1,
-                                          CHILD_NAMES_MULTIPOINT);
+      NANOARROW_RETURN_NOT_OK(
+          GeoArrowSchemaInitListOf(schema, coord_type, dims, 1, CHILD_NAMES_MULTIPOINT));
+      break;
     case GEOARROW_GEOMETRY_TYPE_POLYGON:
-      return GeoArrowSchemaInitListStruct(schema, coord_type, dims, 2,
-                                          CHILD_NAMES_POLYGON);
+      NANOARROW_RETURN_NOT_OK(
+          GeoArrowSchemaInitListOf(schema, coord_type, dims, 2, CHILD_NAMES_POLYGON));
+      break;
     case GEOARROW_GEOMETRY_TYPE_MULTILINESTRING:
-      return GeoArrowSchemaInitListStruct(schema, coord_type, dims, 2,
-                                          CHILD_NAMES_MULTILINESTRING);
+      NANOARROW_RETURN_NOT_OK(GeoArrowSchemaInitListOf(schema, coord_type, dims, 2,
+                                                       CHILD_NAMES_MULTILINESTRING));
+      break;
     case GEOARROW_GEOMETRY_TYPE_MULTIPOLYGON:
-      return GeoArrowSchemaInitListStruct(schema, coord_type, dims, 3,
-                                          CHILD_NAMES_MULTIPOLYGON);
+      NANOARROW_RETURN_NOT_OK(GeoArrowSchemaInitListOf(schema, coord_type, dims, 3,
+                                                       CHILD_NAMES_MULTIPOLYGON));
+      break;
 
     default:
       return ENOTSUP;
   }
+
+  return NANOARROW_OK;
 }
 
 GeoArrowErrorCode GeoArrowSchemaInitExtension(struct ArrowSchema* schema,
@@ -3894,6 +3964,13 @@ GeoArrowErrorCode GeoArrowSchemaInitExtension(struct ArrowSchema* schema,
   NANOARROW_RETURN_NOT_OK(ArrowMetadataBuilderInit(&metadata, NULL));
   int result = ArrowMetadataBuilderAppend(
       &metadata, ArrowCharView("ARROW:extension:name"), ArrowCharView(ext_type));
+  if (result != NANOARROW_OK) {
+    ArrowBufferReset(&metadata);
+    return result;
+  }
+
+  result = ArrowMetadataBuilderAppend(
+      &metadata, ArrowCharView("ARROW:extension:metadata"), ArrowCharView("{}"));
   if (result != NANOARROW_OK) {
     ArrowBufferReset(&metadata);
     return result;
@@ -4225,7 +4302,7 @@ GeoArrowErrorCode GeoArrowSchemaViewInitFromType(struct GeoArrowSchemaView* sche
 // metadata specification instead of JSON. To help with the transition, this
 // bit of code parses the original metadata format.
 static GeoArrowErrorCode GeoArrowMetadataViewInitDeprecated(
-    struct GeoArrowMetadataView* metadata_view, struct GeoArrowError* error) {
+    struct GeoArrowMetadataView* metadata_view) {
   const char* metadata = metadata_view->metadata.data;
   int32_t pos_max = (int32_t)metadata_view->metadata.size_bytes;
   int32_t pos = 0;
@@ -4563,7 +4640,7 @@ GeoArrowErrorCode GeoArrowMetadataViewInit(struct GeoArrowMetadataView* metadata
   }
 
   if (metadata.size_bytes >= 4 && metadata.data[0] != '{') {
-    if (GeoArrowMetadataViewInitDeprecated(metadata_view, error) == GEOARROW_OK) {
+    if (GeoArrowMetadataViewInitDeprecated(metadata_view) == GEOARROW_OK) {
       return GEOARROW_OK;
     }
   }
@@ -4806,11 +4883,20 @@ int64_t GeoArrowUnescapeCrs(struct GeoArrowStringView crs, char* out, int64_t n)
 static int kernel_start_void(struct GeoArrowKernel* kernel, struct ArrowSchema* schema,
                              const char* options, struct ArrowSchema* out,
                              struct GeoArrowError* error) {
+  NANOARROW_UNUSED(kernel);
+  NANOARROW_UNUSED(schema);
+  NANOARROW_UNUSED(options);
+  NANOARROW_UNUSED(error);
+
   return ArrowSchemaInitFromType(out, NANOARROW_TYPE_NA);
 }
 
 static int kernel_push_batch_void(struct GeoArrowKernel* kernel, struct ArrowArray* array,
                                   struct ArrowArray* out, struct GeoArrowError* error) {
+  NANOARROW_UNUSED(kernel);
+  NANOARROW_UNUSED(array);
+  NANOARROW_UNUSED(error);
+
   struct ArrowArray tmp;
   NANOARROW_RETURN_NOT_OK(ArrowArrayInitFromType(&tmp, NANOARROW_TYPE_NA));
   tmp.length = array->length;
@@ -4821,6 +4907,9 @@ static int kernel_push_batch_void(struct GeoArrowKernel* kernel, struct ArrowArr
 
 static int kernel_finish_void(struct GeoArrowKernel* kernel, struct ArrowArray* out,
                               struct GeoArrowError* error) {
+  NANOARROW_UNUSED(kernel);
+  NANOARROW_UNUSED(error);
+
   if (out != NULL) {
     return EINVAL;
   }
@@ -4841,6 +4930,11 @@ static void GeoArrowKernelInitVoid(struct GeoArrowKernel* kernel) {
 static int kernel_push_batch_void_agg(struct GeoArrowKernel* kernel,
                                       struct ArrowArray* array, struct ArrowArray* out,
                                       struct GeoArrowError* error) {
+  NANOARROW_UNUSED(kernel);
+  NANOARROW_UNUSED(array);
+  NANOARROW_UNUSED(out);
+  NANOARROW_UNUSED(error);
+
   if (out != NULL) {
     return EINVAL;
   }
@@ -4850,6 +4944,10 @@ static int kernel_push_batch_void_agg(struct GeoArrowKernel* kernel,
 
 static int kernel_finish_void_agg(struct GeoArrowKernel* kernel, struct ArrowArray* out,
                                   struct GeoArrowError* error) {
+  NANOARROW_UNUSED(kernel);
+  NANOARROW_UNUSED(out);
+  NANOARROW_UNUSED(error);
+
   struct ArrowArray tmp;
   NANOARROW_RETURN_NOT_OK(ArrowArrayInitFromType(&tmp, NANOARROW_TYPE_NA));
   tmp.length = 1;
@@ -4929,6 +5027,10 @@ static int kernel_get_arg_long(const char* options, const char* key, long* out,
 static int finish_push_batch_do_nothing(struct GeoArrowVisitorKernelPrivate* private_data,
                                         struct ArrowArray* out,
                                         struct GeoArrowError* error) {
+  NANOARROW_UNUSED(private_data);
+  NANOARROW_UNUSED(out);
+  NANOARROW_UNUSED(error);
+
   return NANOARROW_OK;
 }
 
@@ -5037,6 +5139,11 @@ static int finish_start_visit_void_agg(struct GeoArrowVisitorKernelPrivate* priv
                                        struct ArrowSchema* schema, const char* options,
                                        struct ArrowSchema* out,
                                        struct GeoArrowError* error) {
+  NANOARROW_UNUSED(private_data);
+  NANOARROW_UNUSED(schema);
+  NANOARROW_UNUSED(options);
+  NANOARROW_UNUSED(error);
+
   return ArrowSchemaInitFromType(out, NANOARROW_TYPE_NA);
 }
 
@@ -5048,6 +5155,9 @@ static int finish_start_visit_void_agg(struct GeoArrowVisitorKernelPrivate* priv
 static int finish_start_format_wkt(struct GeoArrowVisitorKernelPrivate* private_data,
                                    struct ArrowSchema* schema, const char* options,
                                    struct ArrowSchema* out, struct GeoArrowError* error) {
+  NANOARROW_UNUSED(schema);
+  NANOARROW_UNUSED(options);
+
   long precision = private_data->wkt_writer.precision;
   NANOARROW_RETURN_NOT_OK(
       kernel_get_arg_long(options, "precision", &precision, 0, error));
@@ -5119,9 +5229,9 @@ static int finish_push_batch_as_geoarrow(
 // input. EMPTY values are not counted as any particular geometry type;
 // however, note that POINTs as represented in WKB or GeoArrow cannot be
 // EMPTY and this kernel does not check for the convention of EMPTY as
-// all coordinates == nan. This is mosty to facilitate choosing an appropriate destination
-// type (e.g., point, linestring, etc.). This visitor is not exposed as a standalone
-// visitor in the geoarrow.h header.
+// all coordinates == nan. This is mostly to facilitate choosing an appropriate
+// destination type (e.g., point, linestring, etc.). This visitor is not exposed as a
+// standalone visitor in the geoarrow.h header.
 //
 // The internals use GeoArrowDimensions * 8 + GeoArrowGeometryType as the
 // "key" for a given combination. This gives an integer between 0 and 39.
@@ -5176,6 +5286,10 @@ static int coords_geometry_types(struct GeoArrowVisitor* v,
 static int finish_start_unique_geometry_types_agg(
     struct GeoArrowVisitorKernelPrivate* private_data, struct ArrowSchema* schema,
     const char* options, struct ArrowSchema* out, struct GeoArrowError* error) {
+  NANOARROW_UNUSED(schema);
+  NANOARROW_UNUSED(options);
+  NANOARROW_UNUSED(error);
+
   private_data->v.feat_start = &feat_start_geometry_types;
   private_data->v.geom_start = &geom_start_geometry_types;
   private_data->v.coords = &coords_geometry_types;
@@ -5186,6 +5300,8 @@ static int finish_start_unique_geometry_types_agg(
 static int kernel_finish_unique_geometry_types_agg(struct GeoArrowKernel* kernel,
                                                    struct ArrowArray* out,
                                                    struct GeoArrowError* error) {
+  NANOARROW_UNUSED(error);
+
   struct GeoArrowVisitorKernelPrivate* private_data =
       (struct GeoArrowVisitorKernelPrivate*)kernel->private_data;
   uint64_t result_mask = private_data->geometry_types_private.geometry_types_mask;
@@ -5371,6 +5487,10 @@ static int feat_end_box(struct GeoArrowVisitor* v) {
 static int finish_start_box_agg(struct GeoArrowVisitorKernelPrivate* private_data,
                                 struct ArrowSchema* schema, const char* options,
                                 struct ArrowSchema* out, struct GeoArrowError* error) {
+  NANOARROW_UNUSED(schema);
+  NANOARROW_UNUSED(options);
+  NANOARROW_UNUSED(error);
+
   private_data->v.coords = &coords_box;
   private_data->v.private_data = private_data;
 
@@ -5379,11 +5499,6 @@ static int finish_start_box_agg(struct GeoArrowVisitorKernelPrivate* private_dat
   private_data->box2d_private.min_values[0] = INFINITY;
   private_data->box2d_private.min_values[1] = INFINITY;
   private_data->box2d_private.feat_null = 0;
-
-  ArrowBitmapInit(&private_data->box2d_private.validity);
-  for (int i = 0; i < 4; i++) {
-    ArrowBufferInit(&private_data->box2d_private.values[i]);
-  }
 
   struct ArrowSchema tmp;
   int result = schema_box(&tmp);
@@ -5409,16 +5524,15 @@ static int kernel_finish_box_agg(struct GeoArrowKernel* kernel, struct ArrowArra
 static int finish_start_box(struct GeoArrowVisitorKernelPrivate* private_data,
                             struct ArrowSchema* schema, const char* options,
                             struct ArrowSchema* out, struct GeoArrowError* error) {
+  NANOARROW_UNUSED(schema);
+  NANOARROW_UNUSED(options);
+  NANOARROW_UNUSED(error);
+
   private_data->v.feat_start = &feat_start_box;
   private_data->v.null_feat = &null_feat_box;
   private_data->v.coords = &coords_box;
   private_data->v.feat_end = &feat_end_box;
   private_data->v.private_data = private_data;
-
-  ArrowBitmapInit(&private_data->box2d_private.validity);
-  for (int i = 0; i < 4; i++) {
-    ArrowBufferInit(&private_data->box2d_private.values[i]);
-  }
 
   struct ArrowSchema tmp;
   int result = schema_box(&tmp);
@@ -5450,6 +5564,11 @@ static int GeoArrowInitVisitorKernelInternal(struct GeoArrowKernel* kernel,
   private_data->finish_push_batch = &finish_push_batch_do_nothing;
   GeoArrowVisitorInitVoid(&private_data->v);
   private_data->visit_by_feature = 0;
+
+  ArrowBitmapInit(&private_data->box2d_private.validity);
+  for (int i = 0; i < 4; i++) {
+    ArrowBufferInit(&private_data->box2d_private.values[i]);
+  }
 
   int result = GEOARROW_OK;
 
@@ -5494,6 +5613,8 @@ static int GeoArrowInitVisitorKernelInternal(struct GeoArrowKernel* kernel,
 
 GeoArrowErrorCode GeoArrowKernelInit(struct GeoArrowKernel* kernel, const char* name,
                                      const char* options) {
+  NANOARROW_UNUSED(options);
+
   if (strcmp(name, "void") == 0) {
     GeoArrowKernelInitVoid(kernel);
     return NANOARROW_OK;
@@ -5661,7 +5782,7 @@ static GeoArrowErrorCode GeoArrowBuilderInitInternal(struct GeoArrowBuilder* bui
     return result;
   }
 
-  // Initalize one empty coordinate for the visitor pattern
+  // Initialize one empty coordinate for the visitor pattern
   memcpy(private->empty_coord_values, kEmptyPointCoords, 4 * sizeof(double));
   private->empty_coord.values[0] = private->empty_coord_values;
   private->empty_coord.values[1] = private->empty_coord_values + 1;
@@ -6006,6 +6127,8 @@ static int feat_start_point(struct GeoArrowVisitor* v) {
 static int geom_start_point(struct GeoArrowVisitor* v,
                             enum GeoArrowGeometryType geometry_type,
                             enum GeoArrowDimensions dimensions) {
+  NANOARROW_UNUSED(geometry_type);
+
   // level++, geometry type, dimensions, reset size
   // validate dimensions, maybe against some options that indicate
   // error for mismatch, fill, or drop behaviour
@@ -6015,7 +6138,10 @@ static int geom_start_point(struct GeoArrowVisitor* v,
   return GEOARROW_OK;
 }
 
-static int ring_start_point(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int ring_start_point(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
 static int coords_point(struct GeoArrowVisitor* v,
                         const struct GeoArrowCoordView* coords) {
@@ -6026,9 +6152,15 @@ static int coords_point(struct GeoArrowVisitor* v,
                                      coords->n_coords);
 }
 
-static int ring_end_point(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int ring_end_point(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
-static int geom_end_point(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int geom_end_point(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
 static int null_feat_point(struct GeoArrowVisitor* v) {
   struct GeoArrowBuilder* builder = (struct GeoArrowBuilder*)v->private_data;
@@ -6576,8 +6708,7 @@ GeoArrowErrorCode GeoArrowBuilderInitVisitor(struct GeoArrowBuilder* builder,
 
 static int32_t kZeroInt32 = 0;
 
-static int GeoArrowArrayViewInitInternal(struct GeoArrowArrayView* array_view,
-                                         struct GeoArrowError* error) {
+static int GeoArrowArrayViewInitInternal(struct GeoArrowArrayView* array_view) {
   switch (array_view->schema_view.geometry_type) {
     case GEOARROW_GEOMETRY_TYPE_POINT:
       array_view->n_offsets = 0;
@@ -6651,7 +6782,7 @@ static int GeoArrowArrayViewInitInternal(struct GeoArrowArrayView* array_view,
 GeoArrowErrorCode GeoArrowArrayViewInitFromType(struct GeoArrowArrayView* array_view,
                                                 enum GeoArrowType type) {
   NANOARROW_RETURN_NOT_OK(GeoArrowSchemaViewInitFromType(&array_view->schema_view, type));
-  return GeoArrowArrayViewInitInternal(array_view, NULL);
+  return GeoArrowArrayViewInitInternal(array_view);
 }
 
 GeoArrowErrorCode GeoArrowArrayViewInitFromSchema(struct GeoArrowArrayView* array_view,
@@ -6659,7 +6790,7 @@ GeoArrowErrorCode GeoArrowArrayViewInitFromSchema(struct GeoArrowArrayView* arra
                                                   struct GeoArrowError* error) {
   NANOARROW_RETURN_NOT_OK(
       GeoArrowSchemaViewInit(&array_view->schema_view, schema, error));
-  return GeoArrowArrayViewInitInternal(array_view, error);
+  return GeoArrowArrayViewInitInternal(array_view);
 }
 
 static int GeoArrowArrayViewSetArrayInternal(struct GeoArrowArrayView* array_view,
@@ -6771,8 +6902,7 @@ static int GeoArrowArrayViewSetArrayInternal(struct GeoArrowArrayView* array_vie
 }
 
 static GeoArrowErrorCode GeoArrowArrayViewSetArraySerialized(
-    struct GeoArrowArrayView* array_view, const struct ArrowArray* array,
-    struct GeoArrowError* error) {
+    struct GeoArrowArrayView* array_view, const struct ArrowArray* array) {
   array_view->length[0] = array->length;
   array_view->offset[0] = array->offset;
 
@@ -6787,8 +6917,7 @@ GeoArrowErrorCode GeoArrowArrayViewSetArray(struct GeoArrowArrayView* array_view
   switch (array_view->schema_view.type) {
     case GEOARROW_TYPE_WKT:
     case GEOARROW_TYPE_WKB:
-      NANOARROW_RETURN_NOT_OK(
-          GeoArrowArrayViewSetArraySerialized(array_view, array, error));
+      NANOARROW_RETURN_NOT_OK(GeoArrowArrayViewSetArraySerialized(array_view, array));
       break;
     default:
       NANOARROW_RETURN_NOT_OK(
@@ -7106,28 +7235,52 @@ const char* GeoArrowErrorMessage(struct GeoArrowError* error) {
 
 
 
-static int feat_start_void(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
 
-static int null_feat_void(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int feat_start_void(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
+
+static int null_feat_void(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
 static int geom_start_void(struct GeoArrowVisitor* v,
                            enum GeoArrowGeometryType geometry_type,
                            enum GeoArrowDimensions dimensions) {
+  NANOARROW_UNUSED(v);
+  NANOARROW_UNUSED(geometry_type);
+  NANOARROW_UNUSED(dimensions);
   return GEOARROW_OK;
 }
 
-static int ring_start_void(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int ring_start_void(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
 static int coords_void(struct GeoArrowVisitor* v,
                        const struct GeoArrowCoordView* coords) {
+  NANOARROW_UNUSED(v);
+  NANOARROW_UNUSED(coords);
   return GEOARROW_OK;
 }
 
-static int ring_end_void(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int ring_end_void(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
-static int geom_end_void(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int geom_end_void(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
-static int feat_end_void(struct GeoArrowVisitor* v) { return GEOARROW_OK; }
+static int feat_end_void(struct GeoArrowVisitor* v) {
+  NANOARROW_UNUSED(v);
+  return GEOARROW_OK;
+}
 
 void GeoArrowVisitorInitVoid(struct GeoArrowVisitor* v) {
   v->feat_start = &feat_start_void;
@@ -7406,6 +7559,7 @@ GeoArrowErrorCode GeoArrowWKBReaderVisit(struct GeoArrowWKBReader* reader,
   return GEOARROW_OK;
 }
 
+#include <limits.h>
 #include <string.h>
 
 
@@ -7506,7 +7660,10 @@ static int ring_start_wkb(struct GeoArrowVisitor* v) {
 static int coords_wkb(struct GeoArrowVisitor* v, const struct GeoArrowCoordView* coords) {
   struct WKBWriterPrivate* private = (struct WKBWriterPrivate*)v->private_data;
   NANOARROW_RETURN_NOT_OK(WKBWriterCheckLevel(private));
-  private->size[private->level] += coords->n_coords;
+
+  NANOARROW_DCHECK(coords->n_coords <= UINT32_MAX);
+  private->size[private->level] += (uint32_t)coords->n_coords;
+
   NANOARROW_RETURN_NOT_OK(ArrowBufferReserve(
       &private->values, coords->n_values * coords->n_coords * sizeof(double)));
   for (int64_t i = 0; i < coords->n_coords; i++) {
@@ -8930,7 +9087,9 @@ static void ArrowBufferAllocatorMallocFree(struct ArrowBufferAllocator* allocato
                                            uint8_t* ptr, int64_t size) {
   NANOARROW_UNUSED(allocator);
   NANOARROW_UNUSED(size);
-  ArrowFree(ptr);
+  if (ptr != NULL) {
+    ArrowFree(ptr);
+  }
 }
 
 static struct ArrowBufferAllocator ArrowBufferAllocatorMalloc = {
@@ -8940,13 +9099,24 @@ struct ArrowBufferAllocator ArrowBufferAllocatorDefault(void) {
   return ArrowBufferAllocatorMalloc;
 }
 
-static uint8_t* ArrowBufferAllocatorNeverReallocate(
-    struct ArrowBufferAllocator* allocator, uint8_t* ptr, int64_t old_size,
-    int64_t new_size) {
-  NANOARROW_UNUSED(allocator);
-  NANOARROW_UNUSED(ptr);
-  NANOARROW_UNUSED(old_size);
+static uint8_t* ArrowBufferDeallocatorReallocate(struct ArrowBufferAllocator* allocator,
+                                                 uint8_t* ptr, int64_t old_size,
+                                                 int64_t new_size) {
   NANOARROW_UNUSED(new_size);
+
+  // Attempting to reallocate a buffer with a custom deallocator is
+  // a programming error. In debug mode, crash here.
+#if defined(NANOARROW_DEBUG)
+  NANOARROW_PRINT_AND_DIE(ENOMEM,
+                          "It is an error to reallocate a buffer whose allocator is "
+                          "ArrowBufferDeallocator()");
+#endif
+
+  // In release mode, ensure the the deallocator is called exactly
+  // once using the pointer it was given and return NULL, which
+  // will trigger the caller to return ENOMEM.
+  allocator->free(allocator, ptr, old_size);
+  *allocator = ArrowBufferAllocatorDefault();
   return NULL;
 }
 
@@ -8955,7 +9125,7 @@ struct ArrowBufferAllocator ArrowBufferDeallocator(
                         int64_t size),
     void* private_data) {
   struct ArrowBufferAllocator allocator;
-  allocator.reallocate = &ArrowBufferAllocatorNeverReallocate;
+  allocator.reallocate = &ArrowBufferDeallocatorReallocate;
   allocator.free = custom_free;
   allocator.private_data = private_data;
   return allocator;
@@ -9146,6 +9316,13 @@ ArrowErrorCode ArrowDecimalAppendDigitsToBuffer(const struct ArrowDecimal* decim
   // The most significant segment should have no leading zeroes
   int n_chars = snprintf((char*)buffer->data + buffer->size_bytes, 21, "%lu",
                          (unsigned long)segments[num_segments - 1]);
+
+  // Ensure that an encoding error from snprintf() does not result
+  // in an out-of-bounds access.
+  if (n_chars < 0) {
+    return ERANGE;
+  }
+
   buffer->size_bytes += n_chars;
 
   // Subsequent output needs to be left-padded with zeroes such that each segment
@@ -9394,6 +9571,10 @@ ArrowErrorCode ArrowSchemaSetTypeFixedSize(struct ArrowSchema* schema,
       return EINVAL;
   }
 
+  if (((size_t)n_chars) >= sizeof(buffer) || n_chars < 0) {
+    return ERANGE;
+  }
+
   buffer[n_chars] = '\0';
   NANOARROW_RETURN_NOT_OK(ArrowSchemaSetFormat(schema, buffer));
 
@@ -9424,6 +9605,10 @@ ArrowErrorCode ArrowSchemaSetTypeDecimal(struct ArrowSchema* schema, enum ArrowT
       break;
     default:
       return EINVAL;
+  }
+
+  if (((size_t)n_chars) >= sizeof(buffer) || n_chars < 0) {
+    return ERANGE;
   }
 
   buffer[n_chars] = '\0';
@@ -9502,7 +9687,7 @@ ArrowErrorCode ArrowSchemaSetTypeDateTime(struct ArrowSchema* schema, enum Arrow
       return EINVAL;
   }
 
-  if (((size_t)n_chars) >= sizeof(buffer)) {
+  if (((size_t)n_chars) >= sizeof(buffer) || n_chars < 0) {
     return ERANGE;
   }
 
@@ -9539,6 +9724,12 @@ ArrowErrorCode ArrowSchemaSetTypeUnion(struct ArrowSchema* schema, enum ArrowTyp
       return EINVAL;
   }
 
+  // Ensure that an encoding error from snprintf() does not result
+  // in an out-of-bounds access.
+  if (n_chars < 0) {
+    return ERANGE;
+  }
+
   if (n_children > 0) {
     n_chars = snprintf(format_cursor, format_out_size, "0");
     format_cursor += n_chars;
@@ -9549,6 +9740,12 @@ ArrowErrorCode ArrowSchemaSetTypeUnion(struct ArrowSchema* schema, enum ArrowTyp
       format_cursor += n_chars;
       format_out_size -= n_chars;
     }
+  }
+
+  // Ensure that an encoding error from snprintf() does not result
+  // in an out-of-bounds access.
+  if (n_chars < 0) {
+    return ERANGE;
   }
 
   NANOARROW_RETURN_NOT_OK(ArrowSchemaSetFormat(schema, format_out));
@@ -10417,6 +10614,12 @@ static int64_t ArrowSchemaTypeToStringInternal(struct ArrowSchemaView* schema_vi
 // among multiple sprintf calls.
 static inline void ArrowToStringLogChars(char** out, int64_t n_chars_last,
                                          int64_t* n_remaining, int64_t* n_chars) {
+  // In the unlikely snprintf() returning a negative value (encoding error),
+  // ensure the result won't cause an out-of-bounds access.
+  if (n_chars_last < 0) {
+    n_chars = 0;
+  }
+
   *n_chars += n_chars_last;
   *n_remaining -= n_chars_last;
 
@@ -10512,7 +10715,12 @@ int64_t ArrowSchemaToString(const struct ArrowSchema* schema, char* out, int64_t
     n_chars += snprintf(out, n, ">");
   }
 
-  return n_chars;
+  // Ensure that we always return a positive result
+  if (n_chars > 0) {
+    return n_chars;
+  } else {
+    return 0;
+  }
 }
 
 ArrowErrorCode ArrowMetadataReaderInit(struct ArrowMetadataReader* reader,
@@ -11139,19 +11347,16 @@ static ArrowErrorCode ArrowArrayFinalizeBuffers(struct ArrowArray* array) {
   struct ArrowArrayPrivateData* private_data =
       (struct ArrowArrayPrivateData*)array->private_data;
 
-  // The only buffer finalizing this currently does is make sure the data
-  // buffer for (Large)String|Binary is never NULL
-  switch (private_data->storage_type) {
-    case NANOARROW_TYPE_BINARY:
-    case NANOARROW_TYPE_STRING:
-    case NANOARROW_TYPE_LARGE_BINARY:
-    case NANOARROW_TYPE_LARGE_STRING:
-      if (ArrowArrayBuffer(array, 2)->data == NULL) {
-        NANOARROW_RETURN_NOT_OK(ArrowBufferAppendUInt8(ArrowArrayBuffer(array, 2), 0));
-      }
-      break;
-    default:
-      break;
+  for (int i = 0; i < NANOARROW_MAX_FIXED_BUFFERS; i++) {
+    if (private_data->layout.buffer_type[i] == NANOARROW_BUFFER_TYPE_VALIDITY ||
+        private_data->layout.buffer_type[i] == NANOARROW_BUFFER_TYPE_NONE) {
+      continue;
+    }
+
+    struct ArrowBuffer* buffer = ArrowArrayBuffer(array, i);
+    if (buffer->data == NULL) {
+      NANOARROW_RETURN_NOT_OK((ArrowBufferReserve(buffer, 1)));
+    }
   }
 
   for (int64_t i = 0; i < array->n_children; i++) {
@@ -11187,7 +11392,8 @@ ArrowErrorCode ArrowArrayFinishBuilding(struct ArrowArray* array,
                                         struct ArrowError* error) {
   // Even if the data buffer is size zero, the pointer value needed to be non-null
   // in some implementations (at least one version of Arrow C++ at the time this
-  // was added). Only do this fix if we can assume CPU data access.
+  // was added and C# as later discovered). Only do this fix if we can assume
+  // CPU data access.
   if (validation_level >= NANOARROW_VALIDATION_LEVEL_DEFAULT) {
     NANOARROW_RETURN_NOT_OK_WITH_ERROR(ArrowArrayFinalizeBuffers(array), error);
   }
@@ -11635,6 +11841,10 @@ static int ArrowArrayViewValidateDefault(struct ArrowArrayView* array_view,
                         (long)array_view->buffer_views[2].size_bytes);
           return EINVAL;
         }
+      } else if (array_view->buffer_views[2].size_bytes == -1) {
+        // If the data buffer size is unknown and there are no bytes in the offset buffer,
+        // set the data buffer size to 0.
+        array_view->buffer_views[2].size_bytes = 0;
       }
       break;
 
@@ -11661,6 +11871,10 @@ static int ArrowArrayViewValidateDefault(struct ArrowArrayView* array_view,
                         (long)array_view->buffer_views[2].size_bytes);
           return EINVAL;
         }
+      } else if (array_view->buffer_views[2].size_bytes == -1) {
+        // If the data buffer size is unknown and there are no bytes in the offset
+        // buffer, set the data buffer size to 0.
+        array_view->buffer_views[2].size_bytes = 0;
       }
       break;
 
