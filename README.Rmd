@@ -38,8 +38,33 @@ pak::pak("geoarrow/geoarrow-r")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+The geoarrow package implements conversions to/from various geospatial types (e.g., sf, sfc, s2, wk) with various Arrow representations (e.g., arrow, nanoarrow). The most useful conversions are between the **arrow** and **sf** packages, which in most cases allow sf objects to be passed to **arrow** functions directly after `library(geoarrow)` or `requireNamespace("geoarrow")` has been called.
 
 ```{r example}
 library(geoarrow)
+library(arrow, warn.conflicts = FALSE)
+library(sf)
+
+nc <- read_sf(system.file("gpkg/nc.gpkg", package = "sf"))
+tf <- tempfile(fileext = ".parquet")
+
+nc |> 
+  tibble::as_tibble() |> 
+  write_parquet(tf)
+
+open_dataset(tf) |> 
+  dplyr::filter(startsWith(NAME, "A")) |>
+  dplyr::select(NAME, geom) |> 
+  st_as_sf()
 ```
+
+By default, arrow objects are converted to a neutral wrapper around chunked Arrow memory, which in turn implements conversions to most spatial types:
+
+```{r}
+read_parquet(tf)
+```
+
+
+
+
+

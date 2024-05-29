@@ -26,6 +26,7 @@ wk_is_geodesic.geoarrow_vctr <- function(x) {
 #' @export
 as_geoarrow_array.wk_wkt <- function(x, ..., schema = NULL) {
   if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
     if (!identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkt")) {
       return(NextMethod())
     }
@@ -48,6 +49,7 @@ as_geoarrow_array.wk_wkt <- function(x, ..., schema = NULL) {
 #' @export
 as_geoarrow_array.wk_wkb <- function(x, ..., schema = NULL) {
   if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
     if (!identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkb")) {
       return(NextMethod())
     }
@@ -70,6 +72,7 @@ as_geoarrow_array.wk_wkb <- function(x, ..., schema = NULL) {
 #' @export
 as_geoarrow_array.wk_xy <- function(x, ..., schema = NULL) {
   if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
     if (!identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.point")) {
       return(NextMethod())
     }

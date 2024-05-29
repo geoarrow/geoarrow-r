@@ -19,6 +19,8 @@ as_geoarrow_array <- function(x, ..., schema = NULL) {
 as_geoarrow_array.default <- function(x, ..., schema = NULL) {
   if (is.null(schema)) {
     schema <- infer_geoarrow_schema(x)
+  } else {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
   }
 
   wk::wk_handle(x, geoarrow_writer(schema))
@@ -58,6 +60,10 @@ as_geoarrow_array_stream <- function(x, ..., schema = NULL) {
 
 #' @export
 as_geoarrow_array_stream.default <- function(x, ..., schema = NULL) {
+  if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
+  }
+
   nanoarrow::basic_array_stream(
     list(as_geoarrow_array(x, schema = schema)),
     schema = schema
