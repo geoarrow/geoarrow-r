@@ -2,14 +2,20 @@
 % Please edit documentation in R/type.R
 \name{geoarrow_schema_parse}
 \alias{geoarrow_schema_parse}
+\alias{is_geoarrow_schema}
 \title{Inspect a GeoArrow schema}
 \usage{
-geoarrow_schema_parse(schema, extension_name = NULL)
+geoarrow_schema_parse(schema, extension_name = NULL, infer_from_storage = TRUE)
+
+is_geoarrow_schema(schema)
 }
 \arguments{
 \item{schema}{A \link[nanoarrow:as_nanoarrow_schema]{nanoarrow_schema}}
 
 \item{extension_name}{An extension name to use if schema is a storage type.}
+
+\item{infer}{Attempt to guess an extension name if schema is not a geoarrow
+extension type.}
 }
 \value{
 A list of parsed properties
