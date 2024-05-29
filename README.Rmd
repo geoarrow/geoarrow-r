@@ -61,7 +61,8 @@ open_dataset(tf) |>
 By default, arrow objects are converted to a neutral wrapper around chunked Arrow memory, which in turn implements conversions to most spatial types:
 
 ```{r}
-read_parquet(tf)
+df <- read_parquet(tf)
+st_as_sfc(df$geom)
 ```
 
 
