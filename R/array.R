@@ -49,10 +49,9 @@ as_geoarrow_array.nanoarrow_array <- function(x, ..., schema = NULL) {
     x <- reinterpret_array(x, x_schema)
   }
 
-  # Because this is in-memory, we are making a bet that GeoArrow type inference
-  # will be fast.
+
   if (is.null(schema)) {
-    schema <- infer_geoarrow_schema(x)
+    return(x)
   }
 
   # If the source and request type are the same, return x
@@ -133,9 +132,16 @@ as_geoarrow_array_stream.nanoarrow_array_stream <- function(x, ..., schema = NUL
 
   geoarrow_kernel_call_scalar(
     "as_geoarrow",
-    reinterpret_stream(x, x_schema),
+    reinterpret_stream(x, x_schema, validate = FALSE),
     list("type" = schema_parsed$id)
   )
+}
+
+reinterpret_array <- function(array, schema, validate = TRUE) {
+  array2 <- nanoarrow::nanoarrow_allocate_array()
+  nanoarrow::nanoarrow_pointer_export(array, array2)
+  nanoarrow::nanoarrow_array_set_schema(array2, schema, validate = validate)
+  array2
 }
 
 reinterpret_stream <- function(stream, schema, validate = TRUE) {
