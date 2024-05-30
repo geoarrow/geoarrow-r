@@ -30,25 +30,42 @@ as_geoarrow_array.default <- function(x, ..., schema = NULL) {
 as_geoarrow_array.nanoarrow_array <- function(x, ..., schema = NULL) {
   x_schema <- nanoarrow::infer_nanoarrow_schema(x)
 
-  if (is.null(schema) && is_geoarrow_schema(x_schema)) {
-    schema <- infer_geoarrow_schema(x)
-  } else if (is.null(schema)) {
+  # If this is not already a geoarrow array, see if we can interpret it as one
+  if (!is_geoarrow_schema(x_schema)) {
     x_schema <- as_geoarrow_schema(x_schema)
-    return(reinterpret_array(x, x_schema))
+
+    # Try to copy metadata from requested schema if present (e.g., so that
+    # a CRS or edge type can be assigned)
+    request_metadata <- schema$metadata[["ARROW:extension:metadata"]]
+    if (!is.null(request_metadata)) {
+      x_schema$metadata[["ARROW:extension:metadata"]] <- request_metadata
+    }
+
+    # Reinterpret the array
+    x <- reinterpret_array(x, x_schema)
   }
 
+  # Because this is in-memory, we are making a bet that GeoArrow type inference
+  # will be fast.
+  if (is.null(schema)) {
+    schema <- infer_geoarrow_schema(x)
+  }
+
+  # If the source and request type are the same, return x
   x_schema_parsed <- geoarrow_schema_parse(x_schema)
   schema_parsed <- geoarrow_schema_parse(schema)
   if (identical(x_schema_parsed, schema_parsed)) {
-    x
-  } else {
-    stream <- geoarrow_kernel_call_scalar(
-      "as_geoarrow",
-      nanoarrow::basic_array_stream(list(x), schema = x_schema, validate = FALSE),
-      list("type" = schema_parsed$id)
-    )
-    stream$get_next()
+    return(x)
   }
+
+  # Otherwise, let as_geoarrow() sort this out
+  stream <- geoarrow_kernel_call_scalar(
+    "as_geoarrow",
+    nanoarrow::basic_array_stream(list(x), schema = x_schema, validate = FALSE),
+    list("type" = schema_parsed$id)
+  )
+
+  stream$get_next()
 }
 
 #' @export
@@ -80,7 +97,9 @@ as_geoarrow_array_stream.nanoarrow_array_stream <- function(x, ..., schema = NUL
 
   if (is.null(schema) && is_geoarrow_schema(x_schema)) {
     return(x)
-  } else if (is.null(schema)) {
+  }
+
+  if (is.null(schema)) {
     return(reinterpret_stream(x, as_geoarrow_schema(x_schema)))
   }
 

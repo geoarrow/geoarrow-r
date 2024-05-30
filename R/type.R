@@ -202,8 +202,8 @@ geoarrow_multipolygon <- function(dimensions = "XY",
 #'
 #' @param schema A [nanoarrow_schema][nanoarrow::as_nanoarrow_schema]
 #' @param extension_name An extension name to use if schema is a storage type.
-#' @param infer Attempt to guess an extension name if schema is not a geoarrow
-#'   extension type.
+#' @param infer_from_storage Attempt to guess an extension name if schema is not
+#'   a geoarrow extension type.
 #'
 #' @return A list of parsed properties
 #' @export
