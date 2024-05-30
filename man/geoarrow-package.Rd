@@ -4,9 +4,9 @@
 \name{geoarrow-package}
 \alias{geoarrow}
 \alias{geoarrow-package}
-\title{geoarrow: Extension types for geospatial data for use with 'Arrow'}
+\title{geoarrow: Extension types for spatial data for use with 'Arrow'}
 \description{
-Provides extension types and conversions to between R-native object types and 'Arrow' columnar types. This includes integrations among the 'arrow', 'nanoarrow', 'sf', and 'wk' packages such that geospatial metadata is preserved wherever possible. Extension type implementations ensure first-class geometry data type support in the 'arrow' and 'nanoarrow' packages.
+Provides extension types and conversions to between R-native object types and 'Arrow' columnar types. This includes integration among the 'arrow', 'nanoarrow', 'sf', and 'wk' packages such that spatial metadata is preserved wherever possible. Extension type implementations ensure first-class geometry data type support in the 'arrow' and 'nanoarrow' packages.
 }
 \seealso{
 Useful links:

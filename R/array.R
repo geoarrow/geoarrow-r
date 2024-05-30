@@ -19,6 +19,8 @@ as_geoarrow_array <- function(x, ..., schema = NULL) {
 as_geoarrow_array.default <- function(x, ..., schema = NULL) {
   if (is.null(schema)) {
     schema <- infer_geoarrow_schema(x)
+  } else {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
   }
 
   wk::wk_handle(x, geoarrow_writer(schema))
@@ -26,23 +28,47 @@ as_geoarrow_array.default <- function(x, ..., schema = NULL) {
 
 #' @export
 as_geoarrow_array.nanoarrow_array <- function(x, ..., schema = NULL) {
-  schema_src <- nanoarrow::infer_nanoarrow_schema(x)
-  if (is.null(schema)) {
-    schema <- infer_geoarrow_schema(x)
+  x_schema <- nanoarrow::infer_nanoarrow_schema(x)
+
+  if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
   }
 
-  parsed <- geoarrow_schema_parse(schema)
-  parsed_src <- geoarrow_schema_parse(schema_src)
-  if (identical(parsed, parsed_src)) {
-    x
-  } else {
-    stream <- geoarrow_kernel_call_scalar(
-      "as_geoarrow",
-      nanoarrow::basic_array_stream(list(x), schema = schema_src, validate = FALSE),
-      list("type" = parsed$id)
-    )
-    stream$get_next()
+  # If this is not already a geoarrow array, see if we can interpret it as one
+  if (!is_geoarrow_schema(x_schema)) {
+    x_schema <- as_geoarrow_schema(x_schema)
+
+    # Try to copy metadata from requested schema if present (e.g., so that
+    # a CRS or edge type can be assigned)
+    request_metadata <- schema$metadata[["ARROW:extension:metadata"]]
+    if (!is.null(request_metadata)) {
+      x_schema$metadata[["ARROW:extension:metadata"]] <- request_metadata
+    }
+
+    # Reinterpret the array
+    x <- reinterpret_array(x, x_schema)
   }
+
+
+  if (is.null(schema)) {
+    return(x)
+  }
+
+  # If the source and request type are the same, return x
+  x_schema_parsed <- geoarrow_schema_parse(x_schema)
+  schema_parsed <- geoarrow_schema_parse(schema)
+  if (identical(x_schema_parsed, schema_parsed)) {
+    return(x)
+  }
+
+  # Otherwise, let as_geoarrow() sort this out
+  stream <- geoarrow_kernel_call_scalar(
+    "as_geoarrow",
+    nanoarrow::basic_array_stream(list(x), schema = x_schema, validate = FALSE),
+    list("type" = schema_parsed$id)
+  )
+
+  stream$get_next()
 }
 
 #' @export
@@ -58,6 +84,10 @@ as_geoarrow_array_stream <- function(x, ..., schema = NULL) {
 
 #' @export
 as_geoarrow_array_stream.default <- function(x, ..., schema = NULL) {
+  if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
+  }
+
   nanoarrow::basic_array_stream(
     list(as_geoarrow_array(x, schema = schema)),
     schema = schema
@@ -66,28 +96,58 @@ as_geoarrow_array_stream.default <- function(x, ..., schema = NULL) {
 
 #' @export
 as_geoarrow_array_stream.nanoarrow_array_stream <- function(x, ..., schema = NULL) {
+  x_schema <- x$get_schema()
+
+  if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
+  }
+
+  # If this is not already a geoarrow array, see if we can interpret it as one
+  if (!is_geoarrow_schema(x_schema)) {
+    x_schema <- as_geoarrow_schema(x_schema)
+
+    # Try to copy metadata from requested schema if present (e.g., so that
+    # a CRS or edge type can be assigned)
+    request_metadata <- schema$metadata[["ARROW:extension:metadata"]]
+    if (!is.null(request_metadata)) {
+      x_schema$metadata[["ARROW:extension:metadata"]] <- request_metadata
+    }
+
+    # Reinterpret the array
+    x <- reinterpret_stream(x, x_schema)
+  }
+
+  # If there is no requested schema, just return the stream (i.e., don't attempt to
+  # consume a stream to find its optimal output type)
   if (is.null(schema)) {
     return(x)
   }
 
-  x_schema <- x$get_schema()
+  # If the source is the same as the destination, return it
   x_schema_parsed <- geoarrow_schema_parse(x_schema)
   schema_parsed <- geoarrow_schema_parse(schema)
   if (identical(x_schema_parsed, schema_parsed)) {
     return(x)
   }
 
-  collected <- nanoarrow::collect_array_stream(
-    x,
-    schema = x_schema,
-    validate = FALSE
-  )
-
   geoarrow_kernel_call_scalar(
     "as_geoarrow",
-    nanoarrow::basic_array_stream(collected),
+    reinterpret_stream(x, x_schema, validate = FALSE),
     list("type" = schema_parsed$id)
   )
+}
+
+reinterpret_array <- function(array, schema, validate = TRUE) {
+  array2 <- nanoarrow::nanoarrow_allocate_array()
+  nanoarrow::nanoarrow_pointer_export(array, array2)
+  nanoarrow::nanoarrow_array_set_schema(array2, schema, validate = validate)
+  array2
+}
+
+reinterpret_stream <- function(stream, schema, validate = TRUE) {
+  # Eventually we should stream this somehow instead of collecting it all
+  chunks <- nanoarrow::collect_array_stream(stream, schema = schema, validate = FALSE)
+  nanoarrow::basic_array_stream(chunks, schema, validate = validate)
 }
 
 geoarrow_array_from_buffers <- function(schema, buffers) {

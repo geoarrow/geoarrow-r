@@ -202,6 +202,8 @@ geoarrow_multipolygon <- function(dimensions = "XY",
 #'
 #' @param schema A [nanoarrow_schema][nanoarrow::as_nanoarrow_schema]
 #' @param extension_name An extension name to use if schema is a storage type.
+#' @param infer_from_storage Attempt to guess an extension name if schema is not
+#'   a geoarrow extension type.
 #'
 #' @return A list of parsed properties
 #' @export
@@ -209,13 +211,47 @@ geoarrow_multipolygon <- function(dimensions = "XY",
 #' @examples
 #' geoarrow_schema_parse(na_extension_geoarrow("POINT"))
 #'
-geoarrow_schema_parse <- function(schema, extension_name = NULL) {
+geoarrow_schema_parse <- function(schema, extension_name = NULL,
+                                  infer_from_storage = FALSE) {
   schema <- nanoarrow::as_nanoarrow_schema(schema)
   if (!is.null(extension_name)) {
     extension_name <- as.character(extension_name)[1]
+  } else if (infer_from_storage && is.null(schema$metadata[["ARROW:extension:name"]])) {
+    # Only a few storage types have unambiguous representations
+    extension_name <- switch(
+      schema$format,
+      "z" = ,
+      "Z" = "geoarrow.wkb",
+      "u" = ,
+      "U" = "geoarrow.wkt",
+      "+s" = "geoarrow.point"
+    )
   }
 
   .Call(geoarrow_c_schema_parse, schema, extension_name)
+}
+
+#' @rdname geoarrow_schema_parse
+#' @export
+is_geoarrow_schema <- function(schema) {
+  schema <- nanoarrow::as_nanoarrow_schema(schema)
+  ext <- schema$metadata[["ARROW:extension:name"]]
+  !is.null(ext) && (ext %in% all_extension_names())
+}
+
+#' @rdname geoarrow_schema_parse
+#' @export
+as_geoarrow_schema <- function(schema) {
+  schema <- nanoarrow::as_nanoarrow_schema(schema)
+
+  # If this is already a geoarrow extension type, we're ready!
+  if (is_geoarrow_schema(schema)) {
+    return(schema)
+  }
+
+  # Otherwise, try to infer
+  parsed <- geoarrow_schema_parse(schema, infer_from_storage = TRUE)
+  na_extension_geoarrow_internal(parsed$id, NULL, parsed$edge_type)
 }
 
 na_extension_geoarrow_internal <- function(type_id, crs, edges) {

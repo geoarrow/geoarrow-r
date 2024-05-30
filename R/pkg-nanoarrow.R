@@ -2,13 +2,7 @@
 # Runs before coverage starts on load
 # nocov start
 register_geoarrow_extension <- function() {
-  all_ext_name <- c(
-    "geoarrow.wkt", "geoarrow.wkb", "geoarrow.point", "geoarrow.linestring",
-    "geoarrow.polygon", "geoarrow.multipoint", "geoarrow.mutlilinestring",
-    "geoarrow.multipolygon"
-  )
-
-  for (ext_name in all_ext_name) {
+  for (ext_name in all_extension_names()) {
     nanoarrow::register_nanoarrow_extension(
       ext_name,
       nanoarrow::nanoarrow_extension_spec(subclass = "geoarrow_extension_spec")
@@ -49,4 +43,12 @@ as_nanoarrow_array_extension.geoarrow_extension_spec <- function(
 #' @export
 convert_array.geoarrow_vctr <- function(array, to, ...) {
   as_geoarrow_vctr(array, schema = nanoarrow::as_nanoarrow_schema(to))
+}
+
+all_extension_names <- function() {
+  c(
+    "geoarrow.wkt", "geoarrow.wkb", "geoarrow.point", "geoarrow.linestring",
+    "geoarrow.polygon", "geoarrow.multipoint", "geoarrow.mutlilinestring",
+    "geoarrow.multipolygon"
+  )
 }
