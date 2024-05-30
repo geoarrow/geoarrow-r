@@ -85,9 +85,97 @@
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
+<p>The geoarrow package implements conversions to/from various geospatial types (e.g., sf, sfc, s2, wk) with various Arrow representations (e.g., arrow, nanoarrow). The most useful conversions are between the <strong>arrow</strong> and <strong>sf</strong> packages, which in most cases allow sf objects to be passed to <strong>arrow</strong> functions directly after <code><a href="https://github.com/geoarrow/geoarrow-r" class="external-link">library(geoarrow)</a></code> or <code><a href="https://github.com/geoarrow/geoarrow-r" class="external-link">requireNamespace("geoarrow")</a></code> has been called.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/geoarrow/geoarrow-r" class="external-link">geoarrow</a></span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/geoarrow/geoarrow-r" class="external-link">geoarrow</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/apache/arrow/" class="external-link">arrow</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: package 'arrow' was built under R version 4.3.3</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE</span></span>
+<span></span>
+<span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">read_sf</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"gpkg/nc.gpkg"</span>, package <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">tf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".parquet"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">nc</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/write_parquet.html" class="external-link">write_parquet</a></span><span class="op">(</span><span class="va">tf</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="va">tf</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu">filter</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">startsWith</a></span><span class="op">(</span><span class="va">NAME</span>, <span class="st">"A"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu">select</span><span class="op">(</span><span class="va">NAME</span>, <span class="va">geom</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Simple feature collection with 6 features and 1 field</span></span>
+<span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -82.07776 ymin: 34.80792 xmax: -79.23799 ymax: 36.58965</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  NAD27</span></span>
+<span><span class="co">#&gt;        NAME                           geom</span></span>
+<span><span class="co">#&gt; 1      Ashe MULTIPOLYGON (((-81.47276 3...</span></span>
+<span><span class="co">#&gt; 2 Alleghany MULTIPOLYGON (((-81.23989 3...</span></span>
+<span><span class="co">#&gt; 3     Avery MULTIPOLYGON (((-81.94135 3...</span></span>
+<span><span class="co">#&gt; 4  Alamance MULTIPOLYGON (((-79.24619 3...</span></span>
+<span><span class="co">#&gt; 5 Alexander MULTIPOLYGON (((-81.10889 3...</span></span>
+<span><span class="co">#&gt; 6     Anson MULTIPOLYGON (((-79.91995 3...</span></span></code></pre></div>
+<p>By default, arrow objects are converted to a neutral wrapper around chunked Arrow memory, which in turn implements conversions to most spatial types:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/read_parquet.html" class="external-link">read_parquet</a></span><span class="op">(</span><span class="va">tf</span><span class="op">)</span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">geom</span></span>
+<span><span class="co">#&gt; &lt;geoarrow_vctr geoarrow.multipolygon{list}[100]&gt;</span></span>
+<span><span class="co">#&gt;  [1] &lt;MULTIPOLYGON (((-81.4727554 36.2343559, -81.5408401 36.2725067, -81.56&gt;</span></span>
+<span><span class="co">#&gt;  [2] &lt;MULTIPOLYGON (((-81.2398911 36.3653641, -81.2406921 36.3794174, -81.26&gt;</span></span>
+<span><span class="co">#&gt;  [3] &lt;MULTIPOLYGON (((-80.4563446 36.2425575, -80.476387 36.2547264, -80.536&gt;</span></span>
+<span><span class="co">#&gt;  [4] &lt;MULTIPOLYGON (((-76.0089722 36.3195953, -76.0173492 36.3377304, -76.03&gt;</span></span>
+<span><span class="co">#&gt;  [5] &lt;MULTIPOLYGON (((-77.2176666 36.2409821, -77.2346115 36.2145996, -77.29&gt;</span></span>
+<span><span class="co">#&gt;  [6] &lt;MULTIPOLYGON (((-76.7450638 36.2339172, -76.98069 36.2302361, -76.9947&gt;</span></span>
+<span><span class="co">#&gt;  [7] &lt;MULTIPOLYGON (((-76.0089722 36.3195953, -75.9571838 36.1937714, -75.98&gt;</span></span>
+<span><span class="co">#&gt;  [8] &lt;MULTIPOLYGON (((-76.5625076 36.3405685, -76.6042404 36.3149834, -76.64&gt;</span></span>
+<span><span class="co">#&gt;  [9] &lt;MULTIPOLYGON (((-78.3087616 36.2600403, -78.2829285 36.2918816, -78.32&gt;</span></span>
+<span><span class="co">#&gt; [10] &lt;MULTIPOLYGON (((-80.0256729 36.2502327, -80.4530106 36.2570877, -80.43&gt;</span></span>
+<span><span class="co">#&gt; [11] &lt;MULTIPOLYGON (((-79.5305099 36.2461357, -79.5102997 36.547657, -79.217&gt;</span></span>
+<span><span class="co">#&gt; [12] &lt;MULTIPOLYGON (((-79.5305099 36.2461357, -79.5305786 36.2361565, -80.02&gt;</span></span>
+<span><span class="co">#&gt; [13] &lt;MULTIPOLYGON (((-78.7491226 36.063591, -78.788414 36.0621834, -78.8040&gt;</span></span>
+<span><span class="co">#&gt; [14] &lt;MULTIPOLYGON (((-78.8068008 36.231575, -78.9510803 36.2338371, -79.159&gt;</span></span>
+<span><span class="co">#&gt; [15] &lt;MULTIPOLYGON (((-78.4925232 36.1735878, -78.5147171 36.1752243, -78.51&gt;</span></span>
+<span><span class="co">#&gt; [16] &lt;MULTIPOLYGON (((-77.3322067 36.0679817, -77.4053116 35.9947166, -77.42&gt;</span></span>
+<span><span class="co">#&gt; [17] &lt;MULTIPOLYGON (((-76.2989273 36.2142296, -76.324234 36.2336235, -76.372&gt;</span></span>
+<span><span class="co">#&gt; [18] &lt;MULTIPOLYGON (((-81.0205688 36.034935, -81.0840836 36.0207672, -81.124&gt;</span></span>
+<span><span class="co">#&gt; [19] &lt;MULTIPOLYGON (((-81.806221 36.1045609, -81.8171539 36.1093864, -81.822&gt;</span></span>
+<span><span class="co">#&gt; [20] &lt;MULTIPOLYGON (((-76.4805298 36.079792, -76.5369568 36.087925, -76.5755&gt;</span></span>
+<span><span class="co">#&gt; ...and 80 more values</span></span>
+<span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sfc.html" class="external-link">st_as_sfc</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">geom</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Geometry set for 100 features </span></span>
+<span><span class="co">#&gt; Geometry type: MULTIPOLYGON</span></span>
+<span><span class="co">#&gt; Dimension:     XY</span></span>
+<span><span class="co">#&gt; Bounding box:  xmin: -84.32385 ymin: 33.88199 xmax: -75.45698 ymax: 36.58965</span></span>
+<span><span class="co">#&gt; Geodetic CRS:  NAD27</span></span>
+<span><span class="co">#&gt; First 5 geometries:</span></span>
+<span><span class="co">#&gt; MULTIPOLYGON (((-81.47276 36.23436, -81.54084 3...</span></span>
+<span><span class="co">#&gt; MULTIPOLYGON (((-81.23989 36.36536, -81.24069 3...</span></span>
+<span><span class="co">#&gt; MULTIPOLYGON (((-80.45634 36.24256, -80.47639 3...</span></span>
+<span><span class="co">#&gt; MULTIPOLYGON (((-76.00897 36.3196, -76.01735 36...</span></span>
+<span><span class="co">#&gt; MULTIPOLYGON (((-77.21767 36.24098, -77.23461 3...</span></span></code></pre></div>
+<p>The entry point to creating arrays is <code><a href="reference/as_geoarrow_vctr.html">as_geoarrow_vctr()</a></code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/as_geoarrow_vctr.html">as_geoarrow_vctr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (0 1)"</span>, <span class="st">"POINT (2 3)"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;geoarrow_vctr geoarrow.wkt{string}[2]&gt;</span></span>
+<span><span class="co">#&gt; [1] &lt;POINT (0 1)&gt; &lt;POINT (2 3)&gt;</span></span></code></pre></div>
+<p>By default these do not attempt to create a new storage type; however, you can request a storage type or infer one from the data:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/as_geoarrow_vctr.html">as_geoarrow_vctr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (0 1)"</span>, <span class="st">"POINT (2 3)"</span><span class="op">)</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/geoarrow_wkb.html">geoarrow_native</a></span><span class="op">(</span><span class="st">"POINT"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;geoarrow_vctr geoarrow.point{struct}[2]&gt;</span></span>
+<span><span class="co">#&gt; [1] &lt;POINT (0 1)&gt; &lt;POINT (2 3)&gt;</span></span>
+<span></span>
+<span><span class="va">vctr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/as_geoarrow_vctr.html">as_geoarrow_vctr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"POINT (0 1)"</span>, <span class="st">"POINT (2 3)"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/as_geoarrow_vctr.html">as_geoarrow_vctr</a></span><span class="op">(</span><span class="va">vctr</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/infer_geoarrow_schema.html">infer_geoarrow_schema</a></span><span class="op">(</span><span class="va">vctr</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;geoarrow_vctr geoarrow.point{struct}[2]&gt;</span></span>
+<span><span class="co">#&gt; [1] &lt;POINT (0 1)&gt; &lt;POINT (2 3)&gt;</span></span></code></pre></div>
+<p>There are a number of files to use as examples at <a href="https://geoarrow.org/data" class="external-link uri">https://geoarrow.org/data</a> that can be read with <code><a href="https://arrow.apache.org/docs/r/reference/read_feather.html" class="external-link">arrow::read_ipc_file()</a></code>:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://github.com/geoarrow/geoarrow-data/releases/download/v0.1.0/ns-water-basin_point.arrow"</span></span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/read_feather.html" class="external-link">read_ipc_file</a></span><span class="op">(</span><span class="va">url</span>, as_data_frame <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">tab</span><span class="op">$</span><span class="va">geometry</span><span class="op">$</span><span class="va">type</span></span>
+<span><span class="co">#&gt; GeometryExtensionType</span></span>
+<span><span class="co">#&gt; geoarrow.multipoint &lt;CRS: {"$schema":"https://proj.or...</span></span></code></pre></div>
 </div>
 </div>
   </div>

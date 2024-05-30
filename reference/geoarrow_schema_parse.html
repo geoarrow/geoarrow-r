@@ -53,7 +53,15 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">geoarrow_schema_parse</span><span class="op">(</span><span class="va">schema</span>, extension_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">geoarrow_schema_parse</span><span class="op">(</span></span>
+<span>  <span class="va">schema</span>,</span>
+<span>  extension_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  infer_from_storage <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">is_geoarrow_schema</span><span class="op">(</span><span class="va">schema</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">as_geoarrow_schema</span><span class="op">(</span><span class="va">schema</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -64,6 +72,11 @@
 
 <dt>extension_name</dt>
 <dd><p>An extension name to use if schema is a storage type.</p></dd>
+
+
+<dt>infer_from_storage</dt>
+<dd><p>Attempt to guess an extension name if schema is not
+a geoarrow extension type.</p></dd>
 
 </dl></div>
     <div id="value">
