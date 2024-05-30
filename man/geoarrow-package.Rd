@@ -25,7 +25,6 @@ Other contributors:
   \item Apache Software Foundation \email{dev@arrow.apache.org} [copyright holder]
   \item Ulf Adams [copyright holder]
   \item Daniel Lemire [copyright holder]
-  \item Daniel Lemire [copyright holder]
   \item Joao Paulo Magalhaes [copyright holder]
 }
 

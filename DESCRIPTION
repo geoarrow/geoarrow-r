@@ -15,7 +15,6 @@ Authors@R:
       person("Apache Software Foundation", email = "dev@arrow.apache.org", role = c("cph")),
       person("Ulf", "Adams", role = "cph"),
       person("Daniel", "Lemire", role = "cph"),
-      person("Daniel", "Lemire", role = "cph"),
       person("Joao Paulo", "Magalhaes", role = "cph")
     )
 Description: Provides extension types and conversions to between R-native
