@@ -1,6 +1,6 @@
 Package: geoarrow
-Title: Extension types for spatial data for use with 'Arrow'
-Version: 0.1.0.9000
+Title: Extension Types for Spatial Data for Use with 'Arrow'
+Version: 0.2.0
 Authors@R:
     c(
       person(given = "Dewey",
