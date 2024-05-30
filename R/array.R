@@ -28,20 +28,24 @@ as_geoarrow_array.default <- function(x, ..., schema = NULL) {
 
 #' @export
 as_geoarrow_array.nanoarrow_array <- function(x, ..., schema = NULL) {
-  schema_src <- nanoarrow::infer_nanoarrow_schema(x)
-  if (is.null(schema)) {
+  x_schema <- nanoarrow::infer_nanoarrow_schema(x)
+
+  if (is.null(schema) && is_geoarrow_schema(x_schema)) {
     schema <- infer_geoarrow_schema(x)
+  } else if (is.null(schema)) {
+    x_schema <- as_geoarrow_schema(x_schema)
+    return(reinterpret_array(x, x_schema))
   }
 
-  parsed <- geoarrow_schema_parse(schema)
-  parsed_src <- geoarrow_schema_parse(schema_src)
-  if (identical(parsed, parsed_src)) {
+  x_schema_parsed <- geoarrow_schema_parse(x_schema)
+  schema_parsed <- geoarrow_schema_parse(schema)
+  if (identical(x_schema_parsed, schema_parsed)) {
     x
   } else {
     stream <- geoarrow_kernel_call_scalar(
       "as_geoarrow",
-      nanoarrow::basic_array_stream(list(x), schema = schema_src, validate = FALSE),
-      list("type" = parsed$id)
+      nanoarrow::basic_array_stream(list(x), schema = x_schema, validate = FALSE),
+      list("type" = schema_parsed$id)
     )
     stream$get_next()
   }
@@ -73,6 +77,7 @@ as_geoarrow_array_stream.default <- function(x, ..., schema = NULL) {
 #' @export
 as_geoarrow_array_stream.nanoarrow_array_stream <- function(x, ..., schema = NULL) {
   x_schema <- x$get_schema()
+
   if (is.null(schema) && is_geoarrow_schema(x_schema)) {
     return(x)
   } else if (is.null(schema)) {
@@ -107,7 +112,7 @@ as_geoarrow_array_stream.nanoarrow_array_stream <- function(x, ..., schema = NUL
 }
 
 reinterpret_stream <- function(stream, schema, validate = TRUE) {
-  # Eventually we can stream this somehow instead of collecting it all
+  # Eventually we should stream this somehow instead of collecting it all
   chunks <- nanoarrow::collect_array_stream(stream, schema = schema, validate = FALSE)
   nanoarrow::basic_array_stream(chunks, schema, validate = validate)
 }
