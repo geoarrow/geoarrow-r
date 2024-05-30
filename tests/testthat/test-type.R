@@ -191,6 +191,31 @@ test_that("geoarrow_schema_parse() can parse a storage schema", {
   )
 })
 
+test_that("as_geoarrow_schema() can infer a geoarrow schema", {
+  expect_identical(
+    geoarrow_schema_parse(as_geoarrow_schema(nanoarrow::na_string())),
+    geoarrow_schema_parse(nanoarrow::na_string(), "geoarrow.wkt")
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(as_geoarrow_schema(nanoarrow::na_binary())),
+    geoarrow_schema_parse(nanoarrow::na_binary(), "geoarrow.wkb")
+  )
+
+  point_storage <- nanoarrow::na_struct(
+    list(x = nanoarrow::na_double(), y = nanoarrow::na_double())
+  )
+  expect_identical(
+    geoarrow_schema_parse(as_geoarrow_schema(point_storage)),
+    geoarrow_schema_parse(point_storage, "geoarrow.point")
+  )
+})
+
+test_that("is_geoarrow_schema() can detect an extension schema", {
+  expect_true(is_geoarrow_schema(na_extension_wkb()))
+  expect_false(is_geoarrow_schema(nanoarrow::na_binary()))
+})
+
 test_that("enum matcher works", {
   expect_identical(
     enum_value(c("GEOMETRY", "MULTIPOINT", "NOT VALID"), "GeometryType"),
