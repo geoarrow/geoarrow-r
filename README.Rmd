@@ -62,10 +62,30 @@ By default, arrow objects are converted to a neutral wrapper around chunked Arro
 
 ```{r}
 df <- read_parquet(tf)
+df$geom
 st_as_sfc(df$geom)
 ```
 
+The entry point to creating arrays is `as_geoarrow_vctr()`:
 
+```{r}
+as_geoarrow_vctr(c("POINT (0 1)", "POINT (2 3)"))
+```
 
+By default these do not attempt to create a new storage type; however, you can request a storage type or infer one from the data:
 
+```{r}
+as_geoarrow_vctr(c("POINT (0 1)", "POINT (2 3)"), schema = geoarrow_native("POINT"))
+
+vctr <- as_geoarrow_vctr(c("POINT (0 1)", "POINT (2 3)"))
+as_geoarrow_vctr(vctr, schema = infer_geoarrow_schema(vctr))
+```
+
+There are a number of files to use as examples at <https://geoarrow.org/data> that can be read with `arrow::read_ipc_file()`:
+
+```{r}
+url <- "https://github.com/geoarrow/geoarrow-data/releases/download/v0.1.0/ns-water-basin_point.arrow"
+tab <- read_ipc_file(url, as_data_frame = FALSE)
+tab$geometry$type
+```
 
