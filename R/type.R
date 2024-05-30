@@ -221,7 +221,7 @@ geoarrow_schema_parse <- function(schema, extension_name = NULL,
     extension_name <- switch(
       schema$format,
       "z" = ,
-      "Z" =, "geoarrow.wkb",
+      "Z" = "geoarrow.wkb",
       "u" = ,
       "U" = "geoarrow.wkt",
       "+s" = "geoarrow.point"
