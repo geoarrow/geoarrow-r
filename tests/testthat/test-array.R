@@ -74,7 +74,10 @@ test_that("as_geoarrow_array_stream() method for nanoarrow_array_stream works", 
 
   # Check that type + metadata from schema request is propagated
   stream_wkt <- nanoarrow::as_nanoarrow_array_stream(array_wkt)
-  stream <- as_geoarrow_array_stream(stream_wkt, schema = geoarrow_wkb(edges = "SPHERICAL"))
+  stream <- as_geoarrow_array_stream(
+    stream_wkt,
+    schema = geoarrow_wkb(edges = "SPHERICAL")
+  )
   schema <- nanoarrow::infer_nanoarrow_schema(stream)
   expect_identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkb")
   expect_true(wk::wk_is_geodesic(as.vector(stream)))
