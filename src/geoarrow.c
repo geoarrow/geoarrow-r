@@ -4839,7 +4839,7 @@ int64_t GeoArrowUnescapeCrs(struct GeoArrowStringView crs, char* out, int64_t n)
     if (n > crs.size_bytes) {
       memcpy(out, crs.data, crs.size_bytes);
       out[crs.size_bytes] = '\0';
-    } else {
+    } else if (out != NULL) {
       memcpy(out, crs.data, n);
     }
 
