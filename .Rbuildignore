@@ -13,3 +13,4 @@
 ^\.cache$
 ^cran-comments\.md$
 ^\.lintr$
+^CRAN-SUBMISSION$

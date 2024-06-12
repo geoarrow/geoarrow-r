@@ -1,12 +1,12 @@
 Package: geoarrow
-Title: Extension types for spatial data for use with 'Arrow'
-Version: 0.1.0.9000
+Title: Extension Types for Spatial Data for Use with 'Arrow'
+Version: 0.2.0
 Authors@R:
     c(
       person(given = "Dewey",
              family = "Dunnington",
              role = c("aut", "cre"),
-             email = "dewey@fishandwhistle.net",
+             email = "dewey@dunnington.ca",
              comment = c(ORCID = "0000-0002-9415-4582")),
       person(given = "Anthony",
              family = "North",
@@ -14,7 +14,6 @@ Authors@R:
              role = c("ctb")),
       person("Apache Software Foundation", email = "dev@arrow.apache.org", role = c("cph")),
       person("Ulf", "Adams", role = "cph"),
-      person("Daniel", "Lemire", role = "cph"),
       person("Daniel", "Lemire", role = "cph"),
       person("Joao Paulo", "Magalhaes", role = "cph")
     )
