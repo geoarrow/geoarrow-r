@@ -33,7 +33,7 @@ Imports:
 LinkingTo:
     wk
 Config/testthat/edition: 3
-URL: https://github.com/geoarrow/geoarrow-r
+URL: https://geoarrow.org/geoarrow-r/, https://github.com/geoarrow/geoarrow-r
 BugReports: https://github.com/geoarrow/geoarrow-r/issues
 Depends:
     R (>= 3.6.0)
