@@ -23,7 +23,7 @@ You can install the released version of geoarrow from
 [CRAN](https://cran.r-project.org/) with:
 
 ``` r
-install.packages("nanoarrow")
+install.packages("geoarrow")
 ```
 
 You can install the development version of geoarrow from
