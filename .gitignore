@@ -3,3 +3,4 @@
 .vscode
 compile_commands.json
 .cache
+docs
