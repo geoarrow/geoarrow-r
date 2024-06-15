@@ -1,45 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/404.html</loc>
   </url>
   <url>
-    <loc>/LICENSE.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/LICENSE.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/authors.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/index.html</loc>
   </url>
   <url>
-    <loc>/news/index.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/news/index.html</loc>
   </url>
   <url>
-    <loc>/reference/as_geoarrow_array.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/as_geoarrow_array.html</loc>
   </url>
   <url>
-    <loc>/reference/as_geoarrow_vctr.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/as_geoarrow_vctr.html</loc>
   </url>
   <url>
-    <loc>/reference/geoarrow-package.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow-package.html</loc>
   </url>
   <url>
-    <loc>/reference/geoarrow_handle.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_handle.html</loc>
   </url>
   <url>
-    <loc>/reference/geoarrow_schema_parse.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_schema_parse.html</loc>
   </url>
   <url>
-    <loc>/reference/geoarrow_wkb.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_wkb.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/index.html</loc>
   </url>
   <url>
-    <loc>/reference/infer_geoarrow_schema.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/infer_geoarrow_schema.html</loc>
   </url>
   <url>
-    <loc>/reference/na_extension_wkb.html</loc>
+    <loc>https://geoarrow.org/geoarrow-r/reference/na_extension_wkb.html</loc>
   </url>
 </urlset>
