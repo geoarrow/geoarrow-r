@@ -3,7 +3,7 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include "geoarrow.h"
+#include "geoarrow/geoarrow.h"
 
 static void finalize_kernel_xptr(SEXP xptr) {
   struct GeoArrowKernel* kernel = (struct GeoArrowKernel*)R_ExternalPtrAddr(xptr);

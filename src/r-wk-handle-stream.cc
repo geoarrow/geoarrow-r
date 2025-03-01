@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "geoarrow.h"
+#include "geoarrow/geoarrow.h"
 #include "wk-v1.h"
 
 // Helper to translate between the GeoArrowVisitor and the wk_handler_t.
@@ -395,13 +395,6 @@ SEXP geoarrow_handle_stream(SEXP data, wk_handler_t* handler) {
     Rf_error("[GeoArrowSchemaViewInit] %s", error.message);
   }
 
-  // Initialize the array view
-  struct GeoArrowArrayView array_view;
-  errno_code = GeoArrowArrayViewInitFromSchema(&array_view, schema, &error);
-  if (errno_code != GEOARROW_OK) {
-    Rf_error("[GeoArrowArrayViewInitFromSchema] %s", error.message);
-  }
-
   // Initialize the reader + make sure it is always cleaned up
   struct GeoArrowArrayReader* reader =
       reinterpret_cast<struct GeoArrowArrayReader*>(malloc(sizeof(GeoArrowArrayReader)));
@@ -412,9 +405,9 @@ SEXP geoarrow_handle_stream(SEXP data, wk_handler_t* handler) {
   SEXP reader_xptr = PROTECT(R_MakeExternalPtr(reader, R_NilValue, R_NilValue));
   R_RegisterCFinalizer(reader_xptr, &finalize_array_reader_xptr);
 
-  errno_code = GeoArrowArrayReaderInit(reader);
+  errno_code = GeoArrowArrayReaderInitFromSchema(reader, schema, &error);
   if (errno_code != GEOARROW_OK) {
-    Rf_error("GeoArrowArrayReaderInit() failed");
+    Rf_error("[GeoArrowArrayReaderInitFromSchema] %s", error.message);
   }
 
   // Instantiate + protect the adapter
@@ -453,14 +446,13 @@ SEXP geoarrow_handle_stream(SEXP data, wk_handler_t* handler) {
       }
 
       // We have a valid array: set the array in the visitor
-      errno_code = GeoArrowArrayViewSetArray(&array_view, array, &error);
+      errno_code = GeoArrowArrayReaderSetArray(reader, array, &error);
       if (errno_code != GEOARROW_OK) {
         Rf_error("[GeoArrowArrayViewSetArray] %s", error.message);
       }
 
       // ...and visit!
-      errno_code =
-          GeoArrowArrayReaderVisit(reader, &array_view, 0, array->length, &visitor);
+      errno_code = GeoArrowArrayReaderVisit(reader, 0, array->length, &visitor);
       if (errno_code != GEOARROW_OK) {
         Rf_error("[GeoArrowArrayViewVisit] %s", error.message);
       }

@@ -3,7 +3,7 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include "geoarrow.h"
+#include "geoarrow/geoarrow.h"
 #include "wk-v1.h"
 
 #define RETURN_ABORT_NOT_OK(expr) \

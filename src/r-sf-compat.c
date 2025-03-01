@@ -2,7 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include "geoarrow.h"
+#include "geoarrow/geoarrow.h"
 
 static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
                                      int level, int32_t* current_offsets) {

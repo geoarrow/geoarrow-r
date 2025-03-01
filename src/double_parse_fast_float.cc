@@ -1,5 +1,5 @@
 
-#include "geoarrow.h"
+#include "geoarrow/geoarrow.h"
 
 #if defined(GEOARROW_USE_FAST_FLOAT) && GEOARROW_USE_FAST_FLOAT
 
