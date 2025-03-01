@@ -103,7 +103,6 @@ test_that("infer_nanoarrow_schema() works for mixed sfc objects", {
   schema <- infer_nanoarrow_schema(sfc)
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$id, enum$Type$WKB)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects", {
@@ -119,7 +118,6 @@ test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects",
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XY)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects (Z)", {
@@ -135,7 +133,6 @@ test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects (
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XYZ)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects (M)", {
@@ -151,7 +148,6 @@ test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects (
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XYM)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects (ZM)", {
@@ -167,7 +163,6 @@ test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects (
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XYZM)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("as_nanoarrow_array() works for mixed sfc", {

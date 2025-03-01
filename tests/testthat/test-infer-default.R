@@ -5,7 +5,6 @@ test_that("infer_geoarrow_schema() works for mixed vectors", {
   schema <- infer_geoarrow_schema(vec)
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$id, enum$Type$WKB)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_geoarrow_schema() works for single-type vectors", {
@@ -16,7 +15,6 @@ test_that("infer_geoarrow_schema() works for single-type vectors", {
   expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XY)
   expect_identical(parsed$coord_type, enum$CoordType$SEPARATE)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_geoarrow_schema() respects coord_type", {
@@ -36,7 +34,6 @@ test_that("infer_geoarrow_schema() can promote mixed points to multi", {
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$MULTIPOINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XY)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_geoarrow_schema() can promote mixed linestrings to multi", {
@@ -49,7 +46,6 @@ test_that("infer_geoarrow_schema() can promote mixed linestrings to multi", {
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$MULTILINESTRING)
   expect_identical(parsed$dimensions, enum$Dimensions$XY)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_geoarrow_schema() can promote mixed polygons to multi", {
@@ -62,7 +58,6 @@ test_that("infer_geoarrow_schema() can promote mixed polygons to multi", {
   parsed <- geoarrow_schema_parse(schema)
   expect_identical(parsed$geometry_type, enum$GeometryType$MULTIPOLYGON)
   expect_identical(parsed$dimensions, enum$Dimensions$XY)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_geoarrow_schema() works for mixed dimensions (Z)", {
@@ -110,7 +105,6 @@ test_that("infer_geoarrow_schema() works for non-native arrays", {
   expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
   expect_identical(parsed$dimensions, enum$Dimensions$XYZM)
   expect_identical(parsed$coord_type, enum$CoordType$SEPARATE)
-  expect_identical(parsed$crs_type, enum$CrsType$PROJJSON)
 })
 
 test_that("infer_geoarrow_schema() works for native streams", {

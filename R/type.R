@@ -361,7 +361,10 @@ enum <- list(
   CrsType = list(
     NONE = 0L,
     UNKNOWN = 1L,
-    PROJJSON = 2L
+    PROJJSON = 2L,
+    WKT2_2019 = 3L,
+    AUTHORITY_CODE = 4L,
+    SRID = 5L
   ),
   EdgeType = list(
     PLANAR = 0L,
