@@ -2,7 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 
-#include "geoarrow.h"
+#include "geoarrow/geoarrow.h"
 
 SEXP geoarrow_c_make_type(SEXP geometry_type_sexp, SEXP dimensions_sexp,
                           SEXP coord_type_sexp) {

@@ -1,13 +1,13 @@
 
-rm src/geoarrow*
+# rm src/geoarrow*
 
-GEOARROW_C_REF="b677e8478bd24bb2d6534d23dc289a7619f9afa9"
+# GEOARROW_C_REF="4a755ea6a09b8e842a9ccaef6ef05e6e3870f973"
 
-curl -L \
-    "https://github.com/geoarrow/geoarrow-c/archive/${GEOARROW_C_REF}.zip" \
-    -o geoarrow.zip
+# curl -L \
+#     "https://github.com/geoarrow/geoarrow-c/archive/${GEOARROW_C_REF}.zip" \
+#     -o geoarrow.zip
 
-unzip -d . geoarrow.zip
+# unzip -d . geoarrow.zip
 
 CMAKE_DIR=$(find . -name "geoarrow-c-*")
 
@@ -20,10 +20,6 @@ cmake --build .
 cmake --install . --prefix=../src
 popd
 
-# Mangle -Wunused pragmas since they are there for a good reason
-sed -i.bak -e "s|#pragma|/*ignore*/#pragma|" src/geoarrow.c
-rm src/geoarrow.c.bak
-
 rm geoarrow.zip
-rm -rf geoarrow-c-*
+# rm -rf geoarrow-c-*
 rm -rf geoarrow-cmake
