@@ -1,45 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/404.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/index.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/as_geoarrow_array.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/as_geoarrow_vctr.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow-package.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_handle.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_schema_parse.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_wkb.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/infer_geoarrow_schema.html</loc>
-  </url>
-  <url>
-    <loc>https://geoarrow.org/geoarrow-r/reference/na_extension_wkb.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://geoarrow.org/geoarrow-r/404.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/LICENSE.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/authors.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/index.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/news/index.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/as_geoarrow_array.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/as_geoarrow_vctr.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/geoarrow-package.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_handle.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_schema_parse.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/geoarrow_wkb.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/index.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/infer_geoarrow_schema.html</loc></url>
+<url><loc>https://geoarrow.org/geoarrow-r/reference/na_extension_wkb.html</loc></url>
 </urlset>
+
