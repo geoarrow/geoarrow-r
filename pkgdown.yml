@@ -2,7 +2,7 @@ pandoc: 3.1.11
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2025-03-05T05:20Z
+last_built: 2025-03-05T05:48Z
 urls:
   reference: https://geoarrow.org/geoarrow-r/reference
   article: https://geoarrow.org/geoarrow-r/articles
