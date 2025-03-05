@@ -297,7 +297,7 @@ na_extension_metadata_internal <- function(crs, edges) {
 }
 
 sanitize_crs <- function(crs = NULL) {
-  if (is.null(crs)) {
+  if (is.null(crs) || isTRUE(try(is.na(crs), silent = TRUE))) {
     return(list(crs_type = enum$CrsType$NONE, crs = ""))
   }
 
