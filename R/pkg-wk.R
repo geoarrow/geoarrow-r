@@ -87,6 +87,24 @@ as_geoarrow_array.wk_xy <- function(x, ..., schema = NULL) {
   )
 }
 
+#' @export
+as_geoarrow_array.wk_rct <- function(x, ..., schema = NULL) {
+  if (!is.null(schema)) {
+    schema <- nanoarrow::as_nanoarrow_schema(schema)
+    if (!identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.box")) {
+      return(NextMethod())
+    }
+  }
+
+  schema <- nanoarrow::infer_nanoarrow_schema(x)
+  data <- unclass(x)
+  geoarrow_array_from_buffers(
+    schema,
+    # Treating NULLs as EMPTY for now
+    c(list(NULL), data)
+  )
+}
+
 #' @importFrom nanoarrow infer_nanoarrow_schema
 #' @export
 infer_nanoarrow_schema.wk_wkt <- function(x, ...) {
@@ -113,6 +131,12 @@ infer_nanoarrow_schema.wk_xy <- function(x, ...) {
   data <- unclass(x)
   dims <- paste0(toupper(names(data)), collapse = "")
   wk_geoarrow_schema(x, na_extension_geoarrow, "POINT", dimensions = dims)
+}
+
+#' @importFrom nanoarrow infer_nanoarrow_schema
+#' @export
+infer_nanoarrow_schema.wk_rct <- function(x, ...) {
+  wk_geoarrow_schema(x, na_extension_geoarrow, "BOX", dimensions = "XY")
 }
 
 #' @export
@@ -168,6 +192,26 @@ convert_array.wk_xy <- function(array, to, ...) {
   wk::wk_crs(out) <- wk::wk_crs_output(vctr, to)
   wk::wk_is_geodesic(out) <- wk::wk_is_geodesic_output(vctr, to)
   wk::as_xy(out, dims = names(unclass(to)))
+}
+
+#' @export
+convert_array.wk_rct <- function(array, to, ...) {
+  schema <- nanoarrow::infer_nanoarrow_schema(array)
+  geo <- geoarrow_schema_parse(schema)
+  vctr <- as_geoarrow_vctr(array)
+
+  if (geo$extension_name != "geoarrow.box") {
+    stop(sprintf("Can't convert GeoArrow extension '%s' to wk::rct()"))
+  }
+
+  storage <- nanoarrow::convert_array(force_array_storage(array))
+  out <- wk::rct(storage$xmin, storage$ymin, storage$xmax, storage$ymax)
+  if (length(storage) > 4) {
+    warning("Dropping Z and/or M dimensions of geoarrow.box")
+  }
+
+  wk::wk_crs(out) <- wk::wk_crs_output(vctr, to)
+  out
 }
 
 wk_geoarrow_schema <- function(x, type_constructor, ...) {

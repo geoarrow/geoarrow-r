@@ -28,6 +28,13 @@ test_that("nanoarrow_schema can be created for native types", {
   expect_identical(schema_point$metadata[["ARROW:extension:metadata"]], "{}")
 })
 
+test_that("nanoarrow_schema can be created for box type", {
+  schema_box <- na_extension_geoarrow("BOX")
+  expect_identical(schema_box$format, "+s")
+  expect_identical(schema_box$metadata[["ARROW:extension:name"]], "geoarrow.box")
+  expect_identical(schema_box$metadata[["ARROW:extension:metadata"]], "{}")
+})
+
 test_that("nanoarrow_schema create errors for invalid combinations of parameters", {
   expect_error(
     na_extension_geoarrow("GEOMETRY"),
@@ -116,6 +123,11 @@ test_that("vctr type constructors create the correct types", {
   expect_identical(
     geoarrow_schema_parse(geoarrow_multipolygon()),
     geoarrow_schema_parse(na_extension_geoarrow("MULTIPOLYGON"))
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_box()),
+    geoarrow_schema_parse(na_extension_geoarrow("BOX"))
   )
 })
 

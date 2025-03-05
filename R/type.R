@@ -198,6 +198,15 @@ geoarrow_multipolygon <- function(dimensions = "XY",
                   crs = crs, edges = edges)
 }
 
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_box <- function(dimensions = "XY",
+                         coord_type = "SEPARATE",
+                         crs = NULL, edges = "PLANAR") {
+  geoarrow_native("BOX", dimensions = dimensions, coord_type = coord_type,
+                  crs = crs, edges = edges)
+}
+
 #' Inspect a GeoArrow schema
 #'
 #' @param schema A [nanoarrow_schema][nanoarrow::as_nanoarrow_schema]
@@ -344,7 +353,8 @@ enum <- list(
     MULTIPOINT = 4L,
     MULTILINESTRING = 5L,
     MULTIPOLYGON = 6L,
-    GEOMETRYCOLLECTION = 7L
+    GEOMETRYCOLLECTION = 7L,
+    BOX = 990L
   ),
   Dimensions = list(
     UNKNOWN = 0L,

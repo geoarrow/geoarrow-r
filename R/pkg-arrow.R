@@ -172,7 +172,8 @@ register_arrow_extension_type <- function(...) {
     na_extension_geoarrow(enum$GeometryType$POLYGON),
     na_extension_geoarrow(enum$GeometryType$MULTIPOINT),
     na_extension_geoarrow(enum$GeometryType$MULTILINESTRING),
-    na_extension_geoarrow(enum$GeometryType$MULTIPOLYGON)
+    na_extension_geoarrow(enum$GeometryType$MULTIPOLYGON),
+    na_extension_geoarrow(enum$GeometryType$BOX)
   )
 
   for (schema in representative_schemas) {
