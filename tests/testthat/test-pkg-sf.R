@@ -12,6 +12,16 @@ test_that("st_as_sfc() works for geoarrow_vctr()", {
   )
 })
 
+test_that("st_crs() is converted to missing geoarrow crs", {
+  skip_if_not_installed("sf")
+
+  empty_crs_sfc <- sf::st_sfc(sf::st_point(c(0, 1)))
+  schema <- infer_geoarrow_schema(empty_crs_sfc)
+  schema_parsed <- geoarrow_schema_parse(schema)
+  expect_identical(schema_parsed$crs, "")
+  expect_identical(schema_parsed$crs_type, enum$CrsType$NONE)
+})
+
 test_that("arrow package objects can be converted to and from sf objects", {
   skip_if_not_installed("sf")
   skip_if_not_installed("arrow")
