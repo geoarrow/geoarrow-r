@@ -175,6 +175,21 @@ test_that("infer_nanoarrow_schema() works for single-geometry type sfc objects (
   expect_identical(parsed$dimensions, enum$Dimensions$XYZM)
 })
 
+test_that("sf and sfc objects can roundtrip through nanoarrow_array/stream", {
+  skip_if_not_installed("sf")
+
+  sfc <- sf::st_sfc(
+    sf::st_point(c(1, 2)),
+    sf::st_point(c(3, 4))
+  )
+  stream <- nanoarrow::as_nanoarrow_array_stream(sfc)
+  expect_identical(sf::st_as_sfc(stream), sfc)
+
+  sf <- sf::st_as_sf(sfc)
+  stream <- nanoarrow::as_nanoarrow_array_stream(sf)
+  expect_identical(sf::st_as_sf(stream), sf)
+})
+
 test_that("as_nanoarrow_array() works for mixed sfc", {
   skip_if_not_installed("sf")
 

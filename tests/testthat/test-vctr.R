@@ -29,16 +29,29 @@ test_that("format() works for geoarrow_vctr", {
   )
 })
 
-test_that("wk crs/edge getters are implemented for geoarrow_vctr", {
+test_that("wk crs/edge getters/setters are implemented for geoarrow_vctr", {
   x <- as_geoarrow_vctr(wk::wkt(c("POINT (0 1)")))
   expect_identical(wk::wk_crs(x), NULL)
   expect_false(wk::wk_is_geodesic(x))
 
+  wk::wk_is_geodesic(x) <- TRUE
+  expect_true(wk::wk_is_geodesic(x))
+  expect_identical(wk::wk_crs(x), NULL)
+
   x <- as_geoarrow_vctr(wk::wkt(c("POINT (0 1)"), crs = "EPSG:1234"))
   expect_identical(wk::wk_crs(x), "EPSG:1234")
+  expect_false(wk::wk_is_geodesic(x))
 
-  x <- as_geoarrow_vctr(wk::wkt(c("POINT (0 1)"), geodesic = TRUE))
+  wk::wk_is_geodesic(x) <- TRUE
   expect_true(wk::wk_is_geodesic(x))
+  expect_identical(wk::wk_crs(x), "EPSG:1234")
+
+  wk::wk_is_geodesic(x) <- FALSE
+  expect_false(wk::wk_is_geodesic(x))
+
+  wk::wk_crs(x) <- NULL
+  expect_identical(wk::wk_crs(x), NULL)
+  expect_false(wk::wk_is_geodesic(x))
 })
 
 test_that("Errors occur for unsupported subset operations", {

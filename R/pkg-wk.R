@@ -16,11 +16,38 @@ wk_crs.geoarrow_vctr <- function(x) {
   }
 }
 
+#' @importFrom wk wk_set_crs
+#' @export
+wk_set_crs.geoarrow_vctr <- function(x, crs) {
+  schema <- attr(x, "schema", exact = TRUE)
+  parsed <- geoarrow_schema_parse(schema)
+  new_metadata <- na_extension_metadata_internal(crs, parsed$edge_type)
+  schema$metadata[["ARROW:extension:metadata"]] <- new_metadata
+  attr(x, "schema") <- schema
+  x
+}
+
 #' @importFrom wk wk_is_geodesic
 #' @export
 wk_is_geodesic.geoarrow_vctr <- function(x) {
   parsed <- geoarrow_schema_parse(attr(x, "schema", exact = TRUE))
-  parsed$edge_type == enum$EdgeType$SPHERICAL
+  parsed$edge_type != enum$EdgeType$PLANAR
+}
+
+#' @importFrom wk wk_set_geodesic
+#' @export
+wk_set_geodesic.geoarrow_vctr <- function(x, geodesic) {
+  is_geodesic <- wk_is_geodesic(x)
+  if (identical(is_geodesic, geodesic)) {
+    return(x)
+  }
+
+  schema <- attr(x, "schema", exact = TRUE)
+  new_edges <- if (geodesic) enum$EdgeType$SPHERICAL else enum$EdgeType$PLANAR
+  new_metadata <- na_extension_metadata_internal(wk::wk_crs(x), new_edges)
+  schema$metadata[["ARROW:extension:metadata"]] <- new_metadata
+  attr(x, "schema") <- schema
+  x
 }
 
 #' @export

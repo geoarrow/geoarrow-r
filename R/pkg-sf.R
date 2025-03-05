@@ -11,9 +11,18 @@ st_as_sfc.ChunkedArray <- function(x, ..., promote_multi = FALSE) {
 }
 
 st_as_sfc.Array <- function(x, ..., promote_multi = FALSE) {
-  vctr <- as_geoarrow_vctr(x)
-  st_as_sfc.geoarrow_vctr(vctr, ..., promote_multi = promote_multi)
+  st_as_sfc.ChunkedArray(x, ..., promote_multi = promote_multi)
 }
+
+st_as_sfc.nanoarrow_array <- function(x, ..., promote_multi = FALSE) {
+  st_as_sfc.ChunkedArray(x, ..., promote_multi = promote_multi)
+}
+
+# nolint start: object_length_linter.
+st_as_sfc.nanoarrow_array_stream <- function(x, ..., promote_multi = FALSE) {
+  st_as_sfc.ChunkedArray(x, ..., promote_multi = promote_multi)
+}
+# nolint end
 
 st_as_sf.ArrowTabular <- function(x, ..., promote_multi = FALSE) {
   # Some Arrow as.data.frame() methods still return tibbles
@@ -36,6 +45,16 @@ st_as_sf.RecordBatchReader <- function(x, ..., promote_multi = FALSE) {
 }
 
 st_as_sf.arrow_dplyr_query <- function(x, ..., promote_multi = FALSE) {
+  st_as_sf.ArrowTabular(x, ..., promote_multi = promote_multi)
+}
+
+# nolint start: object_length_linter.
+st_as_sf.nanoarrow_array_stream <- function(x, ..., promote_multi = FALSE) {
+  st_as_sf.ArrowTabular(x, ..., promote_multi = promote_multi)
+}
+# nolint end
+
+st_as_sf.nanoarrow_array <- function(x, ..., promote_multi = FALSE) {
   st_as_sf.ArrowTabular(x, ..., promote_multi = promote_multi)
 }
 
@@ -101,4 +120,10 @@ as_geoarrow_array.sfc <- function(x, ..., schema = NULL) {
 #' @export
 as_nanoarrow_array.sfc <- function(x, ..., schema = NULL) {
   as_geoarrow_array(x, ..., schema = schema)
+}
+
+#' @importFrom nanoarrow as_nanoarrow_array_stream
+#' @export
+as_nanoarrow_array_stream.sfc <- function(x, ..., schema = NULL) {
+  as_geoarrow_array_stream(x, ..., schema = schema)
 }
