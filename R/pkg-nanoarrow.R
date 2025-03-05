@@ -49,6 +49,6 @@ all_extension_names <- function() {
   c(
     "geoarrow.wkt", "geoarrow.wkb", "geoarrow.point", "geoarrow.linestring",
     "geoarrow.polygon", "geoarrow.multipoint", "geoarrow.mutlilinestring",
-    "geoarrow.multipolygon"
+    "geoarrow.multipolygon", "geoarrow.box"
   )
 }

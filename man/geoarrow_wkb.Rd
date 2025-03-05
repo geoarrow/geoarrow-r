@@ -12,6 +12,7 @@
 \alias{geoarrow_multipoint}
 \alias{geoarrow_multilinestring}
 \alias{geoarrow_multipolygon}
+\alias{geoarrow_box}
 \title{GeoArrow Types}
 \usage{
 geoarrow_wkb(crs = NULL, edges = "PLANAR")
@@ -66,6 +67,13 @@ geoarrow_multilinestring(
 )
 
 geoarrow_multipolygon(
+  dimensions = "XY",
+  coord_type = "SEPARATE",
+  crs = NULL,
+  edges = "PLANAR"
+)
+
+geoarrow_box(
   dimensions = "XY",
   coord_type = "SEPARATE",
   crs = NULL,

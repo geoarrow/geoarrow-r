@@ -164,6 +164,7 @@ geoarrow_array_from_buffers <- function(schema, buffers) {
       data = buffers[[3]],
       validity = buffers[[1]]
     ),
+    "geoarrow.box" = ,
     "geoarrow.point" = point_array_from_buffers(
       schema,
       buffers[-1],

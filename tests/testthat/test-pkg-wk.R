@@ -215,3 +215,26 @@ test_that("convert_array() works for xy()", {
     wk::xy(0, 1, crs = wk::wk_crs_projjson("OGC:CRS84"))
   )
 })
+
+test_that("convert_array() works for rct()", {
+  # Check from exact storage
+  array <- as_geoarrow_array(wk::rct(0, 1, 2, 3))
+  expect_identical(
+    convert_array(array, wk::rct()),
+    wk::rct(0, 1, 2, 3)
+  )
+
+  # Check that crs attribute is passed through
+  array <- as_geoarrow_array(wk::rct(0, 1, 2, 3, crs = "OGC:CRS84"))
+  expect_identical(
+    convert_array(array, wk::rct()),
+    wk::rct(0, 1, 2, 3, crs = wk::wk_crs_projjson("OGC:CRS84"))
+  )
+
+  # Check from something that goes through the handler/writer
+  array <- as_geoarrow_array(wk::rct(0, 1, 2, 3))
+  expect_identical(
+    convert_array(array, wk::wkt()),
+    wk::wkt("POLYGON ((0 1, 2 1, 2 3, 0 3, 0 1))")
+  )
+})
