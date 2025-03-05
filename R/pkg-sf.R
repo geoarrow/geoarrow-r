@@ -18,9 +18,11 @@ st_as_sfc.nanoarrow_array <- function(x, ..., promote_multi = FALSE) {
   st_as_sfc.ChunkedArray(x, ..., promote_multi = promote_multi)
 }
 
+# nolint start: object_length_linter.
 st_as_sfc.nanoarrow_array_stream <- function(x, ..., promote_multi = FALSE) {
   st_as_sfc.ChunkedArray(x, ..., promote_multi = promote_multi)
 }
+# nolint end
 
 st_as_sf.ArrowTabular <- function(x, ..., promote_multi = FALSE) {
   # Some Arrow as.data.frame() methods still return tibbles
@@ -46,9 +48,11 @@ st_as_sf.arrow_dplyr_query <- function(x, ..., promote_multi = FALSE) {
   st_as_sf.ArrowTabular(x, ..., promote_multi = promote_multi)
 }
 
+# nolint start: object_length_linter.
 st_as_sf.nanoarrow_array_stream <- function(x, ..., promote_multi = FALSE) {
   st_as_sf.ArrowTabular(x, ..., promote_multi = promote_multi)
 }
+# nolint end
 
 st_as_sf.nanoarrow_array <- function(x, ..., promote_multi = FALSE) {
   st_as_sf.ArrowTabular(x, ..., promote_multi = promote_multi)
