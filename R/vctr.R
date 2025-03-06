@@ -54,6 +54,58 @@ format.geoarrow_vctr <- function(x, ..., width = NULL, digits = NULL) {
   sprintf("<%s>", formatted_chr)
 }
 
+#' @export
+`[.geoarrow_vctr` <- function(x, i) {
+  tryCatch(
+    NextMethod(),
+    error = function(e) {
+      if (!startsWith(conditionMessage(e), "Can't subset nanoarrow_vctr")) {
+        stop(e)
+      }
+
+      if (!requireNamespace("arrow", quietly = TRUE)) {
+        stop("'arrow' is required to subset geoarrow_vctr with non-slice input")
+      }
+
+      chunked <- as_chunked_array.geoarrow_vctr(x)[i]
+      stream <- as_nanoarrow_array_stream(chunked)
+      nanoarrow::as_nanoarrow_vctr(stream, subclass = "geoarrow_vctr")
+    }
+  )
+}
+
+#' @export
+c.geoarrow_vctr <- function(...) {
+  dots <- list(...)
+  if (length(dots) == 1) {
+    return(dots[[1]])
+  }
+
+  wk::wk_crs_output(...)
+  wk::wk_is_geodesic_output(...)
+  streams <- lapply(dots, as_nanoarrow_array_stream)
+
+  schemas <- lapply(dots, attr, "schema")
+  parsed <- lapply(schemas, geoarrow_schema_parse)
+  ids <- unique(unlist(lapply(parsed, "[[", 1)))
+  if (length(ids) != 1) {
+    # We don't have a "cast common" operation here like we do in Python yet,
+    # so just turn them all into WKB for now
+    streams <- lapply(streams, as_geoarrow_array_stream, schema = geoarrow_wkb())
+    schemas <- lapply(streams, nanoarrow::infer_nanoarrow_schema)
+  }
+
+  collected <- lapply(streams, nanoarrow::collect_array_stream)
+  all_batches <- do.call("c", collected)
+  stream <- nanoarrow::basic_array_stream(
+    all_batches,
+    schema = schemas[[1]],
+    validate = FALSE
+  )
+
+  nanoarrow::as_nanoarrow_vctr(stream, subclass = "geoarrow_vctr")
+}
+
 # Because RStudio's viewer uses this, we want to use the potentially abbreviated
 # WKT from the format method
 #' @export
