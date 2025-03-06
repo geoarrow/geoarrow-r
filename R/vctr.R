@@ -59,6 +59,10 @@ format.geoarrow_vctr <- function(x, ..., width = NULL, digits = NULL) {
   tryCatch(
     NextMethod(),
     error = function(e) {
+      if (!startsWith(conditionMessage(e), "Can't subset nanoarrow_vctr")) {
+        stop(e)
+      }
+
       if (!requireNamespace("arrow", quietly = TRUE)) {
         stop("'arrow' is required to subset geoarrow_vctr with non-slice input")
       }
