@@ -104,7 +104,8 @@ static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
   return GEOARROW_OK;
 }
 
-static inline int builder_append_sfc_point(SEXP sfc, struct GeoArrowBuilder* builder) {
+static inline int builder_append_sfc_point(SEXP sfc, struct GeoArrowBuilder* builder,
+                                           double precision) {
   R_xlen_t n = Rf_xlength(sfc);
 
   for (int i = 0; i < builder->view.coords.n_values; i++) {
@@ -124,7 +125,7 @@ static inline int builder_append_sfc_point(SEXP sfc, struct GeoArrowBuilder* bui
         break;
       }
 
-      builder->view.coords.values[j][i] = item[j];
+      builder->view.coords.values[j][i] = make_precise(item[j], precision);
     }
 
     // Fill dimensions in builder but not in sfc with nan
@@ -141,7 +142,7 @@ static inline int builder_append_sfc_point(SEXP sfc, struct GeoArrowBuilder* bui
 static int builder_append_sfc(SEXP sfc, struct GeoArrowBuilder* builder,
                               double precision) {
   if (Rf_inherits(sfc, "sfc_POINT")) {
-    return builder_append_sfc_point(sfc, builder);
+    return builder_append_sfc_point(sfc, builder, precision);
   }
 
   R_xlen_t n = Rf_xlength(sfc);
