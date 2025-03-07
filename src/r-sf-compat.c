@@ -4,8 +4,29 @@
 
 #include "geoarrow/geoarrow.h"
 
+// From sf/src/wkb.cpp to apply the precision from attr(sfc, "precision")
+static double make_precise(double d, double precision) {
+  if (precision == 0.0) return d;
+  if (precision < 0.0) {  // round to float, 4-byte precision
+    float f = d;
+    return (double)f;
+  }
+  return round(d * precision) / precision;
+}
+
+static void make_buffer_precise(double* ptr, int size_elements, double precision) {
+  if (precision == 0) {
+    return;
+  }
+
+  for (int i = 0; i < size_elements; i++) {
+    ptr[i] = make_precise(ptr[i], precision);
+  }
+}
+
 static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
-                                     int level, int32_t* current_offsets) {
+                                     int level, int32_t* current_offsets,
+                                     double precision) {
   switch (TYPEOF(item)) {
     // Level of nesting
     case VECSXP: {
@@ -18,7 +39,8 @@ static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
       GEOARROW_RETURN_NOT_OK(
           GeoArrowBuilderOffsetAppend(builder, level, current_offsets + level, 1));
       for (int32_t i = 0; i < n; i++) {
-        builder_append_sfg(VECTOR_ELT(item, i), builder, level + 1, current_offsets);
+        builder_append_sfg(VECTOR_ELT(item, i), builder, level + 1, current_offsets,
+                           precision);
       }
       break;
     }
@@ -47,8 +69,17 @@ static inline int builder_append_sfg(SEXP item, struct GeoArrowBuilder* builder,
           break;
         }
 
+        // Copy the buffer
         GEOARROW_RETURN_NOT_OK(
             GeoArrowBuilderAppendBuffer(builder, first_coord_buffer + i, view));
+
+        // Apply precision from sfc
+        double* ordinates =
+            (double*)(builder->view.buffers[first_coord_buffer + i].data.as_uint8 +
+                      builder->view.buffers[first_coord_buffer + i].size_bytes);
+        ordinates -= n_col;
+        make_buffer_precise(ordinates, n_col, precision);
+
         view.data += view.size_bytes;
       }
 
@@ -107,7 +138,8 @@ static inline int builder_append_sfc_point(SEXP sfc, struct GeoArrowBuilder* bui
   return GEOARROW_OK;
 }
 
-static int builder_append_sfc(SEXP sfc, struct GeoArrowBuilder* builder) {
+static int builder_append_sfc(SEXP sfc, struct GeoArrowBuilder* builder,
+                              double precision) {
   if (Rf_inherits(sfc, "sfc_POINT")) {
     return builder_append_sfc_point(sfc, builder);
   }
@@ -131,7 +163,8 @@ static int builder_append_sfc(SEXP sfc, struct GeoArrowBuilder* builder) {
   // Append elements
   for (R_xlen_t i = 0; i < n; i++) {
     SEXP item = VECTOR_ELT(sfc, i);
-    GEOARROW_RETURN_NOT_OK(builder_append_sfg(item, builder, 0, current_offsets));
+    GEOARROW_RETURN_NOT_OK(
+        builder_append_sfg(item, builder, 0, current_offsets, precision));
   }
 
   builder->view.length = n;
@@ -164,6 +197,24 @@ SEXP geoarrow_c_as_nanoarrow_array_sfc(SEXP sfc, SEXP schema_xptr, SEXP array_xp
   SEXP builder_xptr = PROTECT(R_MakeExternalPtr(builder, R_NilValue, R_NilValue));
   R_RegisterCFinalizer(builder_xptr, &finalize_builder_xptr);
 
+  // Get the precision from the sf object so we can apply it if needed
+  double precision = 0;
+  SEXP precision_sym = PROTECT(Rf_install("precision"));
+  SEXP precision_sexp = Rf_getAttrib(sfc, precision_sym);
+  UNPROTECT(1);
+  if (precision_sexp != R_NilValue && Rf_length(precision_sexp) == 1) {
+    switch (TYPEOF(precision_sexp)) {
+      case INTSXP:
+        precision = (double)INTEGER(precision_sexp)[0];
+        break;
+      case REALSXP:
+        precision = REAL(precision_sexp)[0];
+        break;
+      default:
+        break;
+    }
+  }
+
   struct GeoArrowError error;
   error.message[0] = '\0';
 
@@ -174,7 +225,7 @@ SEXP geoarrow_c_as_nanoarrow_array_sfc(SEXP sfc, SEXP schema_xptr, SEXP array_xp
   }
 
   // Build the offset buffers from the various layers of nesting
-  result = builder_append_sfc(sfc, builder);
+  result = builder_append_sfc(sfc, builder, precision);
   if (result != GEOARROW_OK) {
     Rf_error("builder_append_sfc() failed to allocate memory for offset buffers");
   }
