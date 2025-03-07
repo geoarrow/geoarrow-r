@@ -238,6 +238,26 @@ test_that("as_nanoarrow_array() works for sfc_POINT", {
   )
 })
 
+test_that("as_nanoarrow_array() works for sfc_POINT with precision", {
+  skip_if_not_installed("sf")
+
+  sfc <- sf::st_sfc(
+    sf::st_point(c(1.33333333, 2.3333333)),
+    sf::st_point(c(3.33333333, 4.3333333))
+  )
+  sf::st_precision(sfc) <- 100
+
+  array <- as_nanoarrow_array(sfc)
+  expect_identical(
+    as.raw(array$children[[1]]$buffers[[2]]),
+    as.raw(nanoarrow::as_nanoarrow_buffer(c(1.33, 3.33)))
+  )
+  expect_identical(
+    as.raw(array$children[[2]]$buffers[[2]]),
+    as.raw(nanoarrow::as_nanoarrow_buffer(c(2.33, 4.33)))
+  )
+})
+
 test_that("as_nanoarrow_array() works for sfc_POINT with mixed XYZ dimensions", {
   skip_if_not_installed("sf")
 
@@ -299,6 +319,27 @@ test_that("as_nanoarrow_array() works for sfc_LINESTRING", {
   expect_identical(
     as.raw(array$children[[1]]$children[[2]]$buffers[[2]]),
     as.raw(nanoarrow::as_nanoarrow_buffer(c(2, 4)))
+  )
+})
+
+test_that("as_nanoarrow_array() works for sfc_LINESTRING with precision", {
+  skip_if_not_installed("sf")
+
+  sfc <- sf::st_sfc(
+    sf::st_linestring(
+      rbind(c(1.3333333, 2.33333333), c(3.3333333, 4.3333333))
+    )
+  )
+  sf::st_precision(sfc) <- 100
+
+  array <- as_nanoarrow_array(sfc)
+  expect_identical(
+    as.raw(array$children[[1]]$children[[1]]$buffers[[2]]),
+    as.raw(nanoarrow::as_nanoarrow_buffer(c(1.33, 3.33)))
+  )
+  expect_identical(
+    as.raw(array$children[[1]]$children[[2]]$buffers[[2]]),
+    as.raw(nanoarrow::as_nanoarrow_buffer(c(2.33, 4.33)))
   )
 })
 
