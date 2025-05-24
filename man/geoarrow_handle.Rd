@@ -21,7 +21,7 @@ geoarrow_writer(schema)
 \value{
 \itemize{
 \item \code{geoarrow_handle()}: Returns the result of \code{handler}
-\item \code{geoarrow_writer()}: Returns a \link[=as_nanoarrow_array]{nanoarrow array}
+\item \code{geoarrow_writer()}: Returns a \link[nanoarrow:as_nanoarrow_array]{nanoarrow array}
 }
 }
 \description{

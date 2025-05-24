@@ -8,7 +8,7 @@
 #'
 #' @return
 #'   - `geoarrow_handle()`: Returns the result of `handler`
-#'   - `geoarrow_writer()`: Returns a [nanoarrow array][as_nanoarrow_array]
+#'   - `geoarrow_writer()`: Returns a [nanoarrow array][nanoarrow::as_nanoarrow_array]
 #' @export
 #'
 #' @examples

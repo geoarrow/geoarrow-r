@@ -17,7 +17,7 @@ MULTI elements are in the same array.}
 \item{coord_type}{Specify the coordinate type to use if returning}
 }
 \value{
-A \link[=as_nanoarrow_schema]{nanoarrow_schema}
+A \link[nanoarrow:as_nanoarrow_schema]{nanoarrow_schema}
 }
 \description{
 Infer a GeoArrow-native type from a vector
