@@ -42,3 +42,4 @@ Suggests:
     R6,
     sf,
     testthat (>= 3.0.0)
+SystemRequirements: C++17
