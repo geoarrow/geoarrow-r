@@ -7,7 +7,7 @@
 #' @param coord_type Specify the coordinate type to use if returning
 #' @param ... Passed to S3 methods.
 #'
-#' @return A [nanoarrow_schema][as_nanoarrow_schema]
+#' @return A [nanoarrow_schema][nanoarrow::as_nanoarrow_schema]
 #' @export
 #'
 #' @examples
