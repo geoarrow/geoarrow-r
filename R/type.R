@@ -291,6 +291,14 @@ na_extension_metadata_internal <- function(crs, edges) {
 
   if (identical(edges, enum$EdgeType$SPHERICAL)) {
     metadata <- c(metadata, '"edges":"spherical"')
+  } else if (identical(edges, enum$EdgeType$VINCENTY)) {
+    metadata <- c(metadata, '"edges":"vincenty"')
+  } else if (identical(edges, enum$EdgeType$ANDOYER)) {
+    metadata <- c(metadata, '"edges":"andoyer"')
+  } else if (identical(edges, enum$EdgeType$THOMAS)) {
+    metadata <- c(metadata, '"edges":"thomas"')
+  } else if (identical(edges, enum$EdgeType$KARNEY)) {
+    metadata <- c(metadata, '"edges":"karney"')
   }
 
   sprintf("{%s}", paste(metadata, collapse = ","))
@@ -378,6 +386,10 @@ enum <- list(
   ),
   EdgeType = list(
     PLANAR = 0L,
-    SPHERICAL = 1L
+    SPHERICAL = 1L,
+    VINCENTY = 2L,
+    THOMAS = 3L,
+    ANDOYER = 4L,
+    KARNEY = 5L
   )
 )
