@@ -49,6 +49,30 @@ test_that("nanoarrow_schema can be created with metadata", {
     '{"crs":{},"edges":"spherical"}'
   )
 
+  schema <- na_extension_wkb(crs = "{}", edges = "VINCENTY")
+  expect_identical(
+    schema$metadata[["ARROW:extension:metadata"]],
+    '{"crs":{},"edges":"vincenty"}'
+  )
+
+  schema <- na_extension_wkb(crs = "{}", edges = "THOMAS")
+  expect_identical(
+    schema$metadata[["ARROW:extension:metadata"]],
+    '{"crs":{},"edges":"thomas"}'
+  )
+
+  schema <- na_extension_wkb(crs = "{}", edges = "ANDOYER")
+  expect_identical(
+    schema$metadata[["ARROW:extension:metadata"]],
+    '{"crs":{},"edges":"andoyer"}'
+  )
+
+  schema <- na_extension_wkb(crs = "{}", edges = "KARNEY")
+  expect_identical(
+    schema$metadata[["ARROW:extension:metadata"]],
+    '{"crs":{},"edges":"karney"}'
+  )
+
   schema <- na_extension_wkb(crs = "{}", edges = "PLANAR")
   expect_identical(
     schema$metadata[["ARROW:extension:metadata"]],
@@ -136,6 +160,13 @@ test_that("vctr type constructors pass parameters through", {
     geoarrow_schema_parse(geoarrow_wkb(crs = "OGC:CRS84", edges = "SPHERICAL")),
     geoarrow_schema_parse(
       na_extension_wkb(crs = "OGC:CRS84", edges = "SPHERICAL")
+    )
+  )
+
+  expect_identical(
+    geoarrow_schema_parse(geoarrow_wkb(crs = "OGC:CRS84", edges = "VINCENTY")),
+    geoarrow_schema_parse(
+      na_extension_wkb(crs = "OGC:CRS84", edges = "VINCENTY")
     )
   )
 
