@@ -5,6 +5,8 @@
 \alias{na_extension_wkt}
 \alias{na_extension_large_wkb}
 \alias{na_extension_large_wkt}
+\alias{na_extension_wkb_view}
+\alias{na_extension_wkt_view}
 \alias{na_extension_geoarrow}
 \title{Extension type definitions for GeoArrow extension types}
 \usage{
@@ -15,6 +17,10 @@ na_extension_wkt(crs = NULL, edges = "PLANAR")
 na_extension_large_wkb(crs = NULL, edges = "PLANAR")
 
 na_extension_large_wkt(crs = NULL, edges = "PLANAR")
+
+na_extension_wkb_view(crs = NULL, edges = "PLANAR")
+
+na_extension_wkt_view(crs = NULL, edges = "PLANAR")
 
 na_extension_geoarrow(
   geometry_type,

@@ -1,7 +1,7 @@
 
 rm src/geoarrow*
 
-GEOARROW_C_REF="4fa3a2c4fefd4d8bad4182e747c76c2278b40a2c"
+GEOARROW_C_REF="9a4ceeebb6ce4272450df5ff4a56c22cb3111cef"
 
 curl -L \
     "https://github.com/geoarrow/geoarrow-c/archive/${GEOARROW_C_REF}.zip" \
