@@ -1,5 +1,5 @@
 
-Fixes the issue identified on the package check page.
+Updates to latest upstream dependencies with some new features!
 
 ## R CMD check results
 
