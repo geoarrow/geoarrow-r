@@ -5,6 +5,8 @@
 \alias{geoarrow_wkt}
 \alias{geoarrow_large_wkb}
 \alias{geoarrow_large_wkt}
+\alias{geoarrow_wkb_view}
+\alias{geoarrow_wkt_view}
 \alias{geoarrow_native}
 \alias{geoarrow_point}
 \alias{geoarrow_linestring}
@@ -22,6 +24,10 @@ geoarrow_wkt(crs = NULL, edges = "PLANAR")
 geoarrow_large_wkb(crs = NULL, edges = "PLANAR")
 
 geoarrow_large_wkt(crs = NULL, edges = "PLANAR")
+
+geoarrow_wkb_view(crs = NULL, edges = "PLANAR")
+
+geoarrow_wkt_view(crs = NULL, edges = "PLANAR")
 
 geoarrow_native(
   geometry_type,
