@@ -56,6 +56,26 @@ na_extension_large_wkt <- function(crs = NULL, edges = "PLANAR") {
 
 #' @rdname na_extension_wkb
 #' @export
+na_extension_wkb_view <- function(crs = NULL, edges = "PLANAR") {
+  na_extension_geoarrow_internal(
+    enum$Type$WKB_VIEW,
+    crs = crs,
+    edges = edges
+  )
+}
+
+#' @rdname na_extension_wkb
+#' @export
+na_extension_wkt_view <- function(crs = NULL, edges = "PLANAR") {
+  na_extension_geoarrow_internal(
+    enum$Type$WKT_VIEW,
+    crs = crs,
+    edges = edges
+  )
+}
+
+#' @rdname na_extension_wkb
+#' @export
 na_extension_geoarrow <- function(geometry_type, dimensions = "XY",
                                   coord_type = "SEPARATE",
                                   crs = NULL, edges = "PLANAR") {
@@ -120,6 +140,30 @@ geoarrow_large_wkb <- function(crs = NULL, edges = "PLANAR") {
 geoarrow_large_wkt <- function(crs = NULL, edges = "PLANAR") {
   nanoarrow::nanoarrow_vctr(
     na_extension_large_wkt(
+      crs = crs,
+      edges = edges
+    ),
+    subclass = "geoarrow_vctr"
+  )
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_wkb_view <- function(crs = NULL, edges = "PLANAR") {
+  nanoarrow::nanoarrow_vctr(
+    na_extension_wkb_view(
+      crs = crs,
+      edges = edges
+    ),
+    subclass = "geoarrow_vctr"
+  )
+}
+
+#' @rdname geoarrow_wkb
+#' @export
+geoarrow_wkt_view <- function(crs = NULL, edges = "PLANAR") {
+  nanoarrow::nanoarrow_vctr(
+    na_extension_wkt_view(
       crs = crs,
       edges = edges
     ),
@@ -351,7 +395,9 @@ enum <- list(
     WKB = 100001L,
     LARGE_WKB = 100002L,
     WKT = 100003L,
-    LARGE_WKT = 100004L
+    LARGE_WKT = 100004L,
+    WKB_VIEW = 100005L,
+    WKT_VIEW = 100006L
   ),
   GeometryType = list(
     GEOMETRY = 0L,

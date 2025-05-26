@@ -418,6 +418,10 @@ class GeometryDataType {
       modifiers.push_back("large");
     }
 
+    if (id() == GEOARROW_TYPE_WKT_VIEW || id() == GEOARROW_TYPE_WKB_VIEW) {
+      modifiers.push_back("view");
+    }
+
     if (edge_type() != GEOARROW_EDGE_TYPE_PLANAR) {
       modifiers.push_back(GeoArrowEdgeTypeString(edge_type()));
     }
