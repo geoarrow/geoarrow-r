@@ -34,7 +34,15 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="geoarrow-development-version">geoarrow (development version)<a class="anchor" aria-label="anchor" href="#geoarrow-development-version"></a></h2>
-</div>
+<ul><li>Add support for the <code>geoarrow.box</code> type with conversions to and from <code><a href="https://paleolimbot.github.io/wk/reference/rct.html" class="external-link">wk::rct()</a></code> (<a href="https://github.com/geoarrow/geoarrow-r/issues/59" class="external-link">#59</a>).</li>
+<li>Implement <code><a href="https://paleolimbot.github.io/wk/reference/wk_crs.html" class="external-link">wk::wk_set_crs()</a></code> and <code><a href="https://paleolimbot.github.io/wk/reference/wk_is_geodesic.html" class="external-link">wk::wk_set_geodesic()</a></code> for the <code>geoarrow_vctr</code> class (<a href="https://github.com/geoarrow/geoarrow-r/issues/61" class="external-link">#61</a>).</li>
+<li>Fix conversion of empty <code><a href="https://r-spatial.github.io/sf/reference/st_crs.html" class="external-link">sf::st_crs()</a></code> to GeoArrow CRS (<a href="https://github.com/geoarrow/geoarrow-r/issues/60" class="external-link">#60</a>).</li>
+<li>The <code>geoarrow_vctr</code> can now be rearranged and subset with a non-slice range when the arrow package is installed (<a href="https://github.com/geoarrow/geoarrow-r/issues/62" class="external-link">#62</a>).</li>
+<li>The R package now supports extra metadata features that were introduced in the GeoArrow 0.2 specification, including non-PROJJSON CRS types and spheroidal edge interpolations (<a href="https://github.com/geoarrow/geoarrow-r/issues/57" class="external-link">#57</a>, <a href="https://github.com/geoarrow/geoarrow-r/issues/65" class="external-link">#65</a>).</li>
+<li>
+<code>geoarrow.wkb</code> and <code>geoarrow.wkt</code> extension types now support binary view and string view storage types, respectively (<a href="https://github.com/geoarrow/geoarrow-r/issues/66" class="external-link">#66</a>).</li>
+<li>Internal versions of geoarrow-c, nanoarrow, and fast_float were updated (<a href="https://github.com/geoarrow/geoarrow-r/issues/64" class="external-link">#64</a>).</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="geoarrow-021">geoarrow 0.2.1<a class="anchor" aria-label="anchor" href="#geoarrow-021"></a></h2><p class="text-muted">CRAN release: 2024-06-13</p>
 <ul><li>Fix undefined behaviour identified by UBSAN (<a href="https://github.com/geoarrow/geoarrow-r/issues/44" class="external-link">#44</a>).</li>
