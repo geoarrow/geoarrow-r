@@ -10,6 +10,11 @@ test_that("nanoarrow_schema can be created for serialized types", {
   expect_identical(schema_large_wkb$metadata[["ARROW:extension:name"]], "geoarrow.wkb")
   expect_identical(schema_large_wkb$metadata[["ARROW:extension:metadata"]], "{}")
 
+  schema_wkb_view <- na_extension_wkb_view()
+  expect_identical(schema_wkb_view$format, "vz")
+  expect_identical(schema_wkb_view$metadata[["ARROW:extension:name"]], "geoarrow.wkb")
+  expect_identical(schema_wkb_view$metadata[["ARROW:extension:metadata"]], "{}")
+
   schema_wkt <- na_extension_wkt()
   expect_identical(schema_wkt$format, "u")
   expect_identical(schema_wkt$metadata[["ARROW:extension:name"]], "geoarrow.wkt")
@@ -19,6 +24,11 @@ test_that("nanoarrow_schema can be created for serialized types", {
   expect_identical(schema_large_wkt$format, "U")
   expect_identical(schema_large_wkt$metadata[["ARROW:extension:name"]], "geoarrow.wkt")
   expect_identical(schema_large_wkt$metadata[["ARROW:extension:metadata"]], "{}")
+
+  schema_wkt_view <- na_extension_wkt_view()
+  expect_identical(schema_wkt_view$format, "vu")
+  expect_identical(schema_wkt_view$metadata[["ARROW:extension:name"]], "geoarrow.wkt")
+  expect_identical(schema_wkt_view$metadata[["ARROW:extension:metadata"]], "{}")
 })
 
 test_that("nanoarrow_schema can be created for native types", {

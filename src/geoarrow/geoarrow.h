@@ -330,6 +330,9 @@ enum GeoArrowType {
   GEOARROW_TYPE_WKT = 100003,
   GEOARROW_TYPE_LARGE_WKT = 100004,
 
+  GEOARROW_TYPE_WKB_VIEW = 100005,
+  GEOARROW_TYPE_WKT_VIEW = 100006,
+
   GEOARROW_TYPE_BOX = 990,
   GEOARROW_TYPE_BOX_Z = 1990,
   GEOARROW_TYPE_BOX_M = 2990,
@@ -1571,6 +1574,8 @@ static inline enum GeoArrowGeometryType GeoArrowGeometryTypeFromType(
     case GEOARROW_TYPE_LARGE_WKB:
     case GEOARROW_TYPE_WKT:
     case GEOARROW_TYPE_LARGE_WKT:
+    case GEOARROW_TYPE_WKB_VIEW:
+    case GEOARROW_TYPE_WKT_VIEW:
       return GEOARROW_GEOMETRY_TYPE_GEOMETRY;
 
     default:
@@ -1598,9 +1603,11 @@ static inline const char* GeoArrowExtensionNameFromType(enum GeoArrowType type) 
   switch (type) {
     case GEOARROW_TYPE_WKB:
     case GEOARROW_TYPE_LARGE_WKB:
+    case GEOARROW_TYPE_WKB_VIEW:
       return "geoarrow.wkb";
     case GEOARROW_TYPE_WKT:
     case GEOARROW_TYPE_LARGE_WKT:
+    case GEOARROW_TYPE_WKT_VIEW:
       return "geoarrow.wkt";
 
     default:
@@ -1711,8 +1718,10 @@ static inline enum GeoArrowDimensions GeoArrowDimensionsFromType(enum GeoArrowTy
     case GEOARROW_TYPE_UNINITIALIZED:
     case GEOARROW_TYPE_WKB:
     case GEOARROW_TYPE_LARGE_WKB:
+    case GEOARROW_TYPE_WKB_VIEW:
     case GEOARROW_TYPE_WKT:
     case GEOARROW_TYPE_LARGE_WKT:
+    case GEOARROW_TYPE_WKT_VIEW:
       return GEOARROW_DIMENSIONS_UNKNOWN;
 
     default:
