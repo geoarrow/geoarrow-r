@@ -1,5 +1,7 @@
 # geoarrow (development version)
 
+# geoarrow 0.3.0
+
 * Add support for the `geoarrow.box` type with conversions to
   and from `wk::rct()` (#59).
 * Implement `wk::wk_set_crs()` and `wk::wk_set_geodesic()` for the
