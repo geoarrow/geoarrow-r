@@ -1,3 +1,5 @@
+# geoarrow (development version)
+
 # geoarrow 0.3.0
 
 * Add support for the `geoarrow.box` type with conversions to
