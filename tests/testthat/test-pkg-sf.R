@@ -190,6 +190,22 @@ test_that("sf and sfc objects can roundtrip through nanoarrow_array/stream", {
   expect_identical(sf::st_as_sf(stream), sf)
 })
 
+test_that("sf objects can roundtrip through nanoarrow_array/stream with geometry type", {
+  skip_if_not_installed("sf")
+
+  sfc <- sf::st_sfc(
+    sf::st_point(c(1, 2)),
+    sf::st_point(c(3, 4))
+  )
+  sf <- sf::st_as_sf(sfc)
+  stream <- nanoarrow::as_nanoarrow_array_stream(sf, geometry_schema = geoarrow_wkb())
+  expect_identical(
+    stream$get_schema()$children$x$metadata[["ARROW:extension:name"]],
+    "geoarrow.wkb"
+  )
+  expect_identical(sf::st_as_sf(stream), sf)
+})
+
 test_that("as_nanoarrow_array() works for mixed sfc", {
   skip_if_not_installed("sf")
 
