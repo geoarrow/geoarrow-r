@@ -118,6 +118,30 @@ as_geoarrow_array.sfc <- function(x, ..., schema = NULL) {
 
 #' @importFrom nanoarrow as_nanoarrow_array
 #' @export
+as_nanoarrow_array.sf <- function(x, ..., schema = NULL, geometry_schema = NULL) {
+  if (is.null(schema)) {
+    length <- nrow(x)
+    x <- unclass(x)
+    is_geometry <- vapply(x, inherits, logical(1), "sfc")
+    x[is_geometry] <- lapply(x[is_geometry], as_geoarrow_array, schema = geometry_schema)
+    x[!is_geometry] <- lapply(x[!is_geometry], as_nanoarrow_array)
+    schema <- nanoarrow::na_struct(lapply(x, nanoarrow::infer_nanoarrow_schema))
+    array <- nanoarrow::nanoarrow_array_init(schema)
+    nanoarrow::nanoarrow_array_modify(array, list(children = x, length = length))
+  } else {
+    as_geoarrow_array(x, ..., schema = schema)
+  }
+}
+
+#' @importFrom nanoarrow as_nanoarrow_array_stream
+#' @export
+as_nanoarrow_array_stream.sf <- function(x, ..., schema = NULL, geometry_schema = NULL) {
+  array <- as_nanoarrow_array(x, ..., schema = schema, geometry_schema = geometry_schema)
+  as_nanoarrow_array_stream(array)
+}
+
+#' @importFrom nanoarrow as_nanoarrow_array
+#' @export
 as_nanoarrow_array.sfc <- function(x, ..., schema = NULL) {
   as_geoarrow_array(x, ..., schema = schema)
 }
