@@ -21,7 +21,7 @@
 #define NANOARROW_VERSION_MAJOR 0
 #define NANOARROW_VERSION_MINOR 7
 #define NANOARROW_VERSION_PATCH 0
-#define NANOARROW_VERSION "0.7.0-SNAPSHOT"
+#define NANOARROW_VERSION "0.7.0"
 
 #define NANOARROW_VERSION_INT                                        \
   (NANOARROW_VERSION_MAJOR * 10000 + NANOARROW_VERSION_MINOR * 100 + \
@@ -1236,7 +1236,7 @@ static inline void ArrowDecimalSetBytes(struct ArrowDecimal* decimal,
 #define NANOARROW_DLL __declspec(dllimport)
 #endif  // defined(NANOARROW_EXPORT_DLL)
 #elif !defined(NANOARROW_DLL)
-#if __GNUC__ >= 4
+#if defined(__GNUC__) && __GNUC__ >= 4
 #define NANOARROW_DLL __attribute__((visibility("default")))
 #else
 #define NANOARROW_DLL
