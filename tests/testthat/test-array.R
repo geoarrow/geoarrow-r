@@ -19,7 +19,9 @@ test_that("as_geoarrow_array() can specify output schema", {
 })
 
 test_that("as_geoarrow_array() propagates source crs even with output schema", {
-  array_wkt <- as_geoarrow_array(wk::wkt(c("POINT Z (0 1 2)", "POINT M (2 3 4)"), crs = "OGC:CRS84"))
+  array_wkt <- as_geoarrow_array(
+    wk::wkt(c("POINT Z (0 1 2)", "POINT M (2 3 4)"), crs = "OGC:CRS84")
+  )
   array <- as_geoarrow_array(array_wkt, schema = geoarrow_native("POINT", "XYZM"))
   schema <- nanoarrow::infer_nanoarrow_schema(array)
   parsed <- geoarrow_schema_parse(schema)

@@ -22,7 +22,8 @@ as_geoarrow_array.default <- function(x, ..., schema = NULL) {
     schema <- inferred
   } else {
     schema <- nanoarrow::as_nanoarrow_schema(schema)
-    schema$metadata[["ARROW:extension:metadata"]] <- inferred$metadata[["ARROW:extension:metadata"]]
+    schema$metadata[["ARROW:extension:metadata"]] <-
+      inferred$metadata[["ARROW:extension:metadata"]]
   }
 
   wk::wk_handle(x, geoarrow_writer(schema))
