@@ -17,10 +17,12 @@ as_geoarrow_array <- function(x, ..., schema = NULL) {
 
 #' @export
 as_geoarrow_array.default <- function(x, ..., schema = NULL) {
+  inferred <- infer_geoarrow_schema(x)
   if (is.null(schema)) {
-    schema <- infer_geoarrow_schema(x)
+    schema <- inferred
   } else {
     schema <- nanoarrow::as_nanoarrow_schema(schema)
+    schema$metadata[["ARROW:extension:metadata"]] <- inferred$metadata[["ARROW:extension:metadata"]]
   }
 
   wk::wk_handle(x, geoarrow_writer(schema))
@@ -37,15 +39,6 @@ as_geoarrow_array.nanoarrow_array <- function(x, ..., schema = NULL) {
   # If this is not already a geoarrow array, see if we can interpret it as one
   if (!is_geoarrow_schema(x_schema)) {
     x_schema <- as_geoarrow_schema(x_schema)
-
-    # Try to copy metadata from requested schema if present (e.g., so that
-    # a CRS or edge type can be assigned)
-    request_metadata <- schema$metadata[["ARROW:extension:metadata"]]
-    if (!is.null(request_metadata)) {
-      x_schema$metadata[["ARROW:extension:metadata"]] <- request_metadata
-    }
-
-    # Reinterpret the array
     x <- reinterpret_array(x, x_schema)
   }
 

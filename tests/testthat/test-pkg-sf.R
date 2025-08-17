@@ -198,12 +198,24 @@ test_that("sf objects can roundtrip through nanoarrow_array/stream with geometry
     sf::st_point(c(3, 4))
   )
   sf <- sf::st_as_sf(sfc)
+
+  # Make sure we can request geoarrow.wkb for an sf conversion
   stream <- nanoarrow::as_nanoarrow_array_stream(sf, geometry_schema = geoarrow_wkb())
   expect_identical(
     stream$get_schema()$children$x$metadata[["ARROW:extension:name"]],
     "geoarrow.wkb"
   )
   expect_identical(sf::st_as_sf(stream), sf)
+
+  # Make sure this propagates the source CRS and not a null crs
+  sf::st_crs(sf) <- "OGC:CRS84"
+  stream <- nanoarrow::as_nanoarrow_array_stream(sf, geometry_schema = geoarrow_wkb())
+  sf_roundtrip <- sf::st_as_sf(stream)
+  expect_true(sf::st_crs(sf_roundtrip) == sf::st_crs(sf))
+
+  sf::st_crs(sf) <- sf::NA_crs_
+  sf::st_crs(sf_roundtrip) <- sf::NA_crs_
+  expect_identical(sf_roundtrip, sf)
 })
 
 test_that("as_nanoarrow_array() works for mixed sfc", {
