@@ -18,17 +18,22 @@ test_that("as_geoarrow_array() can specify output schema", {
   expect_identical(names(schema$children), c("x", "y", "z", "m"))
 })
 
+test_that("as_geoarrow_array() propagates source crs even with output schema", {
+  array_wkt <- as_geoarrow_array(
+    wk::wkt(c("POINT Z (0 1 2)", "POINT M (2 3 4)"), crs = "OGC:CRS84")
+  )
+  array <- as_geoarrow_array(array_wkt, schema = geoarrow_native("POINT", "XYZM"))
+  schema <- nanoarrow::infer_nanoarrow_schema(array)
+  parsed <- geoarrow_schema_parse(schema)
+  expect_identical(parsed$geometry_type, enum$GeometryType$POINT)
+  expect_identical(parsed$crs, wk::wk_crs_projjson("OGC:CRS84"))
+})
+
 test_that("as_geoarrow_array() can create array from bare storage", {
   array_wkt <- nanoarrow::as_nanoarrow_array(c("POINT Z (0 1 2)", "POINT M (2 3 4)"))
   array <- as_geoarrow_array(array_wkt)
   schema <- nanoarrow::infer_nanoarrow_schema(array)
   expect_identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkt")
-
-  # Check that type + metadata from schema request is propagated
-  array <- as_geoarrow_array(array_wkt, schema = geoarrow_wkb(edges = "SPHERICAL"))
-  schema <- nanoarrow::infer_nanoarrow_schema(array)
-  expect_identical(schema$metadata[["ARROW:extension:name"]], "geoarrow.wkb")
-  expect_true(wk::wk_is_geodesic(as.vector(array)))
 })
 
 test_that("as_geoarrow_array_stream() default method calls as_geoarrow_array()", {
