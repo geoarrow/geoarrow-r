@@ -1,5 +1,10 @@
 # geoarrow (development version)
 
+* When converting sf objects to geoarrow, an optional geometry vctr type
+  can now be specified (e.g., to force geoarrow.wkb output) (#71).
+* The internal vendored copies of geoarrow-c and nanoarrow were updated
+  (#72).
+
 # geoarrow 0.3.0
 
 * Add support for the `geoarrow.box` type with conversions to

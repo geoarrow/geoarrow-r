@@ -81,11 +81,11 @@ vctr <- as_geoarrow_vctr(c("POINT (0 1)", "POINT (2 3)"))
 as_geoarrow_vctr(vctr, schema = infer_geoarrow_schema(vctr))
 ```
 
-There are a number of files to use as examples at <https://geoarrow.org/data> that can be read with `arrow::read_ipc_file()`:
+There are a number of files to use as examples at <https://geoarrow.org/data> that can be read with `nanoarrow::read_nanoarrow()`:
 
 ```{r}
-url <- "https://github.com/geoarrow/geoarrow-data/releases/download/v0.1.0/ns-water-basin_point.arrow"
-tab <- read_ipc_file(url, as_data_frame = FALSE)
-tab$geometry$type
+url <- "https://raw.githubusercontent.com/geoarrow/geoarrow-data/v0.2.0/natural-earth/files/natural-earth_cities.arrows"
+nanoarrow::read_nanoarrow(url) |> 
+  as.data.frame() |> 
+  head(5)
 ```
-

@@ -141,12 +141,17 @@ as_geoarrow_vctr(vctr, schema = infer_geoarrow_schema(vctr))
 
 There are a number of files to use as examples at
 <https://geoarrow.org/data> that can be read with
-`arrow::read_ipc_file()`:
+`nanoarrow::read_nanoarrow()`:
 
 ``` r
-url <- "https://github.com/geoarrow/geoarrow-data/releases/download/v0.1.0/ns-water-basin_point.arrow"
-tab <- read_ipc_file(url, as_data_frame = FALSE)
-tab$geometry$type
-#> GeometryExtensionType
-#> geoarrow.multipoint <CRS: {"$schema":"https://proj.or...
+url <- "https://raw.githubusercontent.com/geoarrow/geoarrow-data/v0.2.0/natural-earth/files/natural-earth_cities.arrows"
+nanoarrow::read_nanoarrow(url) |> 
+  as.data.frame() |> 
+  head(5)
+#>           name                         geometry
+#> 1 Vatican City  <POINT (12.4533865 41.9032822)>
+#> 2   San Marino  <POINT (12.4417702 43.9360958)>
+#> 3        Vaduz   <POINT (9.5166695 47.1337238)>
+#> 4      Lobamba <POINT (31.1999971 -26.4666675)>
+#> 5   Luxembourg   <POINT (6.1300028 49.6116604)>
 ```
