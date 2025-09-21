@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">geoarrow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -149,13 +149,18 @@
 <span><span class="fu"><a href="reference/as_geoarrow_vctr.html">as_geoarrow_vctr</a></span><span class="op">(</span><span class="va">vctr</span>, schema <span class="op">=</span> <span class="fu"><a href="reference/infer_geoarrow_schema.html">infer_geoarrow_schema</a></span><span class="op">(</span><span class="va">vctr</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; &lt;geoarrow_vctr geoarrow.point{struct}[2]&gt;</span></span>
 <span><span class="co">#&gt; [1] &lt;POINT (0 1)&gt; &lt;POINT (2 3)&gt;</span></span></code></pre></div>
-<p>There are a number of files to use as examples at <a href="https://geoarrow.org/data" class="external-link uri">https://geoarrow.org/data</a> that can be read with <code><a href="https://arrow.apache.org/docs/r/reference/read_feather.html" class="external-link">arrow::read_ipc_file()</a></code>:</p>
+<p>There are a number of files to use as examples at <a href="https://geoarrow.org/data" class="external-link uri">https://geoarrow.org/data</a> that can be read with <code><a href="https://arrow.apache.org/nanoarrow/latest/r/reference/read_nanoarrow.html" class="external-link">nanoarrow::read_nanoarrow()</a></code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://github.com/geoarrow/geoarrow-data/releases/download/v0.1.0/ns-water-basin_point.arrow"</span></span>
-<span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/read_feather.html" class="external-link">read_ipc_file</a></span><span class="op">(</span><span class="va">url</span>, as_data_frame <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">tab</span><span class="op">$</span><span class="va">geometry</span><span class="op">$</span><span class="va">type</span></span>
-<span><span class="co">#&gt; GeometryExtensionType</span></span>
-<span><span class="co">#&gt; geoarrow.multipoint &lt;CRS: {"$schema":"https://proj.or...</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">url</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/geoarrow/geoarrow-data/v0.2.0/natural-earth/files/natural-earth_cities.arrows"</span></span>
+<span><span class="fu">nanoarrow</span><span class="fu">::</span><span class="fu"><a href="https://arrow.apache.org/nanoarrow/latest/r/reference/read_nanoarrow.html" class="external-link">read_nanoarrow</a></span><span class="op">(</span><span class="va">url</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           name                         geometry</span></span>
+<span><span class="co">#&gt; 1 Vatican City  &lt;POINT (12.4533865 41.9032822)&gt;</span></span>
+<span><span class="co">#&gt; 2   San Marino  &lt;POINT (12.4417702 43.9360958)&gt;</span></span>
+<span><span class="co">#&gt; 3        Vaduz   &lt;POINT (9.5166695 47.1337238)&gt;</span></span>
+<span><span class="co">#&gt; 4      Lobamba &lt;POINT (31.1999971 -26.4666675)&gt;</span></span>
+<span><span class="co">#&gt; 5   Luxembourg   &lt;POINT (6.1300028 49.6116604)&gt;</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
