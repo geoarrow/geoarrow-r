@@ -1,4 +1,4 @@
-# geoarrow (development version)
+# geoarrow 0.4.0
 
 * When converting sf objects to geoarrow, an optional geometry vctr type
   can now be specified (e.g., to force geoarrow.wkb output) (#71).
