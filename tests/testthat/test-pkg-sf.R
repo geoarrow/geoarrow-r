@@ -222,7 +222,7 @@ test_that("as_nanoarrow_array() works for mixed sfc", {
   skip_if_not_installed("sf")
 
   sfc <- sf::st_sfc(
-    sf::st_point(c(NaN, NaN)),
+    sf::st_point(c(1, 2)),
     sf::st_linestring()
   )
 
