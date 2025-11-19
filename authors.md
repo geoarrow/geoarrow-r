@@ -18,7 +18,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/geoarrow/geoarrow-r/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/geoarrow/geoarrow-r/blob/v0.4.1/DESCRIPTION)
 
 Dunnington D (2025). *geoarrow: Extension Types for Spatial Data for Use
 with 'Arrow'*. R package version 0.4.1,
