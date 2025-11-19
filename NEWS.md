@@ -1,3 +1,7 @@
+# geoarrow 0.4.1
+
+* Fix test for updated sf dependency (#76).
+
 # geoarrow 0.4.0
 
 * When converting sf objects to geoarrow, an optional geometry vctr type
