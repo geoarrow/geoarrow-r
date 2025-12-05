@@ -2,6 +2,8 @@
 
 ## geoarrow 0.4.1
 
+CRAN release: 2025-11-19
+
 - Fix test for updated sf dependency
   ([\#76](https://github.com/geoarrow/geoarrow-r/issues/76)).
 
