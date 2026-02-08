@@ -1,5 +1,8 @@
 # geoarrow (development version)
 
+* Register correct extension name for "multilinestring" due to typo
+  (#80, #81).
+
 # geoarrow 0.4.1
 
 * Fix test for updated sf dependency (#76).
