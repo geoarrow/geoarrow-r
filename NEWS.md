@@ -1,4 +1,4 @@
-# geoarrow (development version)
+# geoarrow 0.4.2
 
 * Register correct extension name for "multilinestring" due to typo
   (#80, #81).
