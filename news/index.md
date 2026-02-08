@@ -1,5 +1,11 @@
 # Changelog
 
+## geoarrow 0.4.2
+
+- Register correct extension name for “multilinestring” due to typo
+  ([\#80](https://github.com/geoarrow/geoarrow-r/issues/80),
+  [\#81](https://github.com/geoarrow/geoarrow-r/issues/81)).
+
 ## geoarrow 0.4.1
 
 CRAN release: 2025-11-19
