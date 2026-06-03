@@ -598,7 +598,7 @@ static inline const char* ArrowTypeString(enum ArrowType type) {
     case NANOARROW_TYPE_LARGE_LIST_VIEW:
       return "large_list_view";
     default:
-      return NULL;
+      return "<invalid type identifier>";
   }
 }
 

@@ -1,5 +1,6 @@
 # geoarrow 0.4.2
 
+* Patch nanoarrow.h to fix new CRAN gcc warnings (#87).
 * Register correct extension name for "multilinestring" due to typo
   (#80, #81).
 
