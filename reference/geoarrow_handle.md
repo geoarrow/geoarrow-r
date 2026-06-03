@@ -43,23 +43,23 @@ geoarrow_writer(schema)
 ``` r
 geoarrow_handle(wk::xy(1:3, 2:4), wk::wk_debug_filter())
 #> initialize (dirty = 0  -> 1)
-#> vector_start: POINT[UNKNOWN] <0x5615feaab210> => WK_CONTINUE
-#>   feature_start (1): <0x5615feaab210>  => WK_CONTINUE
-#>     geometry_start (<none>): POINT[UNKNOWN] <0x561601231b70> => WK_CONTINUE
-#>       coord (1): <0x561601231b70> (1.000000 2.000000)  => WK_CONTINUE
+#> vector_start: POINT[UNKNOWN] <0x564caf9781a0> => WK_CONTINUE
+#>   feature_start (1): <0x564caf9781a0>  => WK_CONTINUE
+#>     geometry_start (<none>): POINT[UNKNOWN] <0x564cafcc9420> => WK_CONTINUE
+#>       coord (1): <0x564cafcc9420> (1.000000 2.000000)  => WK_CONTINUE
 #>     geometry_end (<none>)  => WK_CONTINUE
-#>   feature_end (1): <0x5615feaab210>  => WK_CONTINUE
-#>   feature_start (2): <0x5615feaab210>  => WK_CONTINUE
-#>     geometry_start (<none>): POINT[UNKNOWN] <0x561601231b70> => WK_CONTINUE
-#>       coord (1): <0x561601231b70> (2.000000 3.000000)  => WK_CONTINUE
+#>   feature_end (1): <0x564caf9781a0>  => WK_CONTINUE
+#>   feature_start (2): <0x564caf9781a0>  => WK_CONTINUE
+#>     geometry_start (<none>): POINT[UNKNOWN] <0x564cafcc9420> => WK_CONTINUE
+#>       coord (1): <0x564cafcc9420> (2.000000 3.000000)  => WK_CONTINUE
 #>     geometry_end (<none>)  => WK_CONTINUE
-#>   feature_end (2): <0x5615feaab210>  => WK_CONTINUE
-#>   feature_start (3): <0x5615feaab210>  => WK_CONTINUE
-#>     geometry_start (<none>): POINT[UNKNOWN] <0x561601231b70> => WK_CONTINUE
-#>       coord (1): <0x561601231b70> (3.000000 4.000000)  => WK_CONTINUE
+#>   feature_end (2): <0x564caf9781a0>  => WK_CONTINUE
+#>   feature_start (3): <0x564caf9781a0>  => WK_CONTINUE
+#>     geometry_start (<none>): POINT[UNKNOWN] <0x564cafcc9420> => WK_CONTINUE
+#>       coord (1): <0x564cafcc9420> (3.000000 4.000000)  => WK_CONTINUE
 #>     geometry_end (<none>)  => WK_CONTINUE
-#>   feature_end (3): <0x5615feaab210>  => WK_CONTINUE
-#> vector_end: <0x5615feaab210>
+#>   feature_end (3): <0x564caf9781a0>  => WK_CONTINUE
+#> vector_end: <0x564caf9781a0>
 #> deinitialize
 #> NULL
 wk::wk_handle(wk::xy(1:3, 2:4), geoarrow_writer(na_extension_wkt()))

@@ -2,6 +2,10 @@
 
 ## geoarrow 0.4.2
 
+CRAN release: 2026-02-08
+
+- Patch nanoarrow.h to fix new CRAN gcc warnings
+  ([\#87](https://github.com/geoarrow/geoarrow-r/issues/87)).
 - Register correct extension name for “multilinestring” due to typo
   ([\#80](https://github.com/geoarrow/geoarrow-r/issues/80),
   [\#81](https://github.com/geoarrow/geoarrow-r/issues/81)).

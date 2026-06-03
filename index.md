@@ -14,6 +14,7 @@ You can install the released version of geoarrow from
 [CRAN](https://cran.r-project.org/) with:
 
 ``` r
+
 install.packages("geoarrow")
 ```
 
@@ -21,6 +22,7 @@ You can install the development version of geoarrow from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("pak")
 pak::pak("geoarrow/geoarrow-r")
 ```
@@ -37,6 +39,7 @@ to **arrow** functions directly after
 been called.
 
 ``` r
+
 library(geoarrow)
 library(arrow, warn.conflicts = FALSE)
 library(sf)
@@ -72,6 +75,7 @@ chunked Arrow memory, which in turn implements conversions to most
 spatial types:
 
 ``` r
+
 df <- read_parquet(tf)
 df$geom
 #> <geoarrow_vctr geoarrow.multipolygon{list}[100]>
@@ -114,6 +118,7 @@ The entry point to creating arrays is
 [`as_geoarrow_vctr()`](https://geoarrow.org/geoarrow-r/reference/as_geoarrow_vctr.md):
 
 ``` r
+
 as_geoarrow_vctr(c("POINT (0 1)", "POINT (2 3)"))
 #> <geoarrow_vctr geoarrow.wkt{string}[2]>
 #> [1] <POINT (0 1)> <POINT (2 3)>
@@ -123,6 +128,7 @@ By default these do not attempt to create a new storage type; however,
 you can request a storage type or infer one from the data:
 
 ``` r
+
 as_geoarrow_vctr(c("POINT (0 1)", "POINT (2 3)"), schema = geoarrow_native("POINT"))
 #> <geoarrow_vctr geoarrow.point{struct}[2]>
 #> [1] <POINT (0 1)> <POINT (2 3)>
@@ -138,6 +144,7 @@ There are a number of files to use as examples at
 [`nanoarrow::read_nanoarrow()`](https://arrow.apache.org/nanoarrow/latest/r/reference/read_nanoarrow.html):
 
 ``` r
+
 url <- "https://raw.githubusercontent.com/geoarrow/geoarrow-data/v0.2.0/natural-earth/files/natural-earth_cities.arrows"
 nanoarrow::read_nanoarrow(url) |> 
   as.data.frame() |> 
