@@ -1,3 +1,7 @@
+# geoarrow 0.4.2
+
+* Patch nanoarrow.h to fix new CRAN gcc warnings (#87).
+
 # geoarrow 0.4.1
 
 * Fix test for updated sf dependency (#76).
