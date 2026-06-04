@@ -2,6 +2,8 @@
 
 ## geoarrow 0.4.3
 
+CRAN release: 2026-06-04
+
 - Patch nanoarrow.h to fix new CRAN gcc warnings
   ([\#87](https://github.com/geoarrow/geoarrow-r/issues/87)).
 
