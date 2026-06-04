@@ -19,9 +19,9 @@
 #define NANOARROW_CONFIG_H_INCLUDED
 
 #define NANOARROW_VERSION_MAJOR 0
-#define NANOARROW_VERSION_MINOR 7
+#define NANOARROW_VERSION_MINOR 9
 #define NANOARROW_VERSION_PATCH 0
-#define NANOARROW_VERSION "0.7.0"
+#define NANOARROW_VERSION "0.9.0-SNAPSHOT"
 
 #define NANOARROW_VERSION_INT                                        \
   (NANOARROW_VERSION_MAJOR * 10000 + NANOARROW_VERSION_MINOR * 100 + \
@@ -181,6 +181,13 @@ struct ArrowArrayStream {
     if (NAME) return NAME;                        \
   } while (0)
 
+// __COUNTER__ is not guaranteed to be available and some compiler warnings may occur
+// if we use it (-Wc2y-extensions). We don't strictly need it because of the
+// do { ... } while(0) scoping and because we never need the return value to live
+// outside the temporary scope. Here we define a suffix that is unlikely to collide
+// with anything in EXPR.
+#define _NANOARROW_UNIQUE_SUFFIX _nanoarrow_unique_suffix
+
 #define _NANOARROW_CHECK_RANGE(x_, min_, max_) \
   NANOARROW_RETURN_NOT_OK((x_ >= min_ && x_ <= max_) ? NANOARROW_OK : EINVAL)
 
@@ -305,7 +312,8 @@ static inline void ArrowErrorSetString(struct ArrowError* error, const char* src
 /// \brief Check the result of an expression and return it if not NANOARROW_OK
 /// \ingroup nanoarrow-errors
 #define NANOARROW_RETURN_NOT_OK(EXPR) \
-  _NANOARROW_RETURN_NOT_OK_IMPL(_NANOARROW_MAKE_NAME(errno_status_, __COUNTER__), EXPR)
+  _NANOARROW_RETURN_NOT_OK_IMPL(      \
+      _NANOARROW_MAKE_NAME(errno_status_, _NANOARROW_UNIQUE_SUFFIX), EXPR)
 
 /// \brief Check the result of an expression and return it if not NANOARROW_OK,
 /// adding an auto-generated message to an ArrowError.
@@ -314,9 +322,10 @@ static inline void ArrowErrorSetString(struct ArrowError* error, const char* src
 /// This macro is used to ensure that functions that accept an ArrowError
 /// as input always set its message when returning an error code (e.g., when calling
 /// a nanoarrow function that does *not* accept ArrowError).
-#define NANOARROW_RETURN_NOT_OK_WITH_ERROR(EXPR, ERROR_EXPR) \
-  _NANOARROW_RETURN_NOT_OK_WITH_ERROR_IMPL(                  \
-      _NANOARROW_MAKE_NAME(errno_status_, __COUNTER__), EXPR, ERROR_EXPR, #EXPR)
+#define NANOARROW_RETURN_NOT_OK_WITH_ERROR(EXPR, ERROR_EXPR)                           \
+  _NANOARROW_RETURN_NOT_OK_WITH_ERROR_IMPL(                                            \
+      _NANOARROW_MAKE_NAME(errno_status_, _NANOARROW_UNIQUE_SUFFIX), EXPR, ERROR_EXPR, \
+      #EXPR)
 
 #if defined(NANOARROW_DEBUG) && !defined(NANOARROW_PRINT_AND_DIE)
 #define NANOARROW_PRINT_AND_DIE(VALUE, EXPR_STR)                                 \
@@ -343,7 +352,8 @@ static inline void ArrowErrorSetString(struct ArrowError* error, const char* src
 /// be defining the NANOARROW_PRINT_AND_DIE macro before including nanoarrow.h
 /// This macro is provided as a convenience for users and is not used internally.
 #define NANOARROW_ASSERT_OK(EXPR) \
-  _NANOARROW_ASSERT_OK_IMPL(_NANOARROW_MAKE_NAME(errno_status_, __COUNTER__), EXPR, #EXPR)
+  _NANOARROW_ASSERT_OK_IMPL(      \
+      _NANOARROW_MAKE_NAME(errno_status_, _NANOARROW_UNIQUE_SUFFIX), EXPR, #EXPR)
 
 #define _NANOARROW_DCHECK_IMPL(EXPR, EXPR_STR)          \
   do {                                                  \
@@ -502,7 +512,7 @@ enum ArrowType {
 /// \brief Get a string value of an enum ArrowType value
 /// \ingroup nanoarrow-utils
 ///
-/// Returns NULL for invalid values for type
+/// Returns "<unknown type identifier>" for invalid values for type
 static inline const char* ArrowTypeString(enum ArrowType type);
 
 static inline const char* ArrowTypeString(enum ArrowType type) {
@@ -598,7 +608,7 @@ static inline const char* ArrowTypeString(enum ArrowType type) {
     case NANOARROW_TYPE_LARGE_LIST_VIEW:
       return "large_list_view";
     default:
-      return "<invalid type identifier>";
+      return "<unknown type identifier>";
   }
 }
 
@@ -909,9 +919,6 @@ struct ArrowArrayPrivateData {
   // Variadic buffers for binary view types
   struct ArrowBuffer* variadic_buffers;
 
-  // Size of each variadic buffer in bytes
-  int64_t* variadic_buffer_sizes;
-
   // The current offset used to build list views
   int64_t list_view_offset;
 };
@@ -1133,6 +1140,17 @@ static inline void ArrowDecimalSetBytes(struct ArrowDecimal* decimal,
   NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowBufferAllocatorDefault)
 #define ArrowBufferDeallocator \
   NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowBufferDeallocator)
+#define ArrowSharedBufferInit NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSharedBufferInit)
+#define ArrowSharedBufferIsThreadSafe \
+  NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSharedBufferIsThreadSafe)
+#define ArrowSharedBufferClone \
+  NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSharedBufferClone)
+#define ArrowSharedArrayInit NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSharedArrayInit)
+#define ArrowSharedArrayRelease \
+  NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSharedArrayRelease)
+#define ArrowSharedArrayBuffer \
+  NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSharedArrayBuffer)
+#define ArrowIsSharedBuffer NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowIsSharedBuffer)
 #define ArrowErrorSet NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowErrorSet)
 #define ArrowLayoutInit NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowLayoutInit)
 #define ArrowDecimalSetDigits NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowDecimalSetDigits)
@@ -1182,6 +1200,7 @@ static inline void ArrowDecimalSetBytes(struct ArrowDecimal* decimal,
   NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowMetadataBuilderRemove)
 #define ArrowSchemaViewInit NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSchemaViewInit)
 #define ArrowSchemaToString NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowSchemaToString)
+#define ArrowArrayIsInternal NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowArrayIsInternal)
 #define ArrowArrayInitFromType \
   NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowArrayInitFromType)
 #define ArrowArrayInitFromSchema \
@@ -1202,6 +1221,8 @@ static inline void ArrowDecimalSetBytes(struct ArrowDecimal* decimal,
   NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowArrayFinishBuilding)
 #define ArrowArrayFinishBuildingDefault \
   NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowArrayFinishBuildingDefault)
+#define ArrowArrayMoveShared NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowArrayMoveShared)
+#define ArrowArrayCloneShared NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowArrayCloneShared)
 #define ArrowArrayViewInitFromType \
   NANOARROW_SYMBOL(NANOARROW_NAMESPACE, ArrowArrayViewInitFromType)
 #define ArrowArrayViewInitFromSchema \
@@ -1291,6 +1312,85 @@ NANOARROW_DLL struct ArrowBufferAllocator ArrowBufferDeallocator(
 
 /// @}
 
+/// \defgroup nanoarrow-shared-buffer Shared buffers and arrays
+///
+/// The nanoarrow library implements two kinds of shared buffers: those backed by
+/// a reference-counted ArrowBuffer and those backed by a reference-counted ArrowArray.
+/// These are useful for building ArrowArrays using buffers without copying the bytes
+/// of the source. For example the IPC implementation uses shared buffers derived from an
+/// ArrowBuffer to avoid copying buffers from an IPC message, and the Shared buffers
+/// derived from arrays are used to make a safe shallow clone of an array.
+///
+/// Reference counts are implemented using C11 atomics and not necessarily thread safe
+/// on all platforms (notably, MSVC requires `/experimental:c11atomics`). Use
+/// ArrowSharedBufferIsThreadSafe() to check for thread safety if this is needed.
+///
+/// @{
+
+/// \brief Initialize a shared buffer from an ArrowBuffer
+///
+/// If NANOARROW_OK is returned, shared is a reference-counted buffer that
+/// took ownership of src. The caller should release the shared buffer
+/// using ArrowBufferReset() when finished. The underlying data will persist
+/// until all clones have also been released.
+NANOARROW_DLL ArrowErrorCode ArrowSharedBufferInit(struct ArrowBuffer* shared,
+                                                   struct ArrowBuffer* src);
+
+/// \brief Check for shared buffer thread safety
+///
+/// Thread-safe shared buffers require C11 and the stdatomic.h header.
+/// If either are unavailable, shared buffers are still possible but
+/// the resulting arrays must not be passed to other threads to be released.
+NANOARROW_DLL int ArrowSharedBufferIsThreadSafe(void);
+
+/// \brief Check if a buffer is a shared buffer
+///
+/// Returns non-zero if buffer was created by ArrowSharedBufferInit() or
+/// obtained from ArrowSharedArrayBuffer().
+NANOARROW_DLL int ArrowIsSharedBuffer(struct ArrowBuffer* buffer);
+
+/// \brief Clone a shared buffer, incrementing its reference count
+///
+/// This creates a new ArrowBuffer that shares the same underlying data with the
+/// original shared buffer. The reference count is incremented. Returns EINVAL
+/// if shared is not a shared buffer (i.e. ArrowIsSharedBuffer() returns false).
+NANOARROW_DLL ArrowErrorCode ArrowSharedBufferClone(struct ArrowBuffer* shared,
+                                                    struct ArrowBuffer* shared_out);
+
+/// \brief An opaque handle to a shared, reference-counted ArrowArray
+struct ArrowSharedArray {
+  void* private_data;
+};
+
+/// \brief Initialize a shared array from an ArrowArray
+///
+/// Takes ownership of src (sets src->release to NULL). The shared array
+/// should be released with ArrowSharedArrayRelease() when all buffers have
+/// been extracted from the source. The original array will be released
+/// when all borrowed buffers have been released.
+NANOARROW_DLL ArrowErrorCode ArrowSharedArrayInit(struct ArrowSharedArray* shared,
+                                                  struct ArrowArray* src);
+
+/// \brief Release the caller's reference to a shared array
+///
+/// Decrements the reference count. When no more references remain
+/// (including any buffers obtained via ArrowSharedArrayBuffer()),
+/// the underlying ArrowArray is released.
+NANOARROW_DLL void ArrowSharedArrayRelease(struct ArrowSharedArray* shared);
+
+/// \brief Obtain a buffer from a shared array
+///
+/// Returns an ArrowBuffer that views buffer i of the underlying ArrowArray.
+/// If the source array was built with nanoarrow (i.e. ArrowArrayIsInternal()
+/// returns true), buffer sizes are known and propagated to the output.
+/// Otherwise the output buffer's size_bytes will be 0. The shared array's
+/// reference count is incremented. The returned buffer is compatible with
+/// ArrowSharedBufferClone().
+NANOARROW_DLL ArrowErrorCode ArrowSharedArrayBuffer(struct ArrowSharedArray* shared,
+                                                    int64_t i, struct ArrowBuffer* out);
+
+/// @}
+
 /// \brief Move the contents of an src ArrowSchema into dst and set src->release to NULL
 /// \ingroup nanoarrow-arrow-cdata
 static inline void ArrowSchemaMove(struct ArrowSchema* src, struct ArrowSchema* dst);
@@ -1322,7 +1422,7 @@ static inline ArrowErrorCode ArrowArrayStreamGetSchema(
     struct ArrowArrayStream* array_stream, struct ArrowSchema* out,
     struct ArrowError* error);
 
-/// \brief Call the get_schema callback of an ArrowArrayStream
+/// \brief Call the get_next callback of an ArrowArrayStream
 /// \ingroup nanoarrow-arrow-cdata
 ///
 /// Unlike the get_next callback, this wrapper checks the return code
@@ -1333,12 +1433,13 @@ static inline ArrowErrorCode ArrowArrayStreamGetNext(
     struct ArrowArrayStream* array_stream, struct ArrowArray* out,
     struct ArrowError* error);
 
-/// \brief Call the get_next callback of an ArrowArrayStream
+/// \brief Call the get_last_error callback of an ArrowArrayStream
 /// \ingroup nanoarrow-arrow-cdata
 ///
-/// Unlike the get_next callback, this function never returns NULL (i.e., its
-/// result is safe to use in printf-style error formatters). Null values from the
-/// original callback are reported as "<get_last_error() returned NULL>".
+/// Unlike the get_last_error callback, this function never returns NULL (i.e.,
+/// its result is safe to use in printf-style error formatters). Null values
+/// from the original callback are reported as
+/// "<get_last_error() returned NULL>".
 static inline const char* ArrowArrayStreamGetLastError(
     struct ArrowArrayStream* array_stream);
 
@@ -1993,6 +2094,12 @@ NANOARROW_DLL void ArrowArraySetValidityBitmap(struct ArrowArray* array,
 NANOARROW_DLL ArrowErrorCode ArrowArraySetBuffer(struct ArrowArray* array, int64_t i,
                                                  struct ArrowBuffer* buffer);
 
+/// \brief Add variadic buffers to a string or binary view array
+///
+/// array must have been allocated using ArrowArrayInitFromType()
+static inline ArrowErrorCode ArrowArrayAddVariadicBuffers(struct ArrowArray* array,
+                                                          int32_t n_buffers);
+
 /// \brief Get the validity bitmap of an ArrowArray
 ///
 /// array must have been allocated using ArrowArrayInitFromType()
@@ -2119,6 +2226,12 @@ static inline ArrowErrorCode ArrowArrayShrinkToFit(struct ArrowArray* array);
 NANOARROW_DLL ArrowErrorCode ArrowArrayFinishBuildingDefault(struct ArrowArray* array,
                                                              struct ArrowError* error);
 
+/// \brief Check if an ArrowArray was allocated by nanoarrow
+///
+/// Returns non-zero if array was allocated using ArrowArrayInitFromType(),
+/// ArrowArrayInitFromSchema(), or ArrowArrayInitFromArrayView().
+NANOARROW_DLL int ArrowArrayIsInternal(struct ArrowArray* array);
+
 /// \brief Finish building an ArrowArray with explicit validation
 ///
 /// Finish building with an explicit validation level. This could perform less validation
@@ -2129,6 +2242,25 @@ NANOARROW_DLL ArrowErrorCode ArrowArrayFinishBuildingDefault(struct ArrowArray* 
 NANOARROW_DLL ArrowErrorCode ArrowArrayFinishBuilding(
     struct ArrowArray* array, enum ArrowValidationLevel validation_level,
     struct ArrowError* error);
+
+/// \brief Create a shared copy of an ArrowArray
+///
+/// Recursively converts array into a version where all buffers are
+/// reference-counted. On success, shared is a new ArrowArray whose buffers
+/// are backed by ArrowSharedArray references, and array is consumed
+/// (release set to NULL). The resulting shared array can be safely moved
+/// or have its buffers cloned via ArrowSharedBufferClone().
+NANOARROW_DLL ArrowErrorCode ArrowArrayMoveShared(struct ArrowArray* array,
+                                                  struct ArrowArray* shared);
+
+/// \brief Clone a shared ArrowArray
+///
+/// Creates a new ArrowArray whose buffers share the same underlying data as
+/// the source shared array. The source must have been created by
+/// ArrowArrayMoveShared() (i.e. all buffers are reference-counted).
+/// Returns EINVAL if shared is not a shared array.
+NANOARROW_DLL ArrowErrorCode ArrowArrayCloneShared(struct ArrowArray* shared,
+                                                   struct ArrowArray* array);
 
 /// @}
 
@@ -2332,8 +2464,8 @@ NANOARROW_DLL ArrowErrorCode ArrowBasicArrayStreamInit(
 /// \brief Set the ith ArrowArray in this ArrowArrayStream.
 ///
 /// array_stream must have been initialized with ArrowBasicArrayStreamInit().
-/// This function move the ownership of array to the array_stream. i must
-/// be greater than zero and less than the value of n_arrays passed in
+/// This function moves the ownership of array to the array_stream. i must
+/// be greater than or equal to zero and less than the value of n_arrays passed in
 /// ArrowBasicArrayStreamInit(). Callers are not required to fill all
 /// n_arrays members (i.e., n_arrays is a maximum bound).
 NANOARROW_DLL void ArrowBasicArrayStreamSetArray(struct ArrowArrayStream* array_stream,
@@ -3139,8 +3271,25 @@ static inline struct ArrowBuffer* ArrowArrayBuffer(struct ArrowArray* array, int
   switch (i) {
     case 0:
       return &private_data->bitmap.buffer;
+    case 1:
+      return private_data->buffers;
     default:
-      return private_data->buffers + i - 1;
+      if (array->n_buffers > 3 && i == (array->n_buffers - 1)) {
+        // The variadic buffer sizes buffer if for a BinaryView/String view array
+        // is always stored in private_data->buffers[1]; however, from the numbered
+        // buffers perspective this is the array->buffers[array->n_buffers - 1].
+        return private_data->buffers + 1;
+      } else if (array->n_buffers > 3) {
+        // If there are one or more variadic buffers, they are stored in
+        // private_data->variadic_buffers
+        return private_data->variadic_buffers + (i - 2);
+      } else {
+        // Otherwise, we're just accessing buffer at index 2 (e.g., String/Binary
+        // data buffer or variadic sizes buffer for the case where there are no
+        // variadic buffers)
+        NANOARROW_DCHECK(i == 2);
+        return private_data->buffers + i - 1;
+      }
   }
 }
 
@@ -3373,49 +3522,65 @@ static inline ArrowErrorCode _ArrowArrayAppendEmptyInternal(struct ArrowArray* a
   }
 
   // Add appropriate buffer fill
-  struct ArrowBuffer* buffer;
-  int64_t size_bytes;
-
   for (int i = 0; i < NANOARROW_MAX_FIXED_BUFFERS; i++) {
-    buffer = ArrowArrayBuffer(array, i);
-    size_bytes = private_data->layout.element_size_bits[i] / 8;
+    struct ArrowBuffer* buffer = ArrowArrayBuffer(array, i);
+    int64_t size_bytes = private_data->layout.element_size_bits[i] / 8;
 
     switch (private_data->layout.buffer_type[i]) {
       case NANOARROW_BUFFER_TYPE_NONE:
       case NANOARROW_BUFFER_TYPE_VARIADIC_DATA:
       case NANOARROW_BUFFER_TYPE_VARIADIC_SIZE:
       case NANOARROW_BUFFER_TYPE_VALIDITY:
-        continue;
+        // These buffer types don't require initialization for empty appends:
+        // - NONE: No buffer exists
+        // - VARIADIC_*: Handled by child arrays
+        // - VALIDITY: Already handled in previous bitmap logic
+        break;
+
       case NANOARROW_BUFFER_TYPE_SIZE:
+        // Size buffers (e.g., string/array lengths) should be zero-initialized:
+        // This ensures empty elements have logical zero-length
         NANOARROW_RETURN_NOT_OK(ArrowBufferAppendFill(buffer, 0, size_bytes * n));
-        continue;
+        break;
+
       case NANOARROW_BUFFER_TYPE_DATA_OFFSET:
-        // Append the current value at the end of the offset buffer for each element
+        // Offset buffers require special handling to maintain continuity.
+        // 1. Reserve space for new offset entries
         NANOARROW_RETURN_NOT_OK(ArrowBufferReserve(buffer, size_bytes * n));
 
+        // 2. Duplicate last offset value for each new (empty) element
         for (int64_t j = 0; j < n; j++) {
           ArrowBufferAppendUnsafe(buffer, buffer->data + size_bytes * (array->length + j),
                                   size_bytes);
         }
 
-        // Skip the data buffer
+        // 3. Skip next buffer (DATA) since it's paired with offsets
+        //    Rationale: Offset buffers are always followed by data buffers
+        //    that don't require separate initialization here
         i++;
-        continue;
+        break;
+
       case NANOARROW_BUFFER_TYPE_DATA:
-        // Zero out the next bit of memory
+        // Fixed-width data buffers require zero-initialization:
         if (private_data->layout.element_size_bits[i] % 8 == 0) {
+          // Byte-aligned: use efficient memset-style fill
           NANOARROW_RETURN_NOT_OK(ArrowBufferAppendFill(buffer, 0, size_bytes * n));
         } else {
+          // Bit-packed: use special bitwise initialization
           NANOARROW_RETURN_NOT_OK(_ArrowArrayAppendBits(array, i, 0, n));
         }
-        continue;
+        break;
+
       case NANOARROW_BUFFER_TYPE_VIEW_OFFSET:
+        // View offset buffers (for string/binary view types) require zero-initialization.
         NANOARROW_RETURN_NOT_OK(ArrowBufferReserve(buffer, size_bytes * n));
         NANOARROW_RETURN_NOT_OK(ArrowBufferAppendFill(buffer, 0, size_bytes * n));
-        continue;
+        break;
+
       case NANOARROW_BUFFER_TYPE_TYPE_ID:
       case NANOARROW_BUFFER_TYPE_UNION_OFFSET:
-        // These cases return above
+        // These buffer types should have been handled by the outer type switch and
+        // are not expected here, indicating an internal logic error.
         return EINVAL;
     }
   }
@@ -3607,9 +3772,9 @@ static inline int32_t ArrowArrayVariadicBufferCount(struct ArrowArray* array) {
 }
 
 static inline ArrowErrorCode ArrowArrayAddVariadicBuffers(struct ArrowArray* array,
-                                                          int32_t nbuffers) {
+                                                          int32_t n_buffers) {
   const int32_t n_current_bufs = ArrowArrayVariadicBufferCount(array);
-  const int32_t nvariadic_bufs_needed = n_current_bufs + nbuffers;
+  const int32_t nvariadic_bufs_needed = n_current_bufs + n_buffers;
 
   struct ArrowArrayPrivateData* private_data =
       (struct ArrowArrayPrivateData*)array->private_data;
@@ -3619,19 +3784,24 @@ static inline ArrowErrorCode ArrowArrayAddVariadicBuffers(struct ArrowArray* arr
   if (private_data->variadic_buffers == NULL) {
     return ENOMEM;
   }
-  private_data->variadic_buffer_sizes = (int64_t*)ArrowRealloc(
-      private_data->variadic_buffer_sizes, sizeof(int64_t) * nvariadic_bufs_needed);
-  if (private_data->variadic_buffer_sizes == NULL) {
-    return ENOMEM;
-  }
 
-  for (int32_t i = n_current_bufs; i < nvariadic_bufs_needed; i++) {
-    ArrowBufferInit(&private_data->variadic_buffers[i]);
-    private_data->variadic_buffer_sizes[i] = 0;
-  }
   private_data->n_variadic_buffers = nvariadic_bufs_needed;
   array->n_buffers = NANOARROW_BINARY_VIEW_FIXED_BUFFERS + 1 + nvariadic_bufs_needed;
 
+  private_data->buffer_data = (const void**)ArrowRealloc(
+      private_data->buffer_data, array->n_buffers * sizeof(void*));
+
+  for (int32_t i = n_current_bufs; i < nvariadic_bufs_needed; i++) {
+    ArrowBufferInit(&private_data->variadic_buffers[i]);
+    private_data->buffer_data[NANOARROW_BINARY_VIEW_FIXED_BUFFERS + i] = NULL;
+  }
+
+  // Zero out memory for the final buffer (variadic sizes buffer we haven't built yet)
+  private_data->buffer_data[NANOARROW_BINARY_VIEW_FIXED_BUFFERS + nvariadic_bufs_needed] =
+      NULL;
+
+  // Ensure array->buffers points to a valid value
+  array->buffers = private_data->buffer_data;
   return NANOARROW_OK;
 }
 
@@ -3669,7 +3839,6 @@ static inline ArrowErrorCode ArrowArrayAppendBytes(struct ArrowArray* array,
       bvt.ref.offset = (int32_t)variadic_buf->size_bytes;
       NANOARROW_RETURN_NOT_OK(
           ArrowBufferAppend(variadic_buf, value.data.as_char, value.size_bytes));
-      private_data->variadic_buffer_sizes[buf_index] = variadic_buf->size_bytes;
     }
     NANOARROW_RETURN_NOT_OK(ArrowBufferAppend(data_buffer, &bvt, sizeof(bvt)));
   } else {
@@ -4174,6 +4343,7 @@ static inline int64_t ArrowArrayViewListChildOffset(
     const struct ArrowArrayView* array_view, int64_t i) {
   switch (array_view->storage_type) {
     case NANOARROW_TYPE_LIST:
+    case NANOARROW_TYPE_MAP:
     case NANOARROW_TYPE_LIST_VIEW:
       return array_view->buffer_views[1].data.as_int32[i];
     case NANOARROW_TYPE_LARGE_LIST:
