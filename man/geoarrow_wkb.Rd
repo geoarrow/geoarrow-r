@@ -88,7 +88,7 @@ geoarrow_box(
 }
 \arguments{
 \item{crs}{An object representing a CRS. For maximum portability,
-it should implement \code{\link[wk:wk_crs_proj_definition]{wk::wk_crs_projjson()}}.}
+it should implement \code{\link[wk:wk_crs_projjson]{wk::wk_crs_projjson()}}.}
 
 \item{edges}{One of "PLANAR" or "SPHERICAL".}
 
