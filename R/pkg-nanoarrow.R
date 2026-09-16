@@ -35,7 +35,7 @@ convert_array_extension.geoarrow_extension_spec <- function(extension_spec,
 #' @importFrom nanoarrow as_nanoarrow_array_extension
 #' @export
 as_nanoarrow_array_extension.geoarrow_extension_spec <- function(
-    extension_spec, x, ..., schema = NULL) {
+  extension_spec, x, ..., schema = NULL) {
   as_geoarrow_array(x, schema = schema)
 }
 
