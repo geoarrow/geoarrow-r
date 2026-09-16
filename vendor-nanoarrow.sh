@@ -1,7 +1,7 @@
 main() {
   local -r repo_url="https://github.com/paleolimbot/arrow-nanoarrow"
   # Check releases page: https://github.com/apache/arrow-nanoarrow/releases/
-  local -r commit_sha=99618838a17efdbd1b387c186f6698a255673bae
+  local -r commit_sha=9fad80292360d0f3978264c11ba865ccc94020d8
 
   echo "Fetching $commit_sha from $repo_url"
   SCRATCH=$(mktemp -d)

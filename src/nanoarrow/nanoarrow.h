@@ -21,7 +21,7 @@
 #define NANOARROW_VERSION_MAJOR 0
 #define NANOARROW_VERSION_MINOR 9
 #define NANOARROW_VERSION_PATCH 0
-#define NANOARROW_VERSION "0.9.0-SNAPSHOT"
+#define NANOARROW_VERSION "0.9.0"
 
 #define NANOARROW_VERSION_INT                                        \
   (NANOARROW_VERSION_MAJOR * 10000 + NANOARROW_VERSION_MINOR * 100 + \
@@ -2249,7 +2249,10 @@ NANOARROW_DLL ArrowErrorCode ArrowArrayFinishBuilding(
 /// reference-counted. On success, shared is a new ArrowArray whose buffers
 /// are backed by ArrowSharedArray references, and array is consumed
 /// (release set to NULL). The resulting shared array can be safely moved
-/// or have its buffers cloned via ArrowSharedBufferClone().
+/// or have its buffers cloned via ArrowSharedBufferClone(). On error,
+/// (e.g., failure to allocate a copy of a buffer), the input array is
+/// released as it may have been partially moved at the point the error
+/// occurs.
 NANOARROW_DLL ArrowErrorCode ArrowArrayMoveShared(struct ArrowArray* array,
                                                   struct ArrowArray* shared);
 
