@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <vector>
+#include <cerrno>
 
 #include "geoarrow/geoarrow.h"
 #include "wk-v1.h"
