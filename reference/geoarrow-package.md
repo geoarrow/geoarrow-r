@@ -22,6 +22,11 @@ Useful links:
 **Maintainer**: Dewey Dunnington <dewey@dunnington.ca>
 ([ORCID](https://orcid.org/0000-0002-9415-4582))
 
+Authors:
+
+- Dewey Dunnington <dewey@dunnington.ca>
+  ([ORCID](https://orcid.org/0000-0002-9415-4582))
+
 Other contributors:
 
 - Anthony North <anthony.jl.north@gmail.com> \[contributor\]
